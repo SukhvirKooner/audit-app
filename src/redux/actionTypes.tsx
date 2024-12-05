@@ -1,0 +1,7 @@
+export const IS_LOADING = 'IS_LOADING';
+
+export const SET_APP_THEME = 'SET_APP_THEME';
+
+export const SET_APP_LANGUAGE_LIST = 'SET_APP_LANGUAGE_LIST';
+
+export const SET_USER_APP_LANGUAGE = 'SET_USER_APP_LANGUAGE';
