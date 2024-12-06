@@ -4,6 +4,9 @@ import {useTheme} from '@react-navigation/native';
 import CustomText from '../CustomText';
 import {commonFontStyle} from '../../theme/fonts';
 import {useTranslation} from 'react-i18next';
+import PieChart from 'react-native-pie-chart';
+import {light_theme} from '../../theme/colors';
+import {useSelector} from 'react-redux';
 
 interface Props {
   data: any;
@@ -12,17 +15,35 @@ interface Props {
 
 const HomeListView = ({data, onPress}: Props) => {
   const {t} = useTranslation();
-  const {colors} = useTheme();
-  const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
+  const {colors}: any = useTheme();
+  const {fontValue} = useSelector((state: any) => state.common);
 
+  const styles = React.useMemo(
+    () => getGlobalStyles({colors, fontValue}),
+    [colors, fontValue],
+  );
+  const widthAndHeight = 30;
+  const series = [40, 100];
+  const sliceColor = [colors.mainBlue, colors.white];
   return (
     <TouchableOpacity onPress={onPress} style={styles.container}>
       <CustomText text={data.title} style={styles.titleStyle} />
       <CustomText text={data.subtitle} style={styles.subTitleStyle} />
       <View style={styles.line} />
-      <CustomText style={styles.subTitleStyle}>
-        {data?.progress} {t('Complete')}
-      </CustomText>
+      <View style={styles.row}>
+        <View style={styles.pieStyle}>
+          <PieChart
+            widthAndHeight={widthAndHeight}
+            series={series}
+            sliceColor={sliceColor}
+            coverFill={'#FFF'}
+          />
+        </View>
+
+        <CustomText style={styles.subTitleStyle}>
+          {data?.progress} {t('Complete')}
+        </CustomText>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -32,7 +53,7 @@ export default HomeListView;
 const styles = StyleSheet.create({});
 
 const getGlobalStyles = (props: any) => {
-  const {colors} = props;
+  const {colors, fontValue} = props;
   return StyleSheet.create({
     container: {
       padding: 15,
@@ -43,16 +64,29 @@ const getGlobalStyles = (props: any) => {
       gap: 8,
       paddingVertical: 25,
     },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
     titleStyle: {
-      ...commonFontStyle(600, 20, colors.black),
+      ...commonFontStyle(600, fontValue + 20, colors.black),
     },
     subTitleStyle: {
-      ...commonFontStyle(400, 14, colors.gray_7B),
+      ...commonFontStyle(400, fontValue + 14, colors.gray_7B),
     },
     line: {
       height: 1,
       backgroundColor: colors.gray_DF,
       marginVertical: 10,
+    },
+    pieStyle: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.mainBlue,
+      borderRadius: 25,
     },
   });
 };
