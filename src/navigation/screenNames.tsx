@@ -5,6 +5,7 @@ export const SCREENS = {
   AuditDetailsScreen: 'AuditDetailsScreen',
   EditProfile: 'EditProfile',
   NotificationScreen: 'NotificationScreen',
+  MapScreen: 'MapScreen',
 };
 
 interface ScreenNames {
@@ -15,6 +16,7 @@ interface ScreenNames {
   AuditDetailsScreen: string;
   EditProfile: string;
   NotificationScreen: string;
+  MapScreen: string;
 }
 
 export const screenNames: ScreenNames = {

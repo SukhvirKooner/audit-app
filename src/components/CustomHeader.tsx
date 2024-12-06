@@ -9,6 +9,7 @@ import CustomText from './CustomText';
 import {useSelector} from 'react-redux';
 
 interface Props {
+  type?: 'home' | 'other';
   title: string;
   subTitle?: string;
   showAdd?: boolean;
@@ -19,10 +20,16 @@ interface Props {
   searchIcon?: any;
   notificationIcon?: any;
   onNotificationPress?: () => void;
-  type?: 'home' | 'other';
+  downloadIcon?: any;
+  onDownloadPress?: () => void;
+  listIcon?: any;
+  onListPress?: () => void;
+  refreshIcon?: any;
+  onRefreshPress?: () => void;
 }
 
 const CustomHeader = ({
+  type = 'other',
   title,
   subTitle,
   showAdd,
@@ -33,18 +40,23 @@ const CustomHeader = ({
   searchIcon,
   notificationIcon,
   onNotificationPress,
-  type = 'other',
+  downloadIcon,
+  onDownloadPress,
+  listIcon,
+  onListPress,
+  refreshIcon,
+  onRefreshPress,
 }: Props) => {
   const {colors} = useTheme();
   const {goBack} = useNavigation();
-  const {fontValue} = useSelector(state => state.common);
+  const {fontValue} = useSelector((state: any) => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
 
   return (
-    <View style={[styles.container, {marginHorizontal: wps(16), marginTop: 5}]}>
+    <View style={[styles.container, {marginHorizontal: wps(15), marginTop: 5}]}>
       <View style={styles.container}>
         {type === 'home' ? (
           <>
@@ -58,46 +70,67 @@ const CustomHeader = ({
           <CustomImage source={Icons.ic_back} size={hps(24)} onPress={goBack} />
         )}
         {type === 'home' ? (
-          <View style={{flex: 1, marginLeft: 8}}>
+          <View style={{flex: 1}}>
             {subTitle && <CustomText text={subTitle} style={styles.text1} />}
             <CustomText numberOfLines={1} text={title} style={styles.text} />
           </View>
         ) : (
-          <View style={{flex: 1, marginLeft: 8}}>
+          <View style={{flex: 1}}>
             <CustomText numberOfLines={1} text={title} style={styles.text} />
             {subTitle && <CustomText text={subTitle} style={styles.text1} />}
           </View>
         )}
-        {notificationIcon && (
-          <CustomImage
-            source={Icons.ic_notification}
-            size={hps(45)}
-            containerStyle={{marginRight: 10}}
-            onPress={onNotificationPress}
-          />
-        )}
-        {searchIcon && (
-          <CustomImage
-            source={Icons.ic_search}
-            size={hps(45)}
-            containerStyle={{marginRight: 10}}
-            onPress={onSearchPress}
-          />
-        )}
-        {showMap && (
-          <CustomImage
-            onPress={onMapPress}
-            source={Icons.ic_map}
-            size={hps(45)}
-          />
-        )}
-        {showAdd && (
-          <CustomImage
-            onPress={onShowAddPress}
-            source={Icons.ic_add}
-            size={hps(45)}
-          />
-        )}
+        <View style={{...styles.container}}>
+          {notificationIcon && (
+            <CustomImage
+              source={Icons.ic_notification}
+              size={hps(45)}
+              onPress={onNotificationPress}
+            />
+          )}
+          {searchIcon && (
+            <CustomImage
+              source={Icons.ic_search}
+              size={hps(45)}
+              onPress={onSearchPress}
+            />
+          )}
+          {showMap && (
+            <CustomImage
+              onPress={onMapPress}
+              source={Icons.ic_map}
+              size={hps(45)}
+            />
+          )}
+          {showAdd && (
+            <CustomImage
+              onPress={onShowAddPress}
+              source={Icons.ic_add}
+              size={hps(45)}
+            />
+          )}
+          {downloadIcon && (
+            <CustomImage
+              onPress={onDownloadPress}
+              source={Icons.ic_download}
+              size={hps(45)}
+            />
+          )}
+          {listIcon && (
+            <CustomImage
+              onPress={onListPress}
+              source={Icons.ic_list}
+              size={hps(45)}
+            />
+          )}
+          {refreshIcon && (
+            <CustomImage
+              onPress={onRefreshPress}
+              source={Icons.ic_refresh}
+              size={hps(45)}
+            />
+          )}
+        </View>
       </View>
     </View>
   );
@@ -111,6 +144,8 @@ const getGlobalStyles = props => {
     container: {
       flexDirection: 'row',
       alignItems: 'center',
+      paddingBottom: 5,
+      gap: 10,
     },
     text: {
       ...commonFontStyle(600, 18 + fontValue, colors.black_B23),

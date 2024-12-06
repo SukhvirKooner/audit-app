@@ -82,19 +82,19 @@ export const homeScreenList = [
   // {
   //   title: 'Critical Alerts',
   //   subtitle: '112 Ongoing',
-  //   progress: '10%',
+  //   progress: '10',
   //   status: 'Complete',
   // },
   // {
   //   title: 'Deadlines',
   //   subtitle: '3 Today',
-  //   progress: '90%',
+  //   progress: '90',
   //   status: 'Complete',
   // },
   // {
   //   title: 'Issues',
   //   subtitle: '3 Raised Today',
-  //   progress: '10%',
+  //   progress: '10',
   //   status: 'Complete',
   // },
 ];

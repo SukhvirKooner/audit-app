@@ -7,6 +7,7 @@ import AuditScreen from '../screens/Audits/AuditScreen';
 import AuditDetailsScreen from '../screens/Audits/AuditDetailsScreen';
 import EditProfile from '../screens/Settings/EditProfile';
 import NotificationScreen from '../screens/Home/NotificationScreen';
+import MapScreen from '../screens/Home/MapScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +25,7 @@ const Navigator = () => {
         name={SCREENS.NotificationScreen}
         component={NotificationScreen}
       />
+      <Stack.Screen name={SCREENS.MapScreen} component={MapScreen} />
     </Stack.Navigator>
   );
 };

@@ -1,20 +1,13 @@
-import {
-  FlatList,
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {FlatList, SafeAreaView, StyleSheet, View} from 'react-native';
 import React from 'react';
-import {useRoute, useTheme} from '@react-navigation/native';
+import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
-import {Icons} from '../../theme/images';
-import {commonFontStyle, hps, wps} from '../../theme/fonts';
+import {commonFontStyle, wps} from '../../theme/fonts';
 import {useSelector} from 'react-redux';
 import CustomText from '../../components/CustomText';
 import {useTranslation} from 'react-i18next';
+import {SCREENS} from '../../navigation/screenNames';
 
 const audits = [
   {
@@ -39,16 +32,17 @@ const audits = [
 
 const AuditDetailsScreen = () => {
   const {t} = useTranslation();
-  const {params} = useRoute();
+  const {params}: any = useRoute();
+  const {navigate} = useNavigation();
 
   const {colors} = useTheme();
-  const {fontValue} = useSelector(state => state.common);
+  const {fontValue} = useSelector((state: any) => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
 
-  const renderAudit = ({item}) => (
+  const renderAudit = ({item}: any) => (
     <View style={styles.auditCard}>
       <CustomImage
         uri={item?.image}
@@ -71,6 +65,11 @@ const AuditDetailsScreen = () => {
         subTitle={'22 Nov 2024'}
         showMap
         searchIcon
+        onMapPress={() => {
+          navigate(SCREENS.MapScreen, {
+            headerTitle: params?.headerTitle,
+          });
+        }}
       />
       <FlatList
         data={audits}

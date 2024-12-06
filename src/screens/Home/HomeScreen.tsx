@@ -49,8 +49,8 @@ const getGlobalStyles = (props: any) => {
       backgroundColor: colors.background,
     },
     columnWrapperStyle: {
-      justifyContent: 'center',
-      // alignItems: 'center',
+      justifyContent: 'flex-start',
+      // justifyContent: 'center',
       gap: 10,
       paddingHorizontal: 10,
       paddingTop: 10,

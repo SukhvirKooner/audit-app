@@ -22,4 +22,11 @@ export const Icons = {
   ic_add: require('../assets/Icons/ic_add.png'),
   calendar: require('../assets/Icons/calendar.png'),
   ic_map: require('../assets/Icons/ic_map.png'),
+  ic_download: require('../assets/Icons/ic_download.png'),
+  ic_list: require('../assets/Icons/ic_list.png'),
+  ic_refresh: require('../assets/Icons/ic_refresh.png'),
+  map1: require('../assets/Icons/map1.png'),
+  map2: require('../assets/Icons/map2.png'),
+  plus: require('../assets/Icons/plus.png'),
+  filter: require('../assets/Icons/filter.png'),
 };
