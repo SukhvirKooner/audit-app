@@ -15,7 +15,8 @@ const CustomHeader = ({
   onSearchPress,
   onMapPress,
   onShowAddPress,
-}) => {
+  searchIcon,
+}: any) => {
   const {colors} = useTheme();
   const {goBack} = useNavigation();
   const {fontValue} = useSelector(state => state.common);
@@ -29,15 +30,17 @@ const CustomHeader = ({
       <View style={styles.container}>
         <CustomImage source={Icons.ic_back} size={hps(24)} onPress={goBack} />
         <View style={{flex: 1, marginLeft: 8}}>
-          <CustomText text={title} style={styles.text} />
-          <CustomText text={subTitle} style={styles.text1} />
+          <CustomText numberOfLines={1} text={title} style={styles.text} />
+          {subTitle && <CustomText text={subTitle} style={styles.text1} />}
         </View>
-        <CustomImage
-          source={Icons.ic_search}
-          size={hps(45)}
-          containerStyle={{marginRight: 10}}
-          onPress={onSearchPress}
-        />
+        {searchIcon && (
+          <CustomImage
+            source={Icons.ic_search}
+            size={hps(45)}
+            containerStyle={{marginRight: 10}}
+            onPress={onSearchPress}
+          />
+        )}
         {showMap && (
           <CustomImage
             onPress={onMapPress}

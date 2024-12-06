@@ -1,6 +1,7 @@
 import {
   FlatList,
   Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -67,7 +68,9 @@ const AuditScreen = () => {
   const renderAudit = ({item}) => (
     <TouchableOpacity
       onPress={() => {
-        navigationRef.navigate(screenNames.AuditDetailsScreen);
+        navigationRef.navigate(screenNames.AuditDetailsScreen, {
+          headerTitle: item.title,
+        });
       }}
       style={styles.auditCard}>
       <CustomText text={item.title} style={styles.auditTitle} />
@@ -97,15 +100,20 @@ const AuditScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <CustomHeader title={'Audits'} subTitle={'22 Nov 2024'} showMap />
+    <SafeAreaView style={styles.container}>
+      <CustomHeader
+        title={'Audits'}
+        subTitle={'22 Nov 2024'}
+        showAdd
+        searchIcon
+      />
       <FlatList
         data={audits}
         renderItem={renderAudit}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -120,6 +128,7 @@ const getGlobalStyles = props => {
     },
     listContainer: {
       padding: 16,
+      flex: 1,
     },
     viewStyle: {
       borderWidth: 0.8,

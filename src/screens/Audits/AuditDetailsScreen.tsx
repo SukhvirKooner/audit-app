@@ -1,53 +1,46 @@
-import {FlatList, Image, StyleSheet, Text, View} from 'react-native';
+import {
+  FlatList,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React from 'react';
-import {useTheme} from '@react-navigation/native';
+import {useRoute, useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
 import {Icons} from '../../theme/images';
-import {commonFontStyle, hps} from '../../theme/fonts';
+import {commonFontStyle, hps, wps} from '../../theme/fonts';
 import {useSelector} from 'react-redux';
 import CustomText from '../../components/CustomText';
+import {useTranslation} from 'react-i18next';
 
 const audits = [
   {
     id: '1',
-    title: 'Check Ambulance TS 456789',
-    description: 'Update Maintenance Check',
-    date: 'Mon, 10 July 2022',
-    avatars: [
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-    ],
+    title: 'SCH 001 KR Circle',
+    description: 'Mon, 10 July 2022',
+    image: 'https://picsum.photos/200',
   },
   {
     id: '2',
-    title: 'Site Inspection',
-    description: 'g4C Highway lane',
-    date: 'Mon, 10 July 2022',
-    avatars: [
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-    ],
+    title: 'SCH 002 KR Circle',
+    description: 'Mon, 10 July 2022',
+    image: 'https://picsum.photos/200',
   },
   {
     id: '3',
-    title: 'Traffic Signal Survey',
-    description: 'Check Road condition, report and update the status',
-    date: 'Mon, 10 July 2022',
-    avatars: [
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-    ],
+    title: 'Gopal Gowda Circle',
+    description: 'Mon, 10 July 2022',
+    image: 'https://picsum.photos/200',
   },
 ];
 
 const AuditDetailsScreen = () => {
+  const {t} = useTranslation();
+  const {params} = useRoute();
+
   const {colors} = useTheme();
   const {fontValue} = useSelector(state => state.common);
   const styles = React.useMemo(
@@ -57,42 +50,35 @@ const AuditDetailsScreen = () => {
 
   const renderAudit = ({item}) => (
     <View style={styles.auditCard}>
-      <CustomText text={item.title} style={styles.auditTitle} />
-      <CustomText text={item.description} style={styles.auditDescription} />
-      <View style={styles.viewStyle} />
-      <View style={styles.auditFooter}>
-        <View style={styles.dateRow}>
-          <CustomImage source={Icons.calendar} size={hps(24)} />
-          <CustomText text={item.date} style={styles.dateText} />
-        </View>
-        <View style={styles.avatars}>
-          {item.avatars.map((avatar, index) => (
-            <Image
-              key={index}
-              source={{uri: avatar}}
-              style={[styles.avatar, index > 2 && styles.extraAvatar]}
-            />
-          ))}
-          {item.avatars.length > 3 && (
-            <View style={styles.moreAvatar}>
-              <Text style={styles.moreText}>+{item.avatars.length - 3}</Text>
-            </View>
-          )}
-        </View>
+      <CustomImage
+        uri={item?.image}
+        size={wps(28)}
+        imageStyle={{borderRadius: wps(28)}}
+      />
+      <View>
+        <CustomText text={item.title} style={styles.auditTitle} />
+        <CustomText style={styles.auditDescription}>
+          {`${t('Last updated on')}${item.description}}`}
+        </CustomText>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <CustomHeader title={'Audits'} subTitle={'22 Nov 2024'} showMap />
+    <SafeAreaView style={styles.container}>
+      <CustomHeader
+        title={params?.headerTitle}
+        subTitle={'22 Nov 2024'}
+        showMap
+        searchIcon
+      />
       <FlatList
         data={audits}
         renderItem={renderAudit}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -122,13 +108,16 @@ const getGlobalStyles = props => {
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
     },
     auditTitle: {
-      marginBottom: 4,
+      marginBottom: 3,
       ...commonFontStyle(600, 18 + fontValue, colors.black_B23),
     },
     auditDescription: {
-      ...commonFontStyle(400, 12 + fontValue, colors.gray_7B),
+      ...commonFontStyle(400, 8 + fontValue, colors.gray_7B),
     },
     auditFooter: {
       flexDirection: 'row',
@@ -139,41 +128,6 @@ const getGlobalStyles = props => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-    },
-    dateText: {
-      ...commonFontStyle(400, 12 + fontValue, colors.black_B23),
-      marginLeft: 2,
-    },
-    avatars: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    avatar: {
-      width: 28,
-      height: 28,
-      borderRadius: 28,
-      marginLeft: -12, // Overlapping effect
-      borderWidth: 1,
-      borderColor: colors.white,
-    },
-    extraAvatar: {
-      opacity: 0.6,
-    },
-    moreAvatar: {
-      backgroundColor: colors.naveBg,
-      width: 28,
-      height: 28,
-      borderRadius: 28,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginLeft: -12,
-      borderWidth: 1,
-      borderColor: colors.white,
-    },
-    moreText: {
-      color: colors.white,
-      fontSize: 12,
-      fontWeight: 'bold',
     },
   });
 };

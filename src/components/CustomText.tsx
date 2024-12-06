@@ -10,9 +10,10 @@ interface Props {
   text?: string;
   style?: TextStyle;
   children?: any;
+  numberOfLines?: Number;
 }
 
-const CustomText = ({text, style, children}: Props) => {
+const CustomText = ({text, style, children, numberOfLines}: Props) => {
   const {t} = useTranslation();
   const {colors} = useTheme();
   const {fontValue} = useSelector(state => state.common);
@@ -22,7 +23,7 @@ const CustomText = ({text, style, children}: Props) => {
   );
 
   return (
-    <Text style={[styles.textStyle, style]}>
+    <Text numberOfLines={numberOfLines} style={[styles.textStyle, style]}>
       {children ? children : t(text)}
     </Text>
   );
