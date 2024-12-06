@@ -1,5 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import {KeyboardAvoidingView, Platform, StyleSheet, View} from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import React from 'react';
 import {light_theme} from '../../theme/colors';
 import CustomText from '../../components/CustomText';
@@ -17,7 +23,7 @@ const LoginScreen = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={hp(1)}>
@@ -61,7 +67,7 @@ const LoginScreen = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 };
 
