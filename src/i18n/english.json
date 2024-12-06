@@ -12,6 +12,15 @@
     "Home": "Home",
     "Audits": "Audits",
     "Settings": "Settings",
-    "Last updated on": "Last updated on"
+    "Last updated on": "Last updated on",
+    "Account": "Account",
+    "Notifications": "Notifications",
+    "Help": "Help",
+    "Logout": "Logout",
+    "Delete Account": "Delete Account",
+    "Are you sure you want to logout?": "Are you sure you want to logout?",
+    "Are you sure you want to Delete this Account?": "Are you sure you want to Delete this Account?",
+    "No": "No",
+    "Yes": "Yes"
   }
 }

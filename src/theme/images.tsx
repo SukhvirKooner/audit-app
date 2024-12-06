@@ -9,6 +9,13 @@ export const Icons = {
   home: require('../assets/Icons/home.png'),
   settings: require('../assets/Icons/settings.png'),
   audits: require('../assets/Icons/audits.png'),
+  edit: require('../assets/Icons/edit.png'),
+  account: require('../assets/Icons/account.png'),
+  help: require('../assets/Icons/help.png'),
+  logout: require('../assets/Icons/logout.png'),
+  delete: require('../assets/Icons/delete.png'),
+  notification: require('../assets/Icons/notification.png'),
+  close: require('../assets/Icons/close.png'),
 
   //
   ic_search: require('../assets/Icons/ic_search.png'),

@@ -3,8 +3,10 @@ export const light_theme = {
   black_1F: '#1F2128',
   black_29: '#292D32',
   black_B23: '#000B23',
+  black_T37: '#373737',
 
   white: '#ffffff',
+  red: 'red',
   background: '#F5F5F5',
   naveBg: '#054DA4',
 
@@ -19,12 +21,14 @@ export const light_theme = {
 
   red: '#DF1525',
   red_FF: '#FF0000',
+  modalBg: '#fff',
 };
 
 export const dark_theme = {
   black: '#000000',
   black_1F: '#1F2128',
   black_29: '#292D32',
+  black_T37: '#373737',
 
   white: '#ffffff',
   background: '#F5F5F5',
@@ -40,4 +44,5 @@ export const dark_theme = {
 
   red: '#DF1525',
   red_FF: '#FF0000',
+  modalBg: '#1D1E20',
 };

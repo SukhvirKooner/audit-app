@@ -3,6 +3,7 @@ export const SCREENS = {
   HomeScreen: 'HomeScreen',
   Audits: 'Audits',
   AuditDetailsScreen: 'AuditDetailsScreen',
+  EditProfile: 'EditProfile',
 };
 
 interface ScreenNames {
@@ -11,6 +12,7 @@ interface ScreenNames {
   HomeScreen: string;
   Audits: string;
   AuditDetailsScreen: string;
+  EditProfile: string;
 }
 
 export const screenNames: ScreenNames = {
