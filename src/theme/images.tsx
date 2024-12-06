@@ -9,4 +9,10 @@ export const Icons = {
   home: require('../assets/Icons/home.png'),
   settings: require('../assets/Icons/settings.png'),
   audits: require('../assets/Icons/audits.png'),
+
+  //
+  ic_search: require('../assets/Icons/ic_search.png'),
+  ic_back: require('../assets/Icons/ic_back.png'),
+  ic_add: require('../assets/Icons/ic_add.png'),
+  calendar: require('../assets/Icons/calendar.png'),
 };
