@@ -7,7 +7,15 @@ import {commonFontStyle, hp, hps, wps} from '../theme/fonts';
 import CustomText from './CustomText';
 import {useSelector} from 'react-redux';
 
-const CustomHeader = ({title, subTitle}) => {
+const CustomHeader = ({
+  title,
+  subTitle,
+  showAdd,
+  showMap,
+  onSearchPress,
+  onMapPress,
+  onShowAddPress,
+}) => {
   const {colors} = useTheme();
   const {fontValue} = useSelector(state => state.common);
   const styles = React.useMemo(
@@ -21,14 +29,28 @@ const CustomHeader = ({title, subTitle}) => {
         <CustomImage source={Icons.ic_back} size={hps(24)} />
         <View style={{flex: 1, marginLeft: 8}}>
           <CustomText text={title} style={styles.text} />
-          <Text style={styles.text1}>{subTitle}</Text>
+          <CustomText text={subTitle} style={styles.text1} />
         </View>
         <CustomImage
           source={Icons.ic_search}
           size={hps(45)}
           containerStyle={{marginRight: 10}}
+          onPress={onSearchPress}
         />
-        <CustomImage source={Icons.ic_add} size={hps(45)} />
+        {showMap && (
+          <CustomImage
+            onPress={onMapPress}
+            source={Icons.ic_map}
+            size={hps(45)}
+          />
+        )}
+        {showAdd && (
+          <CustomImage
+            onPress={onShowAddPress}
+            source={Icons.ic_add}
+            size={hps(45)}
+          />
+        )}
       </View>
     </View>
   );
@@ -44,10 +66,10 @@ const getGlobalStyles = props => {
       alignItems: 'center',
     },
     text: {
-      ...commonFontStyle(600, 18, colors.black_B23),
+      ...commonFontStyle(600, 18 + fontValue, colors.black_B23),
     },
     text1: {
-      ...commonFontStyle(400, 12, colors.gray_7B),
+      ...commonFontStyle(400, 12 + fontValue, colors.gray_7B),
       marginTop: 2,
     },
   });

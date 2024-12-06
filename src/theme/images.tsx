@@ -15,4 +15,5 @@ export const Icons = {
   ic_back: require('../assets/Icons/ic_back.png'),
   ic_add: require('../assets/Icons/ic_add.png'),
   calendar: require('../assets/Icons/calendar.png'),
+  ic_map: require('../assets/Icons/ic_map.png'),
 };

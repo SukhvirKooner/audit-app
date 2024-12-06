@@ -6,6 +6,7 @@ import CustomImage from '../../components/CustomImage';
 import {Icons} from '../../theme/images';
 import {commonFontStyle, hps} from '../../theme/fonts';
 import {useSelector} from 'react-redux';
+import CustomText from '../../components/CustomText';
 
 const audits = [
   {
@@ -54,17 +55,15 @@ const AuditScreen = () => {
     [colors, fontValue],
   );
 
-  console.log('fontValuedadas', fontValue);
-
   const renderAudit = ({item}) => (
     <View style={styles.auditCard}>
-      <Text style={styles.auditTitle}>{item.title}</Text>
-      <Text style={styles.auditDescription}>{item.description}</Text>
+      <CustomText text={item.title} style={styles.auditTitle} />
+      <CustomText text={item.description} style={styles.auditDescription} />
       <View style={styles.viewStyle} />
       <View style={styles.auditFooter}>
         <View style={styles.dateRow}>
           <CustomImage source={Icons.calendar} size={hps(24)} />
-          <Text style={styles.dateText}>{item.date}</Text>
+          <CustomText text={item.date} style={styles.dateText} />
         </View>
         <View style={styles.avatars}>
           {item.avatars.map((avatar, index) => (
@@ -86,7 +85,7 @@ const AuditScreen = () => {
 
   return (
     <View style={styles.container}>
-      <CustomHeader title={'Audits'} subTitle={'22 Nov 2024'} />
+      <CustomHeader title={'Audits'} subTitle={'22 Nov 2024'} showMap />
       <FlatList
         data={audits}
         renderItem={renderAudit}
@@ -116,9 +115,9 @@ const getGlobalStyles = props => {
     },
     auditCard: {
       backgroundColor: colors.white,
-      borderRadius: 12,
+      borderRadius: 20,
       padding: 16,
-      marginBottom: 12,
+      marginBottom: 10,
       shadowColor: colors.black,
       shadowOpacity: 0.1,
       shadowRadius: 4,
@@ -150,9 +149,9 @@ const getGlobalStyles = props => {
       alignItems: 'center',
     },
     avatar: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      width: 28,
+      height: 28,
+      borderRadius: 28,
       marginLeft: -12, // Overlapping effect
       borderWidth: 1,
       borderColor: colors.white,
@@ -162,9 +161,9 @@ const getGlobalStyles = props => {
     },
     moreAvatar: {
       backgroundColor: colors.naveBg,
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      width: 28,
+      height: 28,
+      borderRadius: 28,
       justifyContent: 'center',
       alignItems: 'center',
       marginLeft: -12,

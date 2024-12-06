@@ -29,7 +29,7 @@ const CustomImage = ({
 }: Props) => {
   return (
     <TouchableOpacity
-      activeOpacity={1}
+      // activeOpacity={1}
       onPress={onPress}
       disabled={disabled}
       style={isBorder ? styles.btnContainer : {...containerStyle}}>
