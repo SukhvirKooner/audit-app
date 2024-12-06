@@ -1,8 +1,11 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import LoginScreen from '../screens/Auth/LoginScreen';
-import {SCREENS} from './screenNames';
+import {screenNames, SCREENS} from './screenNames';
 import TabNavigator from './TabNavigator';
+import AuditScreen from '../screens/Audits/AuditScreen';
+import AuditDeatilsScreen from '../screens/Audits/AuditDetailsScreen';
+import AuditDetailsScreen from '../screens/Audits/AuditDetailsScreen';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +19,24 @@ const Navigator = () => {
       <Stack.Screen name={SCREENS.LoginScreen} component={LoginScreen} />
       <Stack.Screen name={SCREENS.HomeScreen} component={TabNavigator} />
     </Stack.Navigator>
+  );
+};
+
+export const AuditsStack = () => {
+  return (
+    <>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+        initialRouteName={'Audits'}>
+        <Stack.Screen name={'Audits'} component={AuditScreen} />
+        <Stack.Screen
+          name={screenNames.AuditDetailsScreen}
+          component={AuditDetailsScreen}
+        />
+      </Stack.Navigator>
+    </>
   );
 };
 

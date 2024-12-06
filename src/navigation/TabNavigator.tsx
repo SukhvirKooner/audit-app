@@ -9,6 +9,7 @@ import {Icons} from '../theme/images';
 import CustomImage from '../components/CustomImage';
 import {View} from 'react-native';
 import {useTheme} from '@react-navigation/native';
+import {AuditsStack} from './Navigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -59,7 +60,7 @@ const TabNavigator = () => {
         },
       })}>
       <Tab.Screen name={'Home'} component={HomeScreen} />
-      <Tab.Screen name={'Audits'} component={AuditScreen} />
+      <Tab.Screen name={'Audits'} component={AuditsStack} />
       <Tab.Screen name={'Settings'} component={SettingScreen} />
     </Tab.Navigator>
   );

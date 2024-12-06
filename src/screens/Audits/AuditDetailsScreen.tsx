@@ -1,11 +1,4 @@
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {FlatList, Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
@@ -14,8 +7,6 @@ import {Icons} from '../../theme/images';
 import {commonFontStyle, hps} from '../../theme/fonts';
 import {useSelector} from 'react-redux';
 import CustomText from '../../components/CustomText';
-import {navigationRef} from '../../navigation/RootContainer';
-import {screenNames} from '../../navigation/screenNames';
 
 const audits = [
   {
@@ -56,7 +47,7 @@ const audits = [
   },
 ];
 
-const AuditScreen = () => {
+const AuditDetailsScreen = () => {
   const {colors} = useTheme();
   const {fontValue} = useSelector(state => state.common);
   const styles = React.useMemo(
@@ -65,11 +56,7 @@ const AuditScreen = () => {
   );
 
   const renderAudit = ({item}) => (
-    <TouchableOpacity
-      onPress={() => {
-        navigationRef.navigate(screenNames.AuditDetailsScreen);
-      }}
-      style={styles.auditCard}>
+    <View style={styles.auditCard}>
       <CustomText text={item.title} style={styles.auditTitle} />
       <CustomText text={item.description} style={styles.auditDescription} />
       <View style={styles.viewStyle} />
@@ -93,7 +80,7 @@ const AuditScreen = () => {
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -109,7 +96,7 @@ const AuditScreen = () => {
   );
 };
 
-export default AuditScreen;
+export default AuditDetailsScreen;
 
 const getGlobalStyles = props => {
   const {colors, fontValue} = props;

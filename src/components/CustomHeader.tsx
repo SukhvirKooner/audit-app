@@ -1,6 +1,6 @@
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
-import {useTheme} from '@react-navigation/native';
+import {useNavigation, useTheme} from '@react-navigation/native';
 import {Icons} from '../theme/images';
 import CustomImage from './CustomImage';
 import {commonFontStyle, hp, hps, wps} from '../theme/fonts';
@@ -17,6 +17,7 @@ const CustomHeader = ({
   onShowAddPress,
 }) => {
   const {colors} = useTheme();
+  const {goBack} = useNavigation();
   const {fontValue} = useSelector(state => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -26,7 +27,7 @@ const CustomHeader = ({
   return (
     <View style={[styles.container, {marginHorizontal: wps(16), marginTop: 5}]}>
       <View style={styles.container}>
-        <CustomImage source={Icons.ic_back} size={hps(24)} />
+        <CustomImage source={Icons.ic_back} size={hps(24)} onPress={goBack} />
         <View style={{flex: 1, marginLeft: 8}}>
           <CustomText text={title} style={styles.text} />
           <CustomText text={subTitle} style={styles.text1} />
