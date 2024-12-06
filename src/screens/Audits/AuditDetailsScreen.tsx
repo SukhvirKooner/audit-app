@@ -1,4 +1,12 @@
-import {FlatList, SafeAreaView, StyleSheet, View} from 'react-native';
+import {
+  Alert,
+  FlatList,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React from 'react';
 import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';

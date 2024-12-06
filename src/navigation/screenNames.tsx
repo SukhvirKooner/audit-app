@@ -6,6 +6,9 @@ export const SCREENS = {
   EditProfile: 'EditProfile',
   NotificationScreen: 'NotificationScreen',
   MapScreen: 'MapScreen',
+  MyAccount: 'MyAccount',
+  SettingNotification: 'SettingNotification',
+  HelpScreen: 'HelpScreen',
 };
 
 interface ScreenNames {
@@ -17,6 +20,9 @@ interface ScreenNames {
   EditProfile: string;
   NotificationScreen: string;
   MapScreen: string;
+  MyAccount: string;
+  HelpScreen: string;
+  SettingNotification: string;
 }
 
 export const screenNames: ScreenNames = {

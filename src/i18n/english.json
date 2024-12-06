@@ -24,6 +24,14 @@
     "Yes": "Yes",
     "No notifications": "No notifications",
     "Username": "Username",
-    "Enter your username": "Enter your username"
+    "Enter your username": "Enter your username",
+    "My Account": "My Account",
+    "Save": "Save",
+    "Small": "Small",
+    "Default": "Default",
+    "Medium": "Medium",
+    "Large": "Large",
+    "Font size": "Font size",
+    "Theme": "Theme"
   }
 }

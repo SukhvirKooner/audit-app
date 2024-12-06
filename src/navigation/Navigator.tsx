@@ -5,9 +5,12 @@ import {screenNames, SCREENS} from './screenNames';
 import TabNavigator from './TabNavigator';
 import AuditScreen from '../screens/Audits/AuditScreen';
 import AuditDetailsScreen from '../screens/Audits/AuditDetailsScreen';
-import EditProfile from '../screens/Settings/EditProfile';
+import EditProfile from '../screens/Settings/SettingNotification';
 import NotificationScreen from '../screens/Home/NotificationScreen';
 import MapScreen from '../screens/Home/MapScreen';
+import MyAccount from '../screens/Settings/MyAccount';
+import SettingNotification from '../screens/Settings/SettingNotification';
+import HelpScreen from '../screens/Settings/HelpScreen';
 
 const Stack = createStackNavigator();
 
@@ -26,6 +29,12 @@ const Navigator = () => {
         component={NotificationScreen}
       />
       <Stack.Screen name={SCREENS.MapScreen} component={MapScreen} />
+      <Stack.Screen
+        name={SCREENS.SettingNotification}
+        component={SettingNotification}
+      />
+      <Stack.Screen name={SCREENS.HelpScreen} component={HelpScreen} />
+      <Stack.Screen name={SCREENS.MyAccount} component={MyAccount} />
     </Stack.Navigator>
   );
 };

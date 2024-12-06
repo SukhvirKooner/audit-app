@@ -1,4 +1,5 @@
 import {
+  Alert,
   FlatList,
   Image,
   SafeAreaView,
@@ -106,6 +107,12 @@ const AuditScreen = () => {
         subTitle={'22 Nov 2024'}
         showAdd
         searchIcon
+        onShowAddPress={() => {
+          Alert.alert('Open add screen');
+        }}
+        onSearchPress={() => {
+          Alert.alert('Open Search screen');
+        }}
       />
       <FlatList
         data={audits}

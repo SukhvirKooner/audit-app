@@ -19,6 +19,7 @@ interface Props {
   onShowAddPress?: () => void;
   searchIcon?: any;
   notificationIcon?: any;
+  showQrCode?: any;
   onNotificationPress?: () => void;
   downloadIcon?: any;
   onDownloadPress?: () => void;
@@ -26,6 +27,7 @@ interface Props {
   onListPress?: () => void;
   refreshIcon?: any;
   onRefreshPress?: () => void;
+  onQrCodePress?: () => void;
 }
 
 const CustomHeader = ({
@@ -46,6 +48,8 @@ const CustomHeader = ({
   onListPress,
   refreshIcon,
   onRefreshPress,
+  onQrCodePress,
+  showQrCode,
 }: Props) => {
   const {colors} = useTheme();
   const {goBack} = useNavigation();
@@ -56,7 +60,8 @@ const CustomHeader = ({
   );
 
   return (
-    <View style={[styles.container, {marginHorizontal: wps(15), marginTop: 5}]}>
+    <View
+      style={[styles.container, {marginHorizontal: wps(15), marginTop: 15}]}>
       <View style={styles.container}>
         {type === 'home' ? (
           <>
@@ -127,6 +132,13 @@ const CustomHeader = ({
             <CustomImage
               onPress={onRefreshPress}
               source={Icons.ic_refresh}
+              size={hps(45)}
+            />
+          )}
+          {showQrCode && (
+            <CustomImage
+              onPress={onQrCodePress}
+              source={Icons.ic_qr}
               size={hps(45)}
             />
           )}

@@ -7,7 +7,7 @@ interface CommonState {
 
 const initialState: CommonState = {
   isLoading: false,
-  isDarkTheme: false,
+  isDarkTheme: true,
   fontValue: 0,
 };
 

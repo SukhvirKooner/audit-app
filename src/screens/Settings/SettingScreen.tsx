@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   SafeAreaView,
   StyleSheet,
@@ -30,6 +31,8 @@ const SettingScreen = () => {
     [colors, fontValue],
   );
 
+  console.log('fontValue', fontValue);
+
   const [modalVisibleLog, setModalVisibleLog] = useState(false);
   const [modalVisibleDelete, setModalVisibleDelete] = useState(false);
 
@@ -51,20 +54,22 @@ const SettingScreen = () => {
       icon: Icons.account,
       title: 'Account',
       description: 'Privacy, security, change email or number',
-      onPress: () => navigationRef.navigate(screenNames.EditProfile),
+      onPress: () => navigationRef.navigate(screenNames.MyAccount),
     },
     {
       icon: Icons.notification,
       title: 'Notifications',
       description: 'Network usage, auto download',
       marginVertical: hps(14),
-      onPress: () => {},
+      onPress: () => navigationRef.navigate(screenNames.SettingNotification),
     },
     {
       icon: Icons.help,
       title: 'Help',
       description: 'Theme, wallpapers, chat history',
-      onPress: () => {},
+      onPress: () => {
+        navigationRef.navigate(screenNames.HelpScreen);
+      },
     },
     // {
     //   icon: Icons.delete,
@@ -77,13 +82,18 @@ const SettingScreen = () => {
       onPress: () => {
         onPressLogOut();
       },
-      // description: 'Theme, wallpapers, chat history',
     },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <CustomHeader title={'Settings'} />
+      <CustomHeader
+        title={'Settings'}
+        showQrCode
+        onQrCodePress={() => {
+          Alert.alert('Open QR code');
+        }}
+      />
       <View style={{flex: 1}}>
         <CustomImage
           uri="https://picsum.photos/200"
@@ -97,7 +107,11 @@ const SettingScreen = () => {
             text={'Good Evening!'}
             style={styles.text}
           />
-          <Image source={Icons.edit} style={styles.imageView} />
+          <TouchableOpacity
+            onPress={() => navigationRef.navigate(screenNames.MyAccount)}
+            style={styles.profileView}>
+            <Image source={Icons.edit} style={styles.imageView} />
+          </TouchableOpacity>
         </View>
         <CustomText
           numberOfLines={1}
@@ -117,6 +131,7 @@ const SettingScreen = () => {
                 source={item.icon}
                 size={32}
                 containerStyle={styles.allIconStyle}
+                imageStyle={{}}
               />
               <View>
                 <CustomText
@@ -136,18 +151,22 @@ const SettingScreen = () => {
           ))}
         </View>
       </View>
-      <View
+
+      <TouchableOpacity
         style={{
+          alignItems: 'center',
           justifyContent: 'center',
           alignSelf: 'center',
-          alignItems: 'center',
-          borderWidth: 0,
-          marginBottom: 12,
-        }}>
-        <TouchableOpacity onPress={onPressDeleteAccount}>
-          <CustomText text="Delete Account" style={styles.deleteText} />
-        </TouchableOpacity>
-      </View>
+          borderRadius: 8,
+          marginBottom: 15,
+          paddingVertical: 8,
+          paddingHorizontal: 30,
+          backgroundColor: colors.red,
+        }}
+        onPress={onPressDeleteAccount}>
+        <CustomText text="Delete Account" style={styles.deleteText} />
+      </TouchableOpacity>
+
       {modalVisibleLog && (
         <ShowModal
           text={t('Logout')}
@@ -155,6 +174,7 @@ const SettingScreen = () => {
           isVisible={modalVisibleLog}
           onYesClose={() => {
             setModalVisibleLog(false);
+            navigationRef.navigate(screenNames.LoginScreen);
           }}
           onCloseModal={() => setModalVisibleLog(false)}
         />
@@ -231,7 +251,8 @@ const getGlobalStyles = props => {
       ...commonFontStyle(600, 18 + fontValue, colors.black),
     },
     deleteText: {
-      ...commonFontStyle(500, 18 + fontValue, colors.red),
+      ...commonFontStyle(500, 18 + fontValue, '#fff'),
+      textAlign: 'center',
     },
   });
 };

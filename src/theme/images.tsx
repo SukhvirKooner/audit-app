@@ -29,4 +29,6 @@ export const Icons = {
   map2: require('../assets/Icons/map2.png'),
   plus: require('../assets/Icons/plus.png'),
   filter: require('../assets/Icons/filter.png'),
+  ic_phone: require('../assets/Icons/ic_phone.png'),
+  ic_qr: require('../assets/Icons/ic_qr.png'),
 };

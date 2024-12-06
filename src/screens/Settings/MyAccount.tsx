@@ -1,6 +1,9 @@
 import {
+  Alert,
   Image,
+  KeyboardAvoidingView,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,8 +20,10 @@ import {Icons} from '../../theme/images';
 import {useTranslation} from 'react-i18next';
 import ShowModal from '../../components/ShowModal';
 import Input from '../../components/Input';
+import CustomButton from '../../components/CustomButton';
+import {navigationRef} from '../../navigation/RootContainer';
 
-const EditProfile = () => {
+const MyAccount = () => {
   const {t} = useTranslation();
 
   const {colors} = useTheme();
@@ -29,79 +34,32 @@ const EditProfile = () => {
     [colors, fontValue],
   );
 
-  const [modalVisibleLog, setModalVisibleLog] = useState(false);
-  const [modalVisibleDelete, setModalVisibleDelete] = useState(false);
-
-  const onPressLogOut = () => {
-    setModalVisibleLog(true);
-  };
-  console.log(modalVisibleLog);
-
-  const onPressDeleteAccount = () => {
-    setModalVisibleDelete(true);
-  };
-
-  const onPressList = list => {
-    console.log('sd', list);
-  };
-
-  const items = [
-    {
-      icon: Icons.account,
-      title: 'Account',
-      description: 'Privacy, security, change email or number',
-      onPress: () => {},
-    },
-    {
-      icon: Icons.notification,
-      title: 'Notifications',
-      description: 'Network usage, auto download',
-      marginVertical: hps(14),
-      onPress: () => {},
-    },
-    {
-      icon: Icons.help,
-      title: 'Help',
-      description: 'Theme, wallpapers, chat history',
-      onPress: () => {},
-    },
-    // {
-    //   icon: Icons.delete,
-    //   title: 'Delete Account',
-    //   description: 'Theme, wallpapers, chat history',
-    // },
-    {
-      icon: Icons.logout,
-      title: 'Logout',
-      onPress: () => {
-        onPressLogOut();
-      },
-      // description: 'Theme, wallpapers, chat history',
-    },
-  ];
-
   return (
     <SafeAreaView style={styles.container}>
-      <CustomHeader title={'Settings'} />
-      <View style={{flex: 1, marginHorizontal: wps(16)}}>
-        <View style={{alignSelf: 'center'}}>
+      <CustomHeader title={'My Account'} />
+      <ScrollView style={{flex: 1, marginHorizontal: wps(16)}}>
+        <View style={{alignSelf: 'center', marginBottom: 40}}>
           <CustomImage
             uri="https://picsum.photos/200"
             size={wps(90)}
             imageStyle={{borderRadius: wps(90)}}
             containerStyle={{alignSelf: 'center', marginTop: 40}}
           />
-          <TouchableOpacity style={styles.profileView}>
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert('open camera');
+            }}
+            style={styles.profileView}>
             <Image source={Icons.edit} style={styles.imageView} />
           </TouchableOpacity>
         </View>
-        <CustomText
+        {/* <CustomText
           numberOfLines={1}
           text={'Riya Samuel'}
           style={styles.text2}
-        />
+        /> */}
         <Input
-          icon={Icons.email}
+          icon={Icons.add_user}
           title={t('User')}
           placeHolder={t('user name')}
           isRequired
@@ -115,18 +73,24 @@ const EditProfile = () => {
           extraStyle={styles.inputExtraStyle}
         />
         <Input
-          icon={Icons.email}
+          icon={Icons.ic_phone}
           title={t('Phone')}
           placeHolder={t('phone number')}
           isRequired
           extraStyle={styles.inputExtraStyle}
         />
-      </View>
+        <CustomButton
+          title={t('Save')}
+          type={'gray'}
+          extraStyle={{marginTop: hp(4)}}
+          onPress={() => navigationRef.goBack()}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default EditProfile;
+export default MyAccount;
 
 const getGlobalStyles = props => {
   const {colors, fontValue} = props;
