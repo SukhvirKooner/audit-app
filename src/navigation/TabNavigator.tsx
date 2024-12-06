@@ -2,7 +2,6 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/Home/HomeScreen';
-import AuditScreen from '../screens/Audits/AuditScreen';
 import SettingScreen from '../screens/Settings/SettingScreen';
 import {Fonts, hp} from '../theme/fonts';
 import {Icons} from '../theme/images';
@@ -10,11 +9,14 @@ import CustomImage from '../components/CustomImage';
 import {View} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import {AuditsStack} from './Navigator';
+import {useSelector} from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
   const {colors}: any = useTheme();
+  const {fontValue} = useSelector((state: any) => state.common);
+
   return (
     <Tab.Navigator
       screenOptions={({route}: any) => ({
@@ -22,7 +24,7 @@ const TabNavigator = () => {
         tabBarHideOnKeyboard: true,
 
         tabBarLabelStyle: {
-          fontSize: 15,
+          fontSize: fontValue + 15,
           fontFamily: Fonts.WorkSans_500,
         },
         tabBarActiveTintColor: colors.mainBlue,

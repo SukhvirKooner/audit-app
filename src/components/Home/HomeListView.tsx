@@ -15,6 +15,7 @@ interface Props {
 
 const HomeListView = ({data, onPress}: Props) => {
   const {t} = useTranslation();
+
   const {colors}: any = useTheme();
   const {fontValue} = useSelector((state: any) => state.common);
 
@@ -22,9 +23,12 @@ const HomeListView = ({data, onPress}: Props) => {
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
+
   const widthAndHeight = 30;
-  const series = [40, 100];
+  const value = 100 - Number(data?.progress);
+  const series = [Number(data?.progress), value];
   const sliceColor = [colors.mainBlue, colors.white];
+
   return (
     <TouchableOpacity onPress={onPress} style={styles.container}>
       <CustomText text={data.title} style={styles.titleStyle} />
@@ -41,7 +45,7 @@ const HomeListView = ({data, onPress}: Props) => {
         </View>
 
         <CustomText style={styles.subTitleStyle}>
-          {data?.progress} {t('Complete')}
+          {data?.progress}% {t('Complete')}
         </CustomText>
       </View>
     </TouchableOpacity>
@@ -49,8 +53,6 @@ const HomeListView = ({data, onPress}: Props) => {
 };
 
 export default HomeListView;
-
-const styles = StyleSheet.create({});
 
 const getGlobalStyles = (props: any) => {
   const {colors, fontValue} = props;

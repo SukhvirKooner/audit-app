@@ -4,9 +4,9 @@ import LoginScreen from '../screens/Auth/LoginScreen';
 import {screenNames, SCREENS} from './screenNames';
 import TabNavigator from './TabNavigator';
 import AuditScreen from '../screens/Audits/AuditScreen';
-import AuditDeatilsScreen from '../screens/Audits/AuditDetailsScreen';
 import AuditDetailsScreen from '../screens/Audits/AuditDetailsScreen';
 import EditProfile from '../screens/Settings/EditProfile';
+import NotificationScreen from '../screens/Home/NotificationScreen';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +20,10 @@ const Navigator = () => {
       <Stack.Screen name={SCREENS.LoginScreen} component={LoginScreen} />
       <Stack.Screen name={SCREENS.HomeScreen} component={TabNavigator} />
       <Stack.Screen name={SCREENS.EditProfile} component={EditProfile} />
+      <Stack.Screen
+        name={SCREENS.NotificationScreen}
+        component={NotificationScreen}
+      />
     </Stack.Navigator>
   );
 };

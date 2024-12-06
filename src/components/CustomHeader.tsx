@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {useNavigation, useTheme} from '@react-navigation/native';
@@ -6,6 +7,20 @@ import CustomImage from './CustomImage';
 import {commonFontStyle, hp, hps, wps} from '../theme/fonts';
 import CustomText from './CustomText';
 import {useSelector} from 'react-redux';
+
+interface Props {
+  title: string;
+  subTitle?: string;
+  showAdd?: boolean;
+  showMap?: boolean;
+  onSearchPress?: () => void;
+  onMapPress?: () => void;
+  onShowAddPress?: () => void;
+  searchIcon?: any;
+  notificationIcon?: any;
+  onNotificationPress?: () => void;
+  type?: 'home' | 'other';
+}
 
 const CustomHeader = ({
   title,
@@ -16,7 +31,10 @@ const CustomHeader = ({
   onMapPress,
   onShowAddPress,
   searchIcon,
-}: any) => {
+  notificationIcon,
+  onNotificationPress,
+  type = 'other',
+}: Props) => {
   const {colors} = useTheme();
   const {goBack} = useNavigation();
   const {fontValue} = useSelector(state => state.common);
@@ -28,11 +46,36 @@ const CustomHeader = ({
   return (
     <View style={[styles.container, {marginHorizontal: wps(16), marginTop: 5}]}>
       <View style={styles.container}>
-        <CustomImage source={Icons.ic_back} size={hps(24)} onPress={goBack} />
-        <View style={{flex: 1, marginLeft: 8}}>
-          <CustomText numberOfLines={1} text={title} style={styles.text} />
-          {subTitle && <CustomText text={subTitle} style={styles.text1} />}
-        </View>
+        {type === 'home' ? (
+          <>
+            <CustomImage
+              uri="https://picsum.photos/200"
+              size={wps(45)}
+              imageStyle={{borderRadius: wps(45)}}
+            />
+          </>
+        ) : (
+          <CustomImage source={Icons.ic_back} size={hps(24)} onPress={goBack} />
+        )}
+        {type === 'home' ? (
+          <View style={{flex: 1, marginLeft: 8}}>
+            {subTitle && <CustomText text={subTitle} style={styles.text1} />}
+            <CustomText numberOfLines={1} text={title} style={styles.text} />
+          </View>
+        ) : (
+          <View style={{flex: 1, marginLeft: 8}}>
+            <CustomText numberOfLines={1} text={title} style={styles.text} />
+            {subTitle && <CustomText text={subTitle} style={styles.text1} />}
+          </View>
+        )}
+        {notificationIcon && (
+          <CustomImage
+            source={Icons.ic_notification}
+            size={hps(45)}
+            containerStyle={{marginRight: 10}}
+            onPress={onNotificationPress}
+          />
+        )}
         {searchIcon && (
           <CustomImage
             source={Icons.ic_search}

@@ -18,13 +18,19 @@ import {ScrollView} from 'react-native-gesture-handler';
 import CustomButton from '../../components/CustomButton';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {SCREENS} from '../../navigation/screenNames';
+import {useSelector} from 'react-redux';
 
 const LoginScreen = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
 
   const {colors} = useTheme();
-  const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
+  const {fontValue} = useSelector((state: any) => state.common);
+
+  const styles = React.useMemo(
+    () => getGlobalStyles({colors, fontValue}),
+    [colors, fontValue],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,8 +54,8 @@ const LoginScreen = () => {
             </View>
             <Input
               icon={Icons.email}
-              title={t('Email')}
-              placeHolder={t('Enter your email')}
+              title={t('Username')}
+              placeHolder={t('Enter your username')}
               isRequired
               extraStyle={styles.inputExtraStyle}
             />
@@ -78,14 +84,14 @@ const LoginScreen = () => {
 export default LoginScreen;
 
 const getGlobalStyles = (props: any) => {
-  const {colors} = props;
+  const {colors, fontValue} = props;
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
     headingStyle: {
-      ...commonFontStyle(700, 24, colors.black_1F),
+      ...commonFontStyle(700, fontValue + 24, colors.black_1F),
       textAlign: 'center',
       paddingTop: hp(5),
     },
@@ -101,7 +107,7 @@ const getGlobalStyles = (props: any) => {
       gap: hp(1),
     },
     loginText: {
-      ...commonFontStyle(600, 20, colors.black_1F),
+      ...commonFontStyle(600, fontValue + 20, colors.black_1F),
     },
     inputExtraStyle: {
       marginTop: hp(2),

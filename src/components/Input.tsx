@@ -13,6 +13,8 @@ import React, {useState} from 'react';
 import {commonFontStyle} from '../theme/fonts';
 import {light_theme} from '../theme/colors';
 import {Icons} from '../theme/images';
+import {useTheme} from '@react-navigation/native';
+import {useSelector} from 'react-redux';
 
 type Props = {
   value?: string;
@@ -54,6 +56,15 @@ const Input = ({
   ...props
 }: Props) => {
   const [passwordHide, setPasswordHide] = useState(true);
+
+  const {colors} = useTheme();
+  const {fontValue} = useSelector((state: any) => state.common);
+
+  const styles = React.useMemo(
+    () => getGlobalStyles({colors, fontValue}),
+    [colors, fontValue],
+  );
+
   return (
     <View style={extraStyle}>
       {title && (
@@ -98,35 +109,38 @@ const Input = ({
 
 export default Input;
 
-export const styles = StyleSheet.create({
-  title: {
-    ...commonFontStyle(500, 13, light_theme.black),
-  },
-  inputStyle: {
-    flex: 1,
-    height: 40,
-    ...commonFontStyle(400, 16, light_theme.black),
-  },
-  rowView: {
-    borderWidth: 1,
-    borderColor: light_theme.gray_E7,
-    borderRadius: 10,
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    gap: 10,
-  },
-  icon: {
-    height: 20,
-    width: 20,
-    resizeMode: 'contain',
-  },
-  imageView: {
-    width: 20,
-    height: 20,
-    resizeMode: 'contain',
-    marginLeft: 12,
-    tintColor: light_theme.gray_62,
-  },
-});
+const getGlobalStyles = (props: any) => {
+  const {colors, fontValue} = props;
+  return StyleSheet.create({
+    title: {
+      ...commonFontStyle(500, fontValue + 13, colors.black),
+    },
+    inputStyle: {
+      flex: 1,
+      height: 40,
+      ...commonFontStyle(400, fontValue+16, colors.black),
+    },
+    rowView: {
+      borderWidth: 1,
+      borderColor: colors.gray_E7,
+      borderRadius: 10,
+      marginTop: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      gap: 10,
+    },
+    icon: {
+      height: 20,
+      width: 20,
+      resizeMode: 'contain',
+    },
+    imageView: {
+      width: 20,
+      height: 20,
+      resizeMode: 'contain',
+      marginLeft: 12,
+      tintColor: colors.gray_62,
+    },
+  });
+};

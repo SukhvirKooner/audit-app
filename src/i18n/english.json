@@ -21,6 +21,9 @@
     "Are you sure you want to logout?": "Are you sure you want to logout?",
     "Are you sure you want to Delete this Account?": "Are you sure you want to Delete this Account?",
     "No": "No",
-    "Yes": "Yes"
+    "Yes": "Yes",
+    "No notifications": "No notifications",
+    "Username": "Username",
+    "Enter your username": "Enter your username"
   }
 }

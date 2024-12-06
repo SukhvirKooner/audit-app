@@ -76,7 +76,7 @@ export const homeScreenList = [
   {
     title: 'Active Audits',
     subtitle: '112 Ongoing',
-    progress: '40%',
+    progress: '40',
     status: 'Complete',
   },
   // {
