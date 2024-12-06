@@ -1,3 +1,5 @@
+import {RFValue} from 'react-native-responsive-fontsize';
+
 export function getFontType(fontWeight: any) {
   if (fontWeight === 300) {
     return 'WorkSans-Light';
@@ -19,7 +21,7 @@ export function getFontType(fontWeight: any) {
 export const commonFontStyle = (fontWeight: any, fontSize: any, color: any) => {
   return {
     fontFamily: getFontType(fontWeight),
-    fontSize: fontSize,
+    fontSize: RFValue(fontSize, SCREEN_HEIGHT),
     color: color,
     includeFontPadding: false,
   };

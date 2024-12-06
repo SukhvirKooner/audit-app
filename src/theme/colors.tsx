@@ -2,9 +2,11 @@ export const light_theme = {
   black: '#000000',
   black_1F: '#1F2128',
   black_29: '#292D32',
+  black_B23: '#000B23',
 
   white: '#ffffff',
   background: '#F5F5F5',
+  naveBg: '#054DA4',
 
   mainBlue: '#054DA4',
 

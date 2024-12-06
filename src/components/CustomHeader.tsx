@@ -3,17 +3,33 @@ import React from 'react';
 import {useTheme} from '@react-navigation/native';
 import {Icons} from '../theme/images';
 import CustomImage from './CustomImage';
-import {hp, hps} from '../theme/fonts';
+import {commonFontStyle, hp, hps, wps} from '../theme/fonts';
+import CustomText from './CustomText';
+import {useSelector} from 'react-redux';
 
-const CustomHeader = () => {
+const CustomHeader = ({title, subTitle}) => {
   const {colors} = useTheme();
-  const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
+  const {fontValue} = useSelector(state => state.common);
+  const styles = React.useMemo(
+    () => getGlobalStyles({colors, fontValue}),
+    [colors, fontValue],
+  );
 
   return (
-    <View style={styles.container}>
-      <CustomImage source={Icons.ic_back} size={hps(24)} />
-
-      <Text>AuditScreen</Text>
+    <View style={[styles.container, {marginHorizontal: wps(16), marginTop: 5}]}>
+      <View style={styles.container}>
+        <CustomImage source={Icons.ic_back} size={hps(24)} />
+        <View style={{flex: 1, marginLeft: 8}}>
+          <CustomText text={title} style={styles.text} />
+          <Text style={styles.text1}>{subTitle}</Text>
+        </View>
+        <CustomImage
+          source={Icons.ic_search}
+          size={hps(45)}
+          containerStyle={{marginRight: 10}}
+        />
+        <CustomImage source={Icons.ic_add} size={hps(45)} />
+      </View>
     </View>
   );
 };
@@ -22,5 +38,17 @@ export default CustomHeader;
 
 const getGlobalStyles = props => {
   const {colors, fontValue} = props;
-  return StyleSheet.create({});
+  return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    text: {
+      ...commonFontStyle(600, 18, colors.black_B23),
+    },
+    text1: {
+      ...commonFontStyle(400, 12, colors.gray_7B),
+      marginTop: 2,
+    },
+  });
 };
