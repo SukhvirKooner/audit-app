@@ -13,6 +13,7 @@ interface Props {
   tintColor?: any;
   uri?: string;
   isBorder?: boolean;
+  disabled?: boolean;
 }
 
 const CustomImage = ({
@@ -24,14 +25,17 @@ const CustomImage = ({
   tintColor,
   uri,
   isBorder = false,
+  disabled = false,
 }: Props) => {
   return (
     <TouchableOpacity
       activeOpacity={1}
       onPress={onPress}
+      disabled={disabled}
       style={isBorder ? styles.btnContainer : {...containerStyle}}>
       <FastImage
         source={uri ? {uri: uri} : source}
+        defaultSource={source ? source : undefined}
         style={[{width: size, height: size}, imageStyle]}
         resizeMode="contain"
         tintColor={tintColor}

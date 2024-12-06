@@ -51,3 +51,12 @@ export function actuatedNormalize(size: any) {
     return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 2;
   }
 }
+
+export const Fonts = {
+  WorkSans_300: 'WorkSans-Light',
+  WorkSans_400: 'WorkSans-Regular',
+  WorkSans_500: 'WorkSans-Medium',
+  WorkSans_600: 'WorkSans-SemiBold',
+  WorkSans_700: 'WorkSans-Bold',
+  WorkSans_800: 'WorkSans-Black',
+};

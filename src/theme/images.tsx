@@ -6,4 +6,7 @@ export const Icons = {
   cross: require('../assets/Icons/cross.png'),
   view: require('../assets/Icons/view.png'),
   hide: require('../assets/Icons/hide.png'),
+  home: require('../assets/Icons/home.png'),
+  settings: require('../assets/Icons/settings.png'),
+  audits: require('../assets/Icons/audits.png'),
 };
