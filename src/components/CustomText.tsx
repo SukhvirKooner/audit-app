@@ -5,14 +5,19 @@ import {commonFontStyle} from '../theme/fonts';
 import {light_theme} from '../theme/colors';
 
 interface Props {
-  text: string;
+  text?: string;
   style?: TextStyle;
+  children?: any;
 }
 
-const CustomText = ({text, style}: Props) => {
+const CustomText = ({text, style, children}: Props) => {
   const {t} = useTranslation();
 
-  return <Text style={[styles.textStyle, style]}>{t(text)}</Text>;
+  return (
+    <Text style={[styles.textStyle, style]}>
+      {children ? children : t(text)}
+    </Text>
+  );
 };
 
 export default CustomText;

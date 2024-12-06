@@ -13,6 +13,7 @@ export const light_theme = {
   gray_7B: '#7B7B7B',
   gray_E7: '#E7E7E7',
   gray_A8: '#A8A8A8',
+  gray_DF: '#DFDFDF',
 
   red: '#DF1525',
   red_FF: '#FF0000',
@@ -21,6 +22,7 @@ export const light_theme = {
 export const dark_theme = {
   black: '#000000',
   black_1F: '#1F2128',
+  black_29: '#292D32',
 
   white: '#ffffff',
   background: '#F5F5F5',
@@ -31,6 +33,8 @@ export const dark_theme = {
   gray_62: '#626262',
   gray_7B: '#7B7B7B',
   gray_E7: '#E7E7E7',
+  gray_A8: '#A8A8A8',
+  gray_DF: '#DFDFDF',
 
   red: '#DF1525',
   red_FF: '#FF0000',

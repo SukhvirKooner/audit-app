@@ -71,3 +71,30 @@ export const resetNavigation = (name: string) => {
 //     backgroundColor: '#000',
 //   });
 // };
+
+export const homeScreenList = [
+  {
+    title: 'Active Audits',
+    subtitle: '112 Ongoing',
+    progress: '40%',
+    status: 'Complete',
+  },
+  // {
+  //   title: 'Critical Alerts',
+  //   subtitle: '112 Ongoing',
+  //   progress: '10%',
+  //   status: 'Complete',
+  // },
+  // {
+  //   title: 'Deadlines',
+  //   subtitle: '3 Today',
+  //   progress: '90%',
+  //   status: 'Complete',
+  // },
+  // {
+  //   title: 'Issues',
+  //   subtitle: '3 Raised Today',
+  //   progress: '10%',
+  //   status: 'Complete',
+  // },
+];

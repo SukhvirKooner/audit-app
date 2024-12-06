@@ -9,19 +9,23 @@ import {
 import React from 'react';
 import {light_theme} from '../../theme/colors';
 import CustomText from '../../components/CustomText';
-import {commonFontStyle, hp} from '../../theme/fonts';
+import {commonFontStyle, hp, hps} from '../../theme/fonts';
 import CustomImage from '../../components/CustomImage';
 import {Icons} from '../../theme/images';
 import Input from '../../components/Input';
 import {useTranslation} from 'react-i18next';
 import {ScrollView} from 'react-native-gesture-handler';
 import CustomButton from '../../components/CustomButton';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useTheme} from '@react-navigation/native';
 import {SCREENS} from '../../navigation/screenNames';
 
 const LoginScreen = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
+
+  const {colors} = useTheme();
+  const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -39,7 +43,7 @@ const LoginScreen = () => {
 
           <View style={styles.mainView}>
             <View style={styles.row}>
-              <CustomImage source={Icons.add_user} size={hp(2.4)} isBorder />
+              <CustomImage source={Icons.add_user} size={hps(24)} isBorder />
               <CustomText text="Login" style={styles.loginText} />
             </View>
             <Input
@@ -73,31 +77,34 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: light_theme.background,
-  },
-  headingStyle: {
-    ...commonFontStyle(700, 24, light_theme.black_1F),
-    textAlign: 'center',
-    paddingTop: hp(5),
-  },
-  mainView: {
-    margin: hp(2),
-    padding: hp(2),
-    backgroundColor: light_theme.white,
-    borderRadius: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: hp(1),
-  },
-  loginText: {
-    ...commonFontStyle(600, 20, light_theme.black_1F),
-  },
-  inputExtraStyle: {
-    marginTop: hp(2),
-  },
-});
+const getGlobalStyles = (props: any) => {
+  const {colors} = props;
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    headingStyle: {
+      ...commonFontStyle(700, 24, colors.black_1F),
+      textAlign: 'center',
+      paddingTop: hp(5),
+    },
+    mainView: {
+      margin: hp(2),
+      padding: hp(2),
+      backgroundColor: colors.white,
+      borderRadius: 20,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: hp(1),
+    },
+    loginText: {
+      ...commonFontStyle(600, 20, colors.black_1F),
+    },
+    inputExtraStyle: {
+      marginTop: hp(2),
+    },
+  });
+};
