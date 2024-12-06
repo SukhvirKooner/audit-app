@@ -41,6 +41,13 @@ export const hp = (i: any) => {
 export const wp = (i: any) => {
   return widthPercentageToDP(i);
 };
+export const hps = i => {
+  return heightPercentageToDP((i * 100) / SCREEN_HEIGHT);
+};
+
+export const wps = i => {
+  return widthPercentageToDP((i * 100) / SCREEN_WIDTH);
+};
 const scale = SCREEN_WIDTH / 320;
 
 export function actuatedNormalize(size: any) {
