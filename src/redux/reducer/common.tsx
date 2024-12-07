@@ -3,6 +3,7 @@ import {IS_LOADING, SET_APP_THEME, SET_FONT_VALUE} from '../actionTypes';
 interface CommonState {
   isLoading: boolean;
   isDarkTheme: boolean;
+  fontValue: number;
 }
 
 const initialState: CommonState = {

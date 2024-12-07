@@ -5,6 +5,7 @@ import {useRoute, useTheme} from '@react-navigation/native';
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
 import {useSelector} from 'react-redux';
 import MapSideList from '../../components/Home/MapSideList';
+import {GOOGLE_API_KEY} from '../../utils/apiConstants';
 
 const MapScreen = () => {
   const {params}: any = useRoute();
@@ -28,7 +29,7 @@ const MapScreen = () => {
         <MapView
           provider={PROVIDER_GOOGLE} // remove if not using Google Maps
           style={styles.map}
-          key={'AIzaSyBBixSdj8L9FYlqMmiBFzj89WaZnzK4etY'}
+          key={GOOGLE_API_KEY}
           region={{
             latitude: 37.78825,
             longitude: -122.4324,

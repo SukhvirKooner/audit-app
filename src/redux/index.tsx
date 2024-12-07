@@ -3,12 +3,14 @@ import {combineReducers} from 'redux';
 import {configureStore} from '@reduxjs/toolkit';
 import setting from './reducer/setting';
 import common from './reducer/common';
+import home from './reducer/home';
 
 // const middleware = [thunk];
 
 const reducers = combineReducers({
   setting: setting,
   common: common,
+  home: home,
 });
 
 // const rootReducer = (state: any, action: any) => {

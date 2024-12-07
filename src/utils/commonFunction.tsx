@@ -1,6 +1,7 @@
 /* eslint-disable no-useless-escape */
 // import Snackbar from 'react-native-snackbar';
 
+import Toast from 'react-native-toast-message';
 import {navigationRef} from '../navigation/RootContainer';
 
 export const emailCheck = (email: string) => {
@@ -40,11 +41,19 @@ export const passwordCheck = (string: string) => {
   return reg.test(string);
 };
 
-export const resetNavigation = (name: string) => {
+export const resetNavigation = (name: string, _undefined: undefined) => {
   navigationRef.reset({
     index: 0,
     routes: [{name: name}],
   });
+};
+
+export const successToast = (message: string) => {
+  Toast.show({type: 'success', text1: message});
+};
+
+export const errorToast = (message: string) => {
+  Toast.show({type: 'error', text1: message});
 };
 
 // export const successToast = (message: string) => {

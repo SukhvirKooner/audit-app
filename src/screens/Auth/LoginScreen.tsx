@@ -6,7 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import {light_theme} from '../../theme/colors';
 import CustomText from '../../components/CustomText';
 import {commonFontStyle, hp, hps} from '../../theme/fonts';
@@ -19,10 +19,14 @@ import CustomButton from '../../components/CustomButton';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {SCREENS} from '../../navigation/screenNames';
 import {useSelector} from 'react-redux';
+import {errorToast, passwordCheck} from '../../utils/commonFunction';
+import {useAppDispatch} from '../../redux/hooks';
+import {onUserLogin} from '../../service/AuthServices';
 
 const LoginScreen = () => {
   const {t} = useTranslation();
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+  const dispatch = useAppDispatch();
 
   const {colors} = useTheme();
   const {fontValue} = useSelector((state: any) => state.common);
@@ -31,6 +35,34 @@ const LoginScreen = () => {
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
+
+  const [userName, setUserName] = useState(__DEV__ ? 'admin' : '');
+  const [password, setPassword] = useState(__DEV__ ? 'admin' : '');
+
+  const onLogin = () => {
+    if (userName.trim() === '') {
+      errorToast(t('Please enter username'));
+    }
+    // if (!passwordCheck(password)) {
+    //   errorToast(
+    //     t(
+    //       'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+    //     ),
+    //   );
+    // }
+     else {
+      let obj = {
+        data: {
+          username: userName.trim(),
+          password: password.trim(),
+        },
+        onSuccess: () => {
+          // resetNavigation(SCREENS.HomeScreen, undefined);
+        },
+      };
+      dispatch(onUserLogin(obj));
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,6 +85,8 @@ const LoginScreen = () => {
               <CustomText text="Login" style={styles.loginText} />
             </View>
             <Input
+              value={userName}
+              onChangeText={setUserName}
               icon={Icons.email}
               title={t('Username')}
               placeHolder={t('Enter your username')}
@@ -60,6 +94,8 @@ const LoginScreen = () => {
               extraStyle={styles.inputExtraStyle}
             />
             <Input
+              value={password}
+              onChangeText={setPassword}
               icon={Icons.lock}
               title={t('Password')}
               placeHolder={t('Enter your password')}
@@ -72,7 +108,7 @@ const LoginScreen = () => {
               title={t('Login')}
               type={'gray'}
               extraStyle={{marginTop: hp(4)}}
-              onPress={() => navigation.navigate(SCREENS.HomeScreen)}
+              onPress={onLogin}
             />
           </View>
         </ScrollView>

@@ -8,16 +8,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
 import {Icons} from '../../theme/images';
 import {commonFontStyle, hps} from '../../theme/fonts';
-import {useSelector} from 'react-redux';
 import CustomText from '../../components/CustomText';
 import {navigationRef} from '../../navigation/RootContainer';
-import {screenNames} from '../../navigation/screenNames';
+import {SCREENS} from '../../navigation/screenNames';
+import {useAppDispatch, useAppSelector} from '../../redux/hooks';
+import {getAudits} from '../../service/AuditService';
 
 const audits = [
   {
@@ -60,37 +61,56 @@ const audits = [
 
 const AuditScreen = () => {
   const {colors} = useTheme();
-  const {fontValue} = useSelector(state => state.common);
+  const {fontValue} = useAppSelector((state: any) => state.common);
+  const {auditsList} = useAppSelector(state => state.home);
+
+  const dispatch = useAppDispatch();
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
 
-  const renderAudit = ({item}) => (
+  useEffect(() => {
+    onGetAudits();
+  }, []);
+
+  const onGetAudits = async () => {
+    let obj = {
+      onSuccess: () => {},
+      onFailure: () => {},
+    };
+    dispatch(getAudits(obj));
+  };
+
+  const renderAudit = ({item}: any) => (
     <TouchableOpacity
       onPress={() => {
-        navigationRef.navigate(screenNames.AuditDetailsScreen, {
+        navigationRef.navigate(SCREENS.AuditDetailsScreen, {
           headerTitle: item.title,
+          auditItem: item,
         });
       }}
       style={styles.auditCard}>
-      <CustomText text={item.title} style={styles.auditTitle} />
-      <CustomText text={item.description} style={styles.auditDescription} />
+      <CustomText text={item?.title} style={styles.auditTitle} />
+      <CustomText text={item?.description} style={styles.auditDescription} />
       <View style={styles.viewStyle} />
       <View style={styles.auditFooter}>
         <View style={styles.dateRow}>
           <CustomImage source={Icons.calendar} size={hps(24)} />
-          <CustomText text={item.date} style={styles.dateText} />
+          <CustomText
+            text={item?.date ?? item?.start_date}
+            style={styles.dateText}
+          />
         </View>
         <View style={styles.avatars}>
-          {item.avatars.map((avatar, index) => (
+          {item?.avatars?.map((avatar: any, index: any) => (
             <Image
               key={index}
               source={{uri: avatar}}
               style={[styles.avatar, index > 2 && styles.extraAvatar]}
             />
           ))}
-          {item.avatars.length > 3 && (
+          {item?.avatars?.length > 3 && (
             <View style={styles.moreAvatar}>
               <Text style={styles.moreText}>+{item.avatars.length - 3}</Text>
             </View>
@@ -105,17 +125,13 @@ const AuditScreen = () => {
       <CustomHeader
         title={'Audits'}
         subTitle={'22 Nov 2024'}
-        showAdd
         searchIcon
-        onShowAddPress={() => {
-          Alert.alert('Open add screen');
-        }}
         onSearchPress={() => {
           Alert.alert('Open Search screen');
         }}
       />
       <FlatList
-        data={audits}
+        data={auditsList}
         renderItem={renderAudit}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}

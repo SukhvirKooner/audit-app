@@ -1,21 +1,20 @@
 import {
-  Alert,
   FlatList,
-  Image,
   SafeAreaView,
   StyleSheet,
-  Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
 import {commonFontStyle, wps} from '../../theme/fonts';
-import {useSelector} from 'react-redux';
 import CustomText from '../../components/CustomText';
 import {useTranslation} from 'react-i18next';
 import {SCREENS} from '../../navigation/screenNames';
+import {getAuditsDetails} from '../../service/AuditService';
+import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 
 const audits = [
   {
@@ -42,28 +41,54 @@ const AuditDetailsScreen = () => {
   const {t} = useTranslation();
   const {params}: any = useRoute();
   const {navigate} = useNavigation();
+  const dispatch = useAppDispatch();
 
   const {colors} = useTheme();
-  const {fontValue} = useSelector((state: any) => state.common);
+  const {fontValue} = useAppSelector(state => state.common);
+  const {auditsDetailsList} = useAppSelector(state => state.home);
+
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
 
-  const renderAudit = ({item}: any) => (
-    <View style={styles.auditCard}>
+  useEffect(() => {
+    onGetAudits();
+  }, []);
+
+  const onGetAudits = async () => {
+    let obj = {
+      data: {
+        id: params?.auditItem?.id,
+      },
+      onSuccess: () => {},
+      onFailure: () => {},
+    };
+    dispatch(getAuditsDetails(obj));
+  };
+
+  const renderAudit = ({item, index}: any) => (
+    <TouchableOpacity
+      key={item?.id + index}
+      onPress={() => {
+        navigate(SCREENS.TemplateScreen, {
+          headerTitle: item?.filled_by,
+          auditItem: params?.auditItem,
+        });
+      }}
+      style={styles.auditCard}>
       <CustomImage
-        uri={item?.image}
+        uri={item?.image ?? 'https://picsum.photos/200'}
         size={wps(28)}
         imageStyle={{borderRadius: wps(28)}}
       />
       <View>
-        <CustomText text={item.title} style={styles.auditTitle} />
+        <CustomText text={item?.filled_by} style={styles.auditTitle} />
         <CustomText style={styles.auditDescription}>
           {`${t('Last updated on')}${item.description}}`}
         </CustomText>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -73,16 +98,23 @@ const AuditDetailsScreen = () => {
         subTitle={'22 Nov 2024'}
         showMap
         searchIcon
+        showAdd
         onMapPress={() => {
           navigate(SCREENS.MapScreen, {
             headerTitle: params?.headerTitle,
           });
         }}
+        onShowAddPress={() => {
+          navigate(SCREENS.TemplateScreen, {
+            headerTitle: params?.headerTitle,
+            auditItem: params?.auditItem,
+          });
+        }}
       />
       <FlatList
-        data={audits}
+        data={auditsDetailsList}
         renderItem={renderAudit}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: any) => item?.id}
         contentContainerStyle={styles.listContainer}
       />
     </SafeAreaView>

@@ -1,11 +1,18 @@
 export const api = {
-  BASE_URL: '',
+  BASE_URL: 'https://audit.ibianalytics.in/',
 
-  // Auth
-  login: '',
+  login: 'login/',
+
+  audits: 'audits/',
+  audits_details: '/responses/',
+  audits_details_id: '/audit-responses/',
+  templates: 'templates/',
 };
 
 export const POST = 'POST';
 export const GET = 'GET';
+export const PATCH = 'PATCH';
+export const DELETE = 'DELETE';
+export const PUT = 'PUT';
 
-// export const GOOGLE_API_KEY = 'AIzaSyDEjeEjROHSLP3YfRln7Sk1GxUQSTGOGCI';
+export const GOOGLE_API_KEY = 'AIzaSyBBixSdj8L9FYlqMmiBFzj89WaZnzK4etY';
