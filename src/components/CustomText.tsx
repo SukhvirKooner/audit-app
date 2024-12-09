@@ -5,18 +5,19 @@ import {commonFontStyle} from '../theme/fonts';
 import {light_theme} from '../theme/colors';
 import {useTheme} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
+import {useAppSelector} from '../redux/hooks';
 
 interface Props {
   text?: string;
   style?: TextStyle;
   children?: any;
-  numberOfLines?: Number;
+  numberOfLines?: number;
 }
 
 const CustomText = ({text, style, children, numberOfLines}: Props) => {
   const {t} = useTranslation();
   const {colors} = useTheme();
-  const {fontValue} = useSelector(state => state.common);
+  const {fontValue} = useAppSelector(state => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],

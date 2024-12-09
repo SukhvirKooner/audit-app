@@ -6,7 +6,12 @@ import {
   View,
 } from 'react-native';
 import React, {useEffect} from 'react';
-import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+  useTheme,
+} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
 import {commonFontStyle, wps} from '../../theme/fonts';
@@ -42,7 +47,7 @@ const AuditDetailsScreen = () => {
   const {params}: any = useRoute();
   const {navigate} = useNavigation();
   const dispatch = useAppDispatch();
-
+  const isFocused = useIsFocused();
   const {colors} = useTheme();
   const {fontValue} = useAppSelector(state => state.common);
   const {auditsDetailsList} = useAppSelector(state => state.home);
@@ -54,7 +59,7 @@ const AuditDetailsScreen = () => {
 
   useEffect(() => {
     onGetAudits();
-  }, []);
+  }, [isFocused]);
 
   const onGetAudits = async () => {
     let obj = {
@@ -74,6 +79,8 @@ const AuditDetailsScreen = () => {
         navigate(SCREENS.TemplateScreen, {
           headerTitle: item?.filled_by,
           auditItem: params?.auditItem,
+          auditDetails: item,
+          type: 'edit',
         });
       }}
       style={styles.auditCard}>
@@ -108,6 +115,7 @@ const AuditDetailsScreen = () => {
           navigate(SCREENS.TemplateScreen, {
             headerTitle: params?.headerTitle,
             auditItem: params?.auditItem,
+            type: 'create',
           });
         }}
       />

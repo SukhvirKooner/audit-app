@@ -31,4 +31,5 @@ export const Icons = {
   filter: require('../assets/Icons/filter.png'),
   ic_phone: require('../assets/Icons/ic_phone.png'),
   ic_qr: require('../assets/Icons/ic_qr.png'),
+  ic_edit: require('../assets/Icons/ic_edit.png'),
 };

@@ -6,7 +6,6 @@ export const light_theme = {
   black_T37: '#373737',
 
   white: '#ffffff',
-  red: 'red',
   background: '#F5F5F5',
   naveBg: '#054DA4',
 
@@ -18,6 +17,7 @@ export const light_theme = {
   gray_E7: '#E7E7E7',
   gray_A8: '#A8A8A8',
   gray_DF: '#DFDFDF',
+  gray_B6: '#B6B6B6',
 
   red: '#DF1525',
   red_FF: '#FF0000',

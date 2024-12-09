@@ -1,10 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import React from 'react';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {Icons} from '../theme/images';
 import CustomImage from './CustomImage';
-import {commonFontStyle, hp, hps, wps} from '../theme/fonts';
+import {commonFontStyle, hps, wps} from '../theme/fonts';
 import CustomText from './CustomText';
 import {useSelector} from 'react-redux';
 
@@ -28,6 +28,8 @@ interface Props {
   refreshIcon?: any;
   onRefreshPress?: () => void;
   onQrCodePress?: () => void;
+  editIcon?: any;
+  onEditPress?: () => void;
 }
 
 const CustomHeader = ({
@@ -50,6 +52,8 @@ const CustomHeader = ({
   onRefreshPress,
   onQrCodePress,
   showQrCode,
+  editIcon,
+  onEditPress,
 }: Props) => {
   const {colors} = useTheme();
   const {goBack} = useNavigation();
@@ -135,6 +139,13 @@ const CustomHeader = ({
               size={hps(45)}
             />
           )}
+          {editIcon && (
+            <CustomImage
+              onPress={onEditPress}
+              source={Icons.ic_edit}
+              size={hps(45)}
+            />
+          )}
           {showQrCode && (
             <CustomImage
               onPress={onQrCodePress}
@@ -150,8 +161,7 @@ const CustomHeader = ({
 
 export default CustomHeader;
 
-const getGlobalStyles = props => {
-  const {colors, fontValue} = props;
+const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({
     container: {
       flexDirection: 'row',

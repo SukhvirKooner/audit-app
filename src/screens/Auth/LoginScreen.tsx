@@ -50,7 +50,7 @@ const LoginScreen = () => {
     //     ),
     //   );
     // }
-     else {
+    else {
       let obj = {
         data: {
           username: userName.trim(),

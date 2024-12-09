@@ -1,105 +1,77 @@
-import React, { useEffect, useMemo, useRef } from "react";
-import { useTheme } from "@react-navigation/native";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Linking,
-  TouchableOpacity,
-  Animated,
-  Easing,
-  Platform,
-} from "react-native";
-import { TouchableWithoutFeedback } from "react-native";
-import { useSelector } from "react-redux";
-import { hp, wp } from "../theme/fonts";
+import {useTheme} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View, TouchableOpacity, Animated, StyleSheet} from 'react-native';
 
-const ToggleComponent = ({ value = false,
-  onValueChange = () => { },
-  disabled = false,
+interface Props {
+  isToggleOn?: boolean;
+  onToggleSwitch?: () => void;
+  trackColor?: any;
+}
+const ToggleComponent = ({
+  isToggleOn = false,
+  onToggleSwitch = () => {},
   trackColor,
-  toggleContainerStyle,
-  toggleWheel,
-  isFood }) => {
-  const { colors } = useTheme();
-  const { fontValue } = useSelector((state) => state.common);
-  const styles = React.useMemo(() => getGlobalStyles({ colors, fontValue }), [colors, fontValue]);
+}: Props) => {
+  const {colors}: any = useTheme();
 
-  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
-  const TOGGLE_LEFT_MARGIN = Platform.isPad ? 6 : 3;
-  const TOGGLE_RIGHT_MARGIN = Platform.isPad ? 40 : 19;
-  const moveToggle = useMemo(
-    () =>
-      animatedValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: [TOGGLE_LEFT_MARGIN, TOGGLE_RIGHT_MARGIN],
-      }),
-    [animatedValue],
-  );
-
-
-  const opacity = disabled ? 0.5 : 1;
+  const [isOn, setIsOn] = useState(false);
+  const togglePosition = new Animated.Value(isOn ? 1 : 0);
 
   useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: value ? 1 : 0,
-      duration: 200,
-      easing: Easing.elastic(0.9),
+    setIsOn(isToggleOn);
+  }, [isToggleOn]);
+  const toggleSwitch = () => {
+    Animated.timing(togglePosition, {
+      toValue: isOn ? 0 : 1,
+      duration: 300,
       useNativeDriver: false,
     }).start();
-  }, [value]);
+    setIsOn(!isOn);
+    onToggleSwitch();
+  };
+
+  const interpolatedBackgroundColor = togglePosition.interpolate({
+    inputRange: [0, 1],
+    outputRange: trackColor || ['#b0b0b0', colors.mainBlue], // Colors for off and on states
+  });
+
+  const interpolatedTranslateX = togglePosition.interpolate({
+    inputRange: [0, 1],
+    outputRange: [2, 22], // Adjust these values based on the switch width
+  });
 
   return (
-    <View style={styles.container}>
-      <TouchableWithoutFeedback
-        onPress={disabled ? undefined : () => onValueChange(!value)}>
-        <View
+    <TouchableOpacity onPress={toggleSwitch} activeOpacity={0.8}>
+      <Animated.View
+        style={[
+          styles.switchContainer,
+          {backgroundColor: interpolatedBackgroundColor},
+        ]}>
+        <Animated.View
           style={[
-            styles.toggleContainer,
-            { backgroundColor: trackColor, opacity }, toggleContainerStyle
-          ]}>
-          <Animated.View
-            style={[styles.toggleWheelStyle, { marginLeft: moveToggle }, toggleWheel]}
-          />
-        </View>
-      </TouchableWithoutFeedback>
-    </View>
+            styles.circle,
+            {transform: [{translateX: interpolatedTranslateX}]},
+          ]}
+        />
+      </Animated.View>
+    </TouchableOpacity>
   );
-
-
 };
 
-const TOGGLE_LEFT_MARGIN = Platform.isPad ? 4 : 3;
-const TOGGLE_RIGHT_MARGIN = 22;
-const getGlobalStyles = (props) => {
-  const { colors, fontValue } = props;
-  return StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    toggleContainer: {
-      width: wp(10),
-      height: Platform.isPad ? hp(4) : hp(2.9),
-      marginLeft: TOGGLE_LEFT_MARGIN,
-      borderRadius: wp(10),
-      justifyContent: 'center',
-    },
-    toggleWheelStyle: {
-      width: wp(4.6),
-      height: wp(4.6),
-      borderRadius: wp(4.6),
-      shadowColor: '#000',
-      backgroundColor: 'white',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 2.5,
-      elevation: 1.5,
-    },
-  });
-};
+const styles = StyleSheet.create({
+  switchContainer: {
+    width: 50,
+    height: 30,
+    borderRadius: 30,
+    padding: 4,
+    justifyContent: 'center',
+  },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 13,
+    backgroundColor: '#FFF',
+  },
+});
 
 export default ToggleComponent;

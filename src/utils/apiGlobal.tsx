@@ -32,10 +32,11 @@ export const makeAPIRequest = ({
       headers,
       params,
     };
+    console.log('<===option==>', option);
     axios(option)
       .then((response: any) => {
         // console.log('response-->', response);
-        if (response.status === 200) {
+        if (response.status === 200 || response.status === 201) {
           resolve(response);
         } else {
           reject(response);
@@ -59,11 +60,16 @@ export const makeAPIRequest = ({
 
 export const setAuthorization = async (authToken: any) => {
   const token = await getAsyncToken();
+  console.log('token', token);
+  console.log('authToken', authToken);
+
   if (authToken === '') {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
   }
+  axios.defaults.headers.common['Cookie'] =
+    'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS';
 };
 
 export const removeAuthorization = async () => {

@@ -1,9 +1,15 @@
 import {ThunkAction} from 'redux-thunk';
 import {RootState} from '../redux/hooks';
 import {AnyAction} from 'redux';
-import {handleErrorRes, makeAPIRequest} from '../utils/apiGlobal';
-import {api, GET} from '../utils/apiConstants';
+import {
+  handleErrorRes,
+  makeAPIRequest,
+  setAuthorization,
+} from '../utils/apiGlobal';
+import {api, GET, POST, PUT} from '../utils/apiConstants';
 import {GET_AUDITS, GET_AUDITS_DETAILS, IS_LOADING} from '../redux/actionTypes';
+import axios from 'axios';
+import {getAsyncToken} from '../utils/asyncStorageManager';
 
 interface requestProps {
   data?: any;
@@ -56,7 +62,6 @@ export const getAuditsDetails =
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
     dispatch({type: IS_LOADING, payload: true});
-
     return makeAPIRequest({
       method: GET,
       url: api.audits + data?.id + api.audits_details,
@@ -102,6 +107,62 @@ export const getAuditsDetailsByID =
       });
   };
 
+export const createAudits =
+  ({
+    data,
+    params,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    dispatch({type: IS_LOADING, payload: true});
+
+    return makeAPIRequest({
+      method: POST,
+      url: api.audits_details_id,
+      data: data,
+    })
+      .then(async (response: any) => {
+        dispatch({type: IS_LOADING, payload: false});
+
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {
+        handleErrorRes(error, onFailure, dispatch);
+        dispatch({type: IS_LOADING, payload: false});
+      });
+  };
+
+export const editAudits =
+  ({
+    data,
+    params,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    dispatch({type: IS_LOADING, payload: true});
+
+    return makeAPIRequest({
+      method: PUT,
+      url: api.audits_details_id + data?.response_id + '/',
+      data: data,
+    })
+      .then(async (response: any) => {
+        dispatch({type: IS_LOADING, payload: false});
+
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {
+        handleErrorRes(error, onFailure, dispatch);
+        dispatch({type: IS_LOADING, payload: false});
+      });
+  };
+
 export const getTemplate =
   ({
     data,
@@ -114,7 +175,7 @@ export const getTemplate =
 
     return makeAPIRequest({
       method: GET,
-      url: api.templates + data?.id,
+      url: api.templates + data?.id + '/',
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});

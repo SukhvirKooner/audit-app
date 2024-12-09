@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import {
   Image,
   SafeAreaView,
@@ -35,21 +36,21 @@ const SettingNotification = () => {
   const dispatch = useDispatch();
   const {isDarkTheme} = useSelector(state => state.common);
 
-  const {colors} = useTheme();
+  const {colors}: any = useTheme();
   const {goBack} = useNavigation();
   const {fontValue} = useSelector(state => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
-  const [incNotifiaction, setIncNotifiaction] = useState(false);
+  const [incNotification, setIncNotification] = useState(false);
   const [themeValue, setThemeValue] = useState(false);
   const [label, setLabel] = useState(t('Default'));
   const [fontSize, setFontSize] = useState(fontSizes.default);
 
-  const Item = ({icon, title, greenText, onPress, renderRight}) => {
+  const Item = ({title, renderRight}: any) => {
     return (
-      <View style={styles.rowStyle} onPress={onPress}>
+      <View style={styles.rowStyle}>
         <View style={styles.innerRowStyle}>
           <Text style={styles.itemTextStyle}>{title}</Text>
         </View>
@@ -58,8 +59,8 @@ const SettingNotification = () => {
     );
   };
 
-  const trackColor = incNotifiaction ? colors.mainBlue : colors.gray_DF;
-  const trackColor1 = themeValue ? colors.mainBlue : colors.gray_DF;
+  const trackColor = [colors.white, colors.black];
+  const trackColor1 = themeValue ? colors.black : colors.white;
 
   const onPressPlay = () => {};
 
@@ -98,17 +99,11 @@ const SettingNotification = () => {
           renderRight={() => {
             return (
               <View style={styles.rowStyle1}>
-                {/* {incNotifiaction && <TouchableOpacity onPress={() => {
-                setIncSetting(!incSetting)
-              }}>
-                <Image style={styles.iconStyle1} source={icons.setting} />
-              </TouchableOpacity>} */}
                 <ToggleComponent
-                  value={incNotifiaction}
-                  onValueChange={() => {
-                    setIncNotifiaction(!incNotifiaction);
+                  isToggleOn={incNotification}
+                  onToggleSwitch={() => {
+                    setIncNotification(!incNotification);
                   }}
-                  trackColor={trackColor}
                 />
               </View>
             );
@@ -122,8 +117,8 @@ const SettingNotification = () => {
             return (
               <View style={styles.rowStyle1}>
                 <ToggleComponent
-                  value={themeValue}
-                  onValueChange={() => {
+                  isToggleOn={themeValue}
+                  onToggleSwitch={() => {
                     setThemeValue(!themeValue);
                   }}
                   trackColor={trackColor1}
