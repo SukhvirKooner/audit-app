@@ -59,9 +59,6 @@ const SettingNotification = () => {
     );
   };
 
-  const trackColor = [colors.white, colors.black];
-  const trackColor1 = themeValue ? colors.black : colors.white;
-
   const onPressPlay = () => {};
 
   const onPressThemeChange = () => {
@@ -157,7 +154,7 @@ const getGlobalStyles = props => {
       alignItems: 'center',
     },
     itemTextStyle: {
-      ...commonFontStyle(500, 14 + fontValue, colors.textColor),
+      ...commonFontStyle(500, 14 + fontValue, colors.black),
       marginLeft: wp(1),
     },
   });

@@ -14,7 +14,11 @@ import {
 import React, {useEffect, useState} from 'react';
 import CustomHeader from '../../components/CustomHeader';
 import {useRoute, useTheme} from '@react-navigation/native';
-import {useAppDispatch, useAppSelector} from '../../redux/hooks';
+import {
+  dispatchAction,
+  useAppDispatch,
+  useAppSelector,
+} from '../../redux/hooks';
 import {
   createAudits,
   editAudits,
@@ -31,11 +35,16 @@ import CustomImage from '../../components/CustomImage';
 import {Icons} from '../../theme/images';
 import DatePicker from 'react-native-date-picker';
 import moment from 'moment';
-import MapView from 'react-native-maps';
+import MapView, {Marker} from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
 import {GOOGLE_API_KEY} from '../../utils/apiConstants';
-import Geolocation from 'react-native-geolocation-service';
-import {requestPermission} from '../../utils/locationHandler';
+import {requestLocationPermission} from '../../utils/locationHandler';
+import ImageSelectionModal from '../../components/ImageSelectionModal';
+import CustomModal from '../../components/PdfDownloadModal';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import {IS_LOADING} from '../../redux/actionTypes';
+import {SCREENS} from '../../navigation/screenNames';
+import {errorToast, successToast} from '../../utils/commonFunction';
 
 Geocoder.init(GOOGLE_API_KEY, {language: 'en'});
 
@@ -84,7 +93,7 @@ const TemplateScreen = () => {
   const {t} = useTranslation();
   const {params}: any = useRoute();
   const dispatch = useAppDispatch();
-  const {colors} = useTheme();
+  const {colors}: any = useTheme();
   const {fontValue} = useAppSelector(state => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -100,8 +109,15 @@ const TemplateScreen = () => {
 
   const [isEdit, setIsEdit] = useState(false);
   const [open, setOpen] = useState(false);
+  const [imageModal, setImageModal] = useState(false);
+  const [pdfModal, setPdfModal] = useState(false);
+  const [selectFieldId, setSelectFieldId] = useState<any>(null);
   const [address, setAddress] = useState<any>(null);
+  const [currentLocation, setCurrentLocation] = useState<any>(null);
+  const [imageSource, setImageSource] = useState<any>(null);
+  const [pdfFilePath, setPdfFilePath] = useState(null);
 
+  console.log('pdfFilePath', currentLocation);
   useEffect(() => {
     onGetTemplate();
 
@@ -110,36 +126,56 @@ const TemplateScreen = () => {
     } else {
       setIsEdit(true);
     }
-    getAddress();
   }, []);
 
-  const getAddress = async () => {
-    const hasPermission = await requestPermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied');
-      return;
-    }
+  // useEffect(() => {
+  //   if (templateData.length > 0) {
+  //     const filter = templateData.find(
+  //       (field: any) => field.field_type === 'location',
+  //     );
+  //     if (filter?.id) {
+  //       setTimeout(() => {
+  //         getAddress();
+  //       }, 200);
+  //     }
+  //   }
+  // }, [templateData]);
 
-    Geolocation.getCurrentPosition(
-      async position => {
-        const {latitude, longitude} = position.coords;
-        try {
-          const response = await Geocoder.from(latitude, longitude);
-          const formattedAddress: any = response.results[0].formatted_address;
-          console.log('formattedAddress', formattedAddress);
-          setAddress({
-            latitude: latitude,
-            longitude: longitude,
-            address: formattedAddress,
-          });
-        } catch (error) {
-          Alert.alert('Error', 'Failed to get address');
+  const onGetTemplate = async () => {
+    let obj = {
+      data: {
+        id: params?.auditItem?.template,
+      },
+      onSuccess: (res: any) => {
+        setTemplateData(res?.fields);
+      },
+      onFailure: (error: any) => {
+        console.log('error', error);
+      },
+    };
+    dispatch(getTemplate(obj));
+  };
+
+  const getAddress = async () => {
+    dispatch({type: IS_LOADING, payload: true});
+    await requestLocationPermission(
+      async response => {
+        setCurrentLocation(response);
+        const filter = templateData.find(
+          (field: any) => field.field_type === 'location',
+        );
+        const {latitude, longitude} = response;
+        dispatch({type: IS_LOADING, payload: false});
+
+        if (filter?.id) {
+          handleInputChange(filter.id, `${latitude},${longitude}`);
+          dispatch({type: IS_LOADING, payload: false});
         }
       },
-      error => {
-        Alert.alert('Error', error.message);
+      err => {
+        dispatch({type: IS_LOADING, payload: false});
+        console.log('<---current location error --->\n', err);
       },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
     );
   };
 
@@ -156,23 +192,6 @@ const TemplateScreen = () => {
       setFormValues(newData);
     }
   }, [params?.auditDetails?.fields, params?.type]);
-
-  const onGetTemplate = async () => {
-    let obj = {
-      data: {
-        id: params?.auditItem?.template,
-      },
-      onSuccess: (res: any) => {
-        console.log('params?.auditDetails?.fields', res?.fields);
-
-        setTemplateData(res?.fields);
-      },
-      onFailure: (error: any) => {
-        console.log('error', error);
-      },
-    };
-    dispatch(getTemplate(obj));
-  };
 
   // Update form values on input change
   const handleInputChange = (id: number, value: any) => {
@@ -256,9 +275,14 @@ const TemplateScreen = () => {
   };
 
   const convertData = (data: any) => {
+    const filter = templateData.find(
+      (field: any) => field.field_type === 'date',
+    );
+
     return Object.entries(data).map(([key, value]) => ({
       template_field: key,
-      value: value,
+      value:
+        filter?.id === Number(key) ? moment(value).format('YYYY-MM-DD') : value,
     }));
   };
 
@@ -278,7 +302,6 @@ const TemplateScreen = () => {
           onFailure: () => {},
         };
 
-        console.log('obj-->', obj.data);
         dispatch(editAudits(obj));
       } else {
         const obj = {
@@ -292,6 +315,7 @@ const TemplateScreen = () => {
           },
           onFailure: () => {},
         };
+        console.log('obj-->', obj.data);
 
         dispatch(createAudits(obj));
       }
@@ -318,6 +342,7 @@ const TemplateScreen = () => {
               value={formValues[field.id] || ''}
               onChangeText={text => handleInputChange(field.id, text)}
               editable={isEdit}
+              placeholderTextColor={colors.black}
             />
             {renderError(field.id)}
           </>
@@ -332,6 +357,7 @@ const TemplateScreen = () => {
               value={formValues[field.id] || ''}
               onChangeText={text => handleInputChange(field.id, text)}
               editable={isEdit}
+              placeholderTextColor={colors.black}
             />
             {renderError(field.id)}
           </>
@@ -353,7 +379,50 @@ const TemplateScreen = () => {
               placeholder={field.label}
               value={formValues[field.id]}
               onChange={item => handleInputChange(field.id, item.value)}
+              placeholderStyle={{
+                ...commonFontStyle(400, 16, colors.black),
+              }}
+              selectedTextStyle={{
+                ...commonFontStyle(400, 16, colors.black),
+              }}
             />
+            {renderError(field.id)}
+          </>
+        );
+      case 'image':
+        return (
+          <>
+            <TouchableOpacity
+              style={styles.imageContainer}
+              disabled={!isEdit}
+              onPress={() => {
+                setSelectFieldId(field.id);
+                setImageModal(true);
+              }}>
+              {formValues[field.id] || imageSource?.uri ? (
+                <CustomImage
+                  uri={formValues[field.id] || imageSource?.uri}
+                  size={hp(14)}
+                  disabled
+                  containerStyle={{borderRadius: 10, overflow: 'hidden'}}
+                />
+              ) : (
+                <CustomText text={'Upload Image'} style={styles.imageText} />
+              )}
+              {(formValues[field.id] || imageSource?.uri) && (
+                <CustomImage
+                  source={Icons.cross}
+                  disabled={!isEdit}
+                  size={hps(30)}
+                  onPress={() => {
+                    setImageSource(null);
+                    handleInputChange(field.id, '');
+                  }}
+                  containerStyle={{position: 'absolute', top: -10, right: -10}}
+                  tintColor={colors.black}
+                />
+              )}
+            </TouchableOpacity>
             {renderError(field.id)}
           </>
         );
@@ -361,16 +430,43 @@ const TemplateScreen = () => {
         return (
           <>
             <View style={styles.locationContainer}>
+              {/* {formValues[field.id] ? ( */}
               <MapView
                 initialRegion={{
-                  latitude: 37.78825,
-                  longitude: -122.4324,
-                  latitudeDelta: 0.015,
-                  longitudeDelta: 0.0121,
+                  latitude: Number(formValues[field.id]?.split(',')[0]) || 0,
+                  longitude: Number(formValues[field.id]?.split(',')[1]) || 0,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
                 }}
                 provider="google"
-                style={{flex: 1}}
-              />
+                loadingEnabled
+                showsUserLocation={formValues[field.id] ? true : false}
+                style={{flex: 1}}>
+                {formValues[field.id] && (
+                  <Marker
+                    coordinate={{
+                      latitude:
+                        Number(formValues[field.id]?.split(',')[0]) || 0,
+                      longitude:
+                        Number(formValues[field.id]?.split(',')[1]) || 0,
+                    }}
+                  />
+                )}
+              </MapView>
+              {!formValues[field.id] && (
+                <TouchableOpacity
+                  style={styles.locationView}
+                  onPress={getAddress}>
+                  <CustomText text={'Get Location'} style={styles.location} />
+                </TouchableOpacity>
+              )}
+
+              {formValues[field.id] && (
+                <CustomText
+                  text={formValues[field.id]}
+                  style={styles.location}
+                />
+              )}
             </View>
             {renderError(field.id)}
           </>
@@ -382,7 +478,11 @@ const TemplateScreen = () => {
               disabled={!isEdit}
               onPress={() => setOpen(true)}
               style={{...styles.dateContainer, gap: 15}}>
-              <CustomImage source={Icons.calendar} size={hps(25)} />
+              <CustomImage
+                source={Icons.calendar}
+                size={hps(25)}
+                tintColor={colors.black}
+              />
               <CustomText
                 text={
                   formValues[field.id]
@@ -398,7 +498,11 @@ const TemplateScreen = () => {
               mode="date"
               theme="auto"
               minimumDate={new Date()}
-              date={new Date(formValues[field.id])}
+              date={
+                formValues[field.id]
+                  ? new Date(formValues[field.id])
+                  : new Date()
+              }
               onConfirm={date => {
                 setOpen(false);
                 // setDate(date);
@@ -421,7 +525,10 @@ const TemplateScreen = () => {
                 gap: 15,
               }}>
               <View style={{...styles.switchContainer, gap: 15}}>
-                <Text>{field.options?.yes_label}</Text>
+                <CustomText
+                  style={styles.label}
+                  text={field.options?.yes_label}
+                />
                 <TouchableOpacity
                   disabled={!isEdit}
                   onPress={() => {
@@ -433,7 +540,10 @@ const TemplateScreen = () => {
                 </TouchableOpacity>
               </View>
               <View style={{...styles.switchContainer, gap: 15}}>
-                <Text>{field.options?.no_label}</Text>
+                <CustomText
+                  style={styles.label}
+                  text={field.options?.no_label}
+                />
                 <TouchableOpacity
                   disabled={!isEdit}
                   onPress={() =>
@@ -453,6 +563,75 @@ const TemplateScreen = () => {
     }
   };
 
+  const generatePDF = async () => {
+    try {
+      setPdfModal(true);
+      // Group Data by Section
+
+      const groupedData = Object.entries(formValues).reduce(
+        (acc: any, [key, value]) => {
+          const template = templateData.find(
+            field => field.id.toString() === key,
+          );
+          if (template) {
+            const section = template.section_heading;
+            if (!acc[section]) acc[section] = [];
+            acc[section].push({label: template.label, value});
+          }
+          return acc;
+        },
+        {},
+      );
+      console.log('groupedData', groupedData);
+      // Profile image path (for local image)
+      const profileImagePath = groupedData?.Profile
+        ? groupedData?.Profile[0]?.value
+        : null;
+
+      // Create HTML content
+      const htmlContent = `
+    ${
+      profileImagePath
+        ? `<h2>Profile</h2>
+    <img src="${profileImagePath}" alt="Profile Picture" width="150" height="150" />`
+        : ''
+    } 
+   ${Object.entries(groupedData)
+     .map(
+       ([section, fields]) => `
+       <h2>${section === 'Profile' ? '' : section}</h2>
+       ${fields
+         .map(
+           (field: any) => `
+          ${
+            section === 'Profile'
+              ? ''
+              : `<p><strong>${field.label}:</strong> ${field.value}</p>`
+          } `,
+         )
+         .join('')}
+     `,
+     )
+     .join('')}
+ `;
+      console.log('htmlContent', htmlContent);
+      const pdf = await RNHTMLtoPDF.convert({
+        html: htmlContent,
+        fileName: 'Report',
+        directory: 'Documents',
+      });
+
+      // Alert.alert('Success', `PDF saved at: ${pdf.filePath}`);
+      // setPdfFilePath(pdf.filePath);
+      setPdfModal(false);
+      navigationRef.navigate(SCREENS.PdfScreen, {pdfPath: pdf.filePath});
+    } catch (error) {
+      console.log('error', error);
+      Alert.alert('Error', 'Failed to generate PDF');
+      setPdfModal(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
@@ -464,6 +643,19 @@ const TemplateScreen = () => {
         editIcon={params?.type === 'edit' ? true : false}
         onEditPress={() => {
           setIsEdit(!isEdit);
+          if (isEdit) {
+            errorToast('Edit mode disabled');
+          } else {
+            successToast('Edit mode enabled');
+          }
+        }}
+        onMapPress={() => {
+          navigationRef.navigate(SCREENS.MapScreen, {
+            headerTitle: params?.headerTitle,
+          });
+        }}
+        onDownloadPress={() => {
+          generatePDF();
         }}
       />
       <KeyboardAvoidingView
@@ -496,15 +688,28 @@ const TemplateScreen = () => {
           {params?.type === 'edit' && isEdit && (
             <CustomButton
               extraStyle={styles.extraStyle}
+              title={t('Update')}
+              onPress={handleSubmit}
+            />
+          )}
+          {params?.type === 'create' && (
+            <CustomButton
+              extraStyle={styles.extraStyle}
               title={t('Save')}
               onPress={handleSubmit}
             />
           )}
-          {/* <CustomButton
-            extraStyle={styles.extraStyle}
-            title={t('Save')}
-            onPress={handleSubmit}
-          /> */}
+          <ImageSelectionModal
+            isVisible={imageModal}
+            onImageSelected={(value: any) => {
+              // console.log('value', value);
+              setImageSource(value);
+
+              handleInputChange(selectFieldId, value.uri);
+            }}
+            onClose={setImageModal}
+          />
+          <CustomModal isVisible={pdfModal} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -538,13 +743,14 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       gap: 5,
     },
     label: {
-      ...commonFontStyle(400, fontValue + 16, colors.gray_B6),
+      ...commonFontStyle(400, fontValue + 16, colors.black),
     },
     input: {
       borderWidth: 1,
       borderColor: '#ccc',
       borderRadius: 5,
       padding: 10,
+      ...commonFontStyle(400, fontValue + 16, colors.black),
     },
     dropdown: {
       borderWidth: 1,
@@ -574,6 +780,32 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     locationContainer: {
       height: hp(25),
       width: '100%',
+    },
+    imageContainer: {
+      height: hp(15),
+      width: hp(15),
+      borderWidth: 1,
+      borderColor: colors.gray_E7,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    imageText: {
+      ...commonFontStyle(400, fontValue + 16, colors.black_T37),
+      textAlign: 'center',
+    },
+    location: {
+      ...commonFontStyle(400, fontValue + 16, colors.black_T37),
+    },
+    locationView: {
+      borderWidth: 1,
+      borderColor: colors.black,
+      paddingVertical: 10,
+      paddingHorizontal: 5,
+      borderRadius: 10,
+      alignSelf: 'flex-end',
+      alignItems: 'center',
+      marginTop: 10,
     },
   });
 };

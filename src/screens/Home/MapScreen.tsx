@@ -29,6 +29,7 @@ const MapScreen = () => {
         <MapView
           provider={PROVIDER_GOOGLE} // remove if not using Google Maps
           style={styles.map}
+          loadingEnabled
           key={GOOGLE_API_KEY}
           region={{
             latitude: 37.78825,

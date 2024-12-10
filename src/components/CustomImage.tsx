@@ -14,6 +14,7 @@ interface Props {
   uri?: string;
   isBorder?: boolean;
   disabled?: boolean;
+  resizeMode?: 'contain' | 'cover' | 'stretch' | 'center';
 }
 
 const CustomImage = ({
@@ -26,6 +27,7 @@ const CustomImage = ({
   uri,
   isBorder = false,
   disabled = false,
+  resizeMode = 'contain',
 }: Props) => {
   return (
     <TouchableOpacity
@@ -37,7 +39,7 @@ const CustomImage = ({
         source={uri ? {uri: uri} : source}
         defaultSource={source ? source : undefined}
         style={[{width: size, height: size}, imageStyle]}
-        resizeMode="contain"
+        resizeMode={resizeMode}
         tintColor={tintColor}
       />
     </TouchableOpacity>

@@ -13,6 +13,20 @@ import {useSelector} from 'react-redux';
 import {Icons} from '../theme/images';
 import {commonFontStyle, SCREEN_WIDTH, wp} from '../theme/fonts';
 
+interface Props {
+  onPressSaveName?: () => void;
+  isVisible?: boolean;
+  onCloseModal?: (value?: boolean) => void;
+  text?: string;
+  subText?: string;
+  onYesClose?: () => void;
+  modalContent?: any;
+  modalMessage?: any;
+  showCloseIcon?: boolean;
+  buttonLeftStyle?: any;
+  headerIcon?: any;
+}
+
 const ShowModal = ({
   onPressSaveName,
   isVisible,
@@ -25,7 +39,7 @@ const ShowModal = ({
   showCloseIcon,
   buttonLeftStyle,
   headerIcon,
-}) => {
+}: Props) => {
   const {t} = useTranslation();
   const {colors} = useTheme();
   const {fontValue} = useSelector(state => state.common);
@@ -50,6 +64,7 @@ const ShowModal = ({
                 resizeMode="contain"
                 source={Icons.close}
                 style={styles.closeIconStyle}
+                tintColor={colors.black}
               />
             </TouchableOpacity>
           )}
@@ -133,12 +148,12 @@ const getGlobalStyles = props => {
     },
     modalTitle: {
       marginBottom: 15,
-      ...commonFontStyle(600, 20 + fontValue, colors.textColor),
+      ...commonFontStyle(600, 20 + fontValue, colors.black),
     },
     modalMessage: {
       marginBottom: 20,
       textAlign: 'center',
-      ...commonFontStyle(400, 15 + fontValue, colors.textColor),
+      ...commonFontStyle(400, 15 + fontValue, colors.black),
     },
     buttonContainer: {
       flexDirection: 'row',

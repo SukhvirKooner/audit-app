@@ -1,34 +1,31 @@
+/* eslint-disable react-native/no-inline-styles */
 import {
   Alert,
   Image,
-  KeyboardAvoidingView,
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React from 'react';
 import {useNavigation, useTheme} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
-import {commonFontStyle, hp, hps, wp, wps} from '../../theme/fonts';
+import {commonFontStyle, hp, wps} from '../../theme/fonts';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
-import CustomText from '../../components/CustomText';
 import {Icons} from '../../theme/images';
 import {useTranslation} from 'react-i18next';
-import ShowModal from '../../components/ShowModal';
 import Input from '../../components/Input';
 import CustomButton from '../../components/CustomButton';
 import {navigationRef} from '../../navigation/RootContainer';
+import {useAppSelector} from '../../redux/hooks';
 
 const MyAccount = () => {
   const {t} = useTranslation();
 
-  const {colors} = useTheme();
+  const {colors}: any = useTheme();
   const {goBack} = useNavigation();
-  const {fontValue} = useSelector(state => state.common);
+  const {fontValue} = useAppSelector(state => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
@@ -50,7 +47,11 @@ const MyAccount = () => {
               Alert.alert('open camera');
             }}
             style={styles.profileView}>
-            <Image source={Icons.edit} style={styles.imageView} />
+            <Image
+              source={Icons.edit}
+              style={styles.imageView}
+              tintColor={colors.black}
+            />
           </TouchableOpacity>
         </View>
         {/* <CustomText
@@ -64,6 +65,7 @@ const MyAccount = () => {
           placeHolder={t('user name')}
           isRequired
           extraStyle={styles.inputExtraStyle}
+          iconTintColor={colors.black}
         />
         <Input
           icon={Icons.email}
@@ -71,6 +73,7 @@ const MyAccount = () => {
           placeHolder={t('email')}
           isRequired
           extraStyle={styles.inputExtraStyle}
+          iconTintColor={colors.black}
         />
         <Input
           icon={Icons.ic_phone}
@@ -78,6 +81,7 @@ const MyAccount = () => {
           placeHolder={t('phone number')}
           isRequired
           extraStyle={styles.inputExtraStyle}
+          iconTintColor={colors.black}
         />
         <CustomButton
           title={t('Save')}
@@ -92,8 +96,7 @@ const MyAccount = () => {
 
 export default MyAccount;
 
-const getGlobalStyles = props => {
-  const {colors, fontValue} = props;
+const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({
     container: {
       flex: 1,

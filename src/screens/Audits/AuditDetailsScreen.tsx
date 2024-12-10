@@ -20,6 +20,7 @@ import {useTranslation} from 'react-i18next';
 import {SCREENS} from '../../navigation/screenNames';
 import {getAuditsDetails} from '../../service/AuditService';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
+import {navigationRef} from '../../navigation/RootContainer';
 
 const audits = [
   {
@@ -74,7 +75,7 @@ const AuditDetailsScreen = () => {
 
   const renderAudit = ({item, index}: any) => (
     <TouchableOpacity
-      key={item?.id + index}
+      key={index}
       onPress={() => {
         navigate(SCREENS.TemplateScreen, {
           headerTitle: item?.filled_by,
@@ -111,6 +112,9 @@ const AuditDetailsScreen = () => {
             headerTitle: params?.headerTitle,
           });
         }}
+        onSearchPress={() => {
+          navigationRef.navigate(SCREENS.SearchScreen);
+        }}
         onShowAddPress={() => {
           navigate(SCREENS.TemplateScreen, {
             headerTitle: params?.headerTitle,
@@ -122,7 +126,7 @@ const AuditDetailsScreen = () => {
       <FlatList
         data={auditsDetailsList}
         renderItem={renderAudit}
-        keyExtractor={(item: any) => item?.id}
+        keyExtractor={(item: any) => item?.response_id}
         contentContainerStyle={styles.listContainer}
       />
     </SafeAreaView>

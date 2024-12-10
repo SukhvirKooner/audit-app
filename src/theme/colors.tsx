@@ -17,7 +17,6 @@ export const light_theme = {
   gray_E7: '#E7E7E7',
   gray_A8: '#A8A8A8',
   gray_DF: '#DFDFDF',
-  gray_B6: '#B6B6B6',
 
   red: '#DF1525',
   red_FF: '#FF0000',
@@ -25,26 +24,26 @@ export const light_theme = {
 };
 
 export const dark_theme = {
-  black: '#000000', // Primary black
-  black_1F: '#1F2128', // Dark grayish black for backgrounds
-  black_29: '#292D32', // Slightly lighter black
-  black_B23: '#000B23', // Deep navy black for highlights
-  black_T37: '#373737', // Medium gray-black for subtle contrasts
+  black: '#ffffff',
+  black_1F: '#ffffff',
+  black_29: '#ffffff',
+  black_B23: '#ffffff',
+  black_T37: '#ffffff',
 
-  white: '#ffffff', // Text color for contrast
-  red: '#DF1525', // Accent red
-  background: '#121212', // Dark background
-  naveBg: '#054DA4', // Navbar background (darkened for theme consistency)
+  white: '#000000', // Lighter text color
+  background: '#121212', // Darker background
+  naveBg: '#054DA4', // Consistent with light theme blue
 
-  mainBlue: '#054DA4', // Primary accent blue
+  mainBlue: '#054DA4', // Consistent blue accent
 
-  gray: '#B6B6B6', // Text for secondary information
-  gray_62: '#626262', // Medium gray for borders or less prominent text
-  gray_7B: '#7B7B7B', // Secondary backgrounds
-  gray_E7: '#2E2E2E', // Adjusted to a darker gray for background use
-  gray_A8: '#A8A8A8', // Text or icons
-  gray_DF: '#1F1F1F', // Border or shadow color
+  gray: '#B6B6B6',
+  gray_62: '#626262',
+  gray_7B: '#7B7B7B',
+  gray_E7: '#E7E7E7',
+  gray_A8: '#A8A8A8',
+  gray_DF: '#DFDFDF',
 
-  red_FF: '#FF0000', // Bright red for warnings or critical highlights
-  modalBg: '#1D1E20',
+  red: '#DF1525',
+  red_FF: '#FF0000',
+  modalBg: '#1D1E20', // Dark background for modals
 };

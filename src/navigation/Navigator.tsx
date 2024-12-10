@@ -16,6 +16,8 @@ import {dispatchAction, useAppDispatch} from '../redux/hooks';
 import {setAuthorization} from '../utils/apiGlobal';
 import {SET_USER_INFO} from '../redux/actionTypes';
 import TemplateScreen from '../screens/Audits/TemplateScreen';
+import PdfScreen from '../screens/Audits/PdfScreen';
+import SearchScreen from '../screens/SearchScreen';
 
 const Stack = createStackNavigator();
 
@@ -68,6 +70,8 @@ const Navigator = () => {
       <Stack.Screen name={SCREENS.HelpScreen} component={HelpScreen} />
       <Stack.Screen name={SCREENS.MyAccount} component={MyAccount} />
       <Stack.Screen name={SCREENS.TemplateScreen} component={TemplateScreen} />
+      <Stack.Screen name={SCREENS.PdfScreen} component={PdfScreen} />
+      <Stack.Screen name={SCREENS.SearchScreen} component={SearchScreen} />
     </Stack.Navigator>
   );
 };

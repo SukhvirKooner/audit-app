@@ -96,7 +96,11 @@ const AuditScreen = () => {
       <View style={styles.viewStyle} />
       <View style={styles.auditFooter}>
         <View style={styles.dateRow}>
-          <CustomImage source={Icons.calendar} size={hps(24)} />
+          <CustomImage
+            source={Icons.calendar}
+            size={hps(24)}
+            tintColor={colors.black}
+          />
           <CustomText
             text={item?.date ?? item?.start_date}
             style={styles.dateText}
@@ -127,7 +131,7 @@ const AuditScreen = () => {
         subTitle={'22 Nov 2024'}
         searchIcon
         onSearchPress={() => {
-          Alert.alert('Open Search screen');
+          navigationRef.navigate(SCREENS.SearchScreen);
         }}
       />
       <FlatList

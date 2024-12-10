@@ -55,7 +55,7 @@ const CustomHeader = ({
   editIcon,
   onEditPress,
 }: Props) => {
-  const {colors} = useTheme();
+  const {colors}: any = useTheme();
   const {goBack} = useNavigation();
   const {fontValue} = useSelector((state: any) => state.common);
   const styles = React.useMemo(
@@ -76,10 +76,18 @@ const CustomHeader = ({
             />
           </>
         ) : (
-          <CustomImage source={Icons.ic_back} size={hps(24)} onPress={goBack} />
+          <CustomImage
+            source={Icons.ic_back}
+            size={hps(24)}
+            tintColor={colors.black}
+            onPress={goBack}
+            containerStyle={{
+              padding: wps(10),
+            }}
+          />
         )}
         {type === 'home' ? (
-          <View style={{flex: 1}}>
+          <View style={{paddingLeft: wps(10), flex: 1}}>
             {subTitle && <CustomText text={subTitle} style={styles.text1} />}
             <CustomText numberOfLines={1} text={title} style={styles.text} />
           </View>
@@ -89,12 +97,13 @@ const CustomHeader = ({
             {subTitle && <CustomText text={subTitle} style={styles.text1} />}
           </View>
         )}
-        <View style={{...styles.container}}>
+        <View style={{...styles.container, gap: wps(10)}}>
           {notificationIcon && (
             <CustomImage
               source={Icons.ic_notification}
               size={hps(45)}
               onPress={onNotificationPress}
+              tintColor={colors.black}
             />
           )}
           {searchIcon && (
@@ -102,6 +111,7 @@ const CustomHeader = ({
               source={Icons.ic_search}
               size={hps(45)}
               onPress={onSearchPress}
+              tintColor={colors.black}
             />
           )}
           {showMap && (
@@ -109,6 +119,7 @@ const CustomHeader = ({
               onPress={onMapPress}
               source={Icons.ic_map}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
           {showAdd && (
@@ -116,6 +127,7 @@ const CustomHeader = ({
               onPress={onShowAddPress}
               source={Icons.ic_add}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
           {downloadIcon && (
@@ -123,6 +135,7 @@ const CustomHeader = ({
               onPress={onDownloadPress}
               source={Icons.ic_download}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
           {listIcon && (
@@ -130,6 +143,7 @@ const CustomHeader = ({
               onPress={onListPress}
               source={Icons.ic_list}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
           {refreshIcon && (
@@ -137,6 +151,7 @@ const CustomHeader = ({
               onPress={onRefreshPress}
               source={Icons.ic_refresh}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
           {editIcon && (
@@ -144,6 +159,7 @@ const CustomHeader = ({
               onPress={onEditPress}
               source={Icons.ic_edit}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
           {showQrCode && (
@@ -151,6 +167,7 @@ const CustomHeader = ({
               onPress={onQrCodePress}
               source={Icons.ic_qr}
               size={hps(45)}
+              tintColor={colors.black}
             />
           )}
         </View>
@@ -167,7 +184,7 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       flexDirection: 'row',
       alignItems: 'center',
       paddingBottom: 5,
-      gap: 10,
+      // gap: 10,
     },
     text: {
       ...commonFontStyle(600, 18 + fontValue, colors.black_B23),

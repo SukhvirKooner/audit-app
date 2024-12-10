@@ -81,7 +81,12 @@ const LoginScreen = () => {
 
           <View style={styles.mainView}>
             <View style={styles.row}>
-              <CustomImage source={Icons.add_user} size={hps(24)} isBorder />
+              <CustomImage
+                source={Icons.add_user}
+                size={hps(24)}
+                isBorder
+                tintColor={colors.black}
+              />
               <CustomText text="Login" style={styles.loginText} />
             </View>
             <Input
@@ -92,6 +97,7 @@ const LoginScreen = () => {
               placeHolder={t('Enter your username')}
               isRequired
               extraStyle={styles.inputExtraStyle}
+              iconTintColor={colors.black}
             />
             <Input
               value={password}
@@ -102,11 +108,13 @@ const LoginScreen = () => {
               isRequired
               extraStyle={styles.inputExtraStyle}
               secureTextEntry
+              iconTintColor={colors.black}
             />
 
             <CustomButton
               title={t('Login')}
-              type={'gray'}
+              disabled={userName === '' || password === ''}
+              type={userName === '' || password === '' ? 'gray' : 'blue'}
               extraStyle={{marginTop: hp(4)}}
               onPress={onLogin}
             />

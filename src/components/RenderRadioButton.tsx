@@ -19,7 +19,7 @@ const RenderRadioButton = ({value, type}: Props) => {
         style={[
           styles.mainRound,
           {
-            borderColor: value ? colors.mainBlue : colors.gray_B6,
+            borderColor: value ? colors.mainBlue : colors.gray_E7,
             borderWidth: value ? 5 : 1,
           },
         ]}>
@@ -31,7 +31,7 @@ const RenderRadioButton = ({value, type}: Props) => {
       <View
         style={[
           styles.mainRound,
-          {borderColor: value ? colors.mainBlue : colors.gray_B6},
+          {borderColor: value ? colors.mainBlue : colors.gray_E7},
         ]}>
         {value && <View style={styles.innerView} />}
       </View>

@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/no-unstable-nested-components */
 import {
   Alert,
   Image,
@@ -10,7 +12,7 @@ import {
 import React, {useState} from 'react';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
-import {commonFontStyle, hps, wp, wps} from '../../theme/fonts';
+import {commonFontStyle, hp, hps, wp, wps} from '../../theme/fonts';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
 import CustomText from '../../components/CustomText';
@@ -19,13 +21,14 @@ import {useTranslation} from 'react-i18next';
 import ShowModal from '../../components/ShowModal';
 import {navigationRef} from '../../navigation/RootContainer';
 import {screenNames} from '../../navigation/screenNames';
+import {useAppDispatch, useAppSelector} from '../../redux/hooks';
+import {setDarkTheme} from '../../utils/commonActions';
 
 const SettingScreen = () => {
   const {t} = useTranslation();
-
-  const {colors} = useTheme();
-  const {goBack} = useNavigation();
-  const {fontValue} = useSelector(state => state.common);
+  const dispatch = useAppDispatch();
+  const {colors}: any = useTheme();
+  const {fontValue, isDarkTheme} = useAppSelector(state => state.common);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
@@ -43,10 +46,6 @@ const SettingScreen = () => {
 
   const onPressDeleteAccount = () => {
     setModalVisibleDelete(true);
-  };
-
-  const onPressList = list => {
-    console.log('sd', list);
   };
 
   const items = [
@@ -71,11 +70,11 @@ const SettingScreen = () => {
         navigationRef.navigate(screenNames.HelpScreen);
       },
     },
-    // {
-    //   icon: Icons.delete,
-    //   title: 'Delete Account',
-    //   description: 'Theme, wallpapers, chat history',
-    // },
+    {
+      icon: Icons.theme,
+      title: 'theme',
+      description: '',
+    },
     {
       icon: Icons.logout,
       title: 'Logout',
@@ -84,7 +83,27 @@ const SettingScreen = () => {
       },
     },
   ];
+  const onPressThemeChange = () => {
+    if (isDarkTheme === false) {
+      dispatch(setDarkTheme(true));
+    } else {
+      dispatch(setDarkTheme(false));
+    }
+  };
 
+  const Item = ({icon, title, onPress, greenText}: any) => {
+    return (
+      <TouchableOpacity style={styles.rowStyle} onPress={onPress}>
+        <View style={styles.innerRowStyle}>
+          <CustomImage source={icon} size={hps(30)} tintColor={colors.black} />
+          <Text style={styles.itemTextStyle}>{title}</Text>
+        </View>
+        {greenText ? (
+          <Text style={styles.greenTextStyle}>{greenText}</Text>
+        ) : null}
+      </TouchableOpacity>
+    );
+  };
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
@@ -110,7 +129,11 @@ const SettingScreen = () => {
           <TouchableOpacity
             onPress={() => navigationRef.navigate(screenNames.MyAccount)}
             style={styles.profileView}>
-            <Image source={Icons.edit} style={styles.imageView} />
+            <Image
+              source={Icons.edit}
+              style={styles.imageView}
+              tintColor={colors.black}
+            />
           </TouchableOpacity>
         </View>
         <CustomText
@@ -119,36 +142,46 @@ const SettingScreen = () => {
           style={styles.text2}
         />
         <View style={styles.listText}>
-          {items.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.boxList,
-                index !== items.length - 1 && {marginBottom: hps(18)},
-              ]}
-              onPress={() => item?.onPress(item.title)}>
-              <CustomImage
-                source={item.icon}
-                size={32}
-                containerStyle={styles.allIconStyle}
-                imageStyle={{}}
+          {items.map((item, index) =>
+            item?.title === 'theme' ? (
+              <Item
+                icon={Icons.theme}
+                title={t('Theme')}
+                greenText={isDarkTheme === false ? t('Dark') : t('Light')}
+                onPress={onPressThemeChange}
               />
-              <View>
-                <CustomText
-                  numberOfLines={1}
-                  text={item.title}
-                  style={styles.titleText}
+            ) : (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.boxList,
+                  index !== items.length - 1 && {marginBottom: hps(18)},
+                ]}
+                onPress={() => item?.onPress(item.title)}>
+                <CustomImage
+                  source={item.icon}
+                  size={hps(30)}
+                  containerStyle={styles.allIconStyle}
+                  imageStyle={{}}
+                  tintColor={colors.black}
                 />
-                {item.description && (
+                <View>
                   <CustomText
                     numberOfLines={1}
-                    text={item.description}
-                    style={styles.desText}
+                    text={item.title}
+                    style={styles.titleText}
                   />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+                  {item.description && (
+                    <CustomText
+                      numberOfLines={1}
+                      text={item.description}
+                      style={styles.desText}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ),
+          )}
         </View>
       </View>
 
@@ -196,8 +229,7 @@ const SettingScreen = () => {
 
 export default SettingScreen;
 
-const getGlobalStyles = props => {
-  const {colors, fontValue} = props;
+const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -253,6 +285,31 @@ const getGlobalStyles = props => {
     deleteText: {
       ...commonFontStyle(500, 18 + fontValue, '#fff'),
       textAlign: 'center',
+    },
+    rowStyle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: hp(2),
+      justifyContent: 'space-between',
+      marginLeft: wp(1),
+    },
+    iconStyle: {
+      height: hp(4),
+      width: hp(4),
+      tintColor: colors.black,
+      opacity: 0.94,
+      resizeMode: 'contain',
+    },
+    innerRowStyle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    greenTextStyle: {
+      ...commonFontStyle(500, fontValue + 14, colors.naveBg),
+    },
+    itemTextStyle: {
+      ...commonFontStyle(500, 18 + fontValue, colors.black),
+      marginLeft: wp(4),
     },
   });
 };

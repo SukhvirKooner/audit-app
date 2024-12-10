@@ -14,6 +14,7 @@ export const Icons = {
   help: require('../assets/Icons/help.png'),
   logout: require('../assets/Icons/logout.png'),
   delete: require('../assets/Icons/delete.png'),
+  delete_user: require('../assets/Icons/delete_user.png'),
   notification: require('../assets/Icons/notification.png'),
   close: require('../assets/Icons/close.png'),
   ic_notification: require('../assets/Icons/ic_notification.png'),
@@ -32,4 +33,12 @@ export const Icons = {
   ic_phone: require('../assets/Icons/ic_phone.png'),
   ic_qr: require('../assets/Icons/ic_qr.png'),
   ic_edit: require('../assets/Icons/ic_edit.png'),
+  camera: require('../assets/Icons/camera.png'),
+  gallery: require('../assets/Icons/gallery.png'),
+  theme: require('../assets/Icons/theme.png'),
+};
+
+export const GIF = {
+  download:
+    'https://s3-alpha-sig.figma.com/img/b86a/aca3/a2940d17df5401f00eef43bc8914b965?Expires=1734912000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=U1waHIRVwn8-ymi-u8J0Wit5CVay7SgHiel-bY1bByXPauqWm-smjGYPszsQDC~ia6w~QcobgZ6PUYMvSDmEfQWGy87-VCM-yKj~hGrE7SdjCcmxASYiC0oTb0MfbtGS7C0sDhy3G1TCQZh1~tRoVpOaBZqGnN~LLeYGY3TNW2yRGwbZmxJV1Msd4yxA7cfOZSNo7PquRxcM8xZSeIrq4F-p~xSGIIf80OvVGg7BizE0KS-AIoMgjpSFxRykVszFaWHYVCYPeDdoDSYcMAgUYtDOHBq0VLpao3F~HHJdaBSTMpgRNEV0avOouQ~YKijPgqzfMQf5mmHTVNGPSKH3jw__',
 };
