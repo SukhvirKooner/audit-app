@@ -305,7 +305,7 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       alignItems: 'center',
     },
     greenTextStyle: {
-      ...commonFontStyle(500, fontValue + 14, colors.naveBg),
+      ...commonFontStyle(500, fontValue + 14, colors.mainBlue),
     },
     itemTextStyle: {
       ...commonFontStyle(500, 18 + fontValue, colors.black),

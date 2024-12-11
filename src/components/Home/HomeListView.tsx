@@ -27,7 +27,7 @@ const HomeListView = ({data, onPress}: Props) => {
   const widthAndHeight = 30;
   const value = 100 - Number(data?.progress);
   const series = [Number(data?.progress), value];
-  const sliceColor = [colors.mainBlue, colors.white];
+  const sliceColor = [colors.naveBg, colors.white];
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.container}>
@@ -87,7 +87,7 @@ const getGlobalStyles = (props: any) => {
       height: 40,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.mainBlue,
+      backgroundColor: colors.naveBg,
       borderRadius: 25,
     },
   });

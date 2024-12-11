@@ -48,6 +48,10 @@ export const resetNavigation = (name: string, _undefined: undefined) => {
   });
 };
 
+export const navigateTo = (name: string, params: any) => {
+  navigationRef.navigate(name, params);
+};
+
 export const successToast = (message: string) => {
   Toast.show({type: 'success', text1: message});
 };

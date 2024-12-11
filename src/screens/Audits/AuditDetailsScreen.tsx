@@ -21,6 +21,8 @@ import {SCREENS} from '../../navigation/screenNames';
 import {getAuditsDetails} from '../../service/AuditService';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {navigationRef} from '../../navigation/RootContainer';
+import {navigateTo} from '../../utils/commonFunction';
+import {IS_LOADING} from '../../redux/actionTypes';
 
 const audits = [
   {
@@ -61,6 +63,10 @@ const AuditDetailsScreen = () => {
   useEffect(() => {
     onGetAudits();
   }, [isFocused]);
+
+  useEffect(() => {
+    dispatch({type: IS_LOADING, payload: true});
+  }, [dispatch]);
 
   const onGetAudits = async () => {
     let obj = {
@@ -108,15 +114,25 @@ const AuditDetailsScreen = () => {
         searchIcon
         showAdd
         onMapPress={() => {
-          navigate(SCREENS.MapScreen, {
+          const filteredLocations = auditsDetailsList
+            .map((item: any) => {
+              const locationField = item.fields.find(
+                (field: any) => field.template_field === 66,
+              );
+              return locationField ? {value: locationField.value} : null;
+            })
+            .filter((value: any) => value !== null);
+
+          navigateTo(SCREENS.MapScreen, {
             headerTitle: params?.headerTitle,
+            listData: filteredLocations,
           });
         }}
         onSearchPress={() => {
-          navigationRef.navigate(SCREENS.SearchScreen);
+          navigateTo(SCREENS.SearchScreen, {});
         }}
         onShowAddPress={() => {
-          navigate(SCREENS.TemplateScreen, {
+          navigateTo(SCREENS.TemplateScreen, {
             headerTitle: params?.headerTitle,
             auditItem: params?.auditItem,
             type: 'create',

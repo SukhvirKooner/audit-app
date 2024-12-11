@@ -32,7 +32,8 @@ export const dark_theme = {
 
   white: '#000000', // Lighter text color
   background: '#121212', // Darker background
-  naveBg: '#054DA4', // Consistent with light theme blue
+
+  naveBg: '#ffffff', // Consistent with light theme blue
 
   mainBlue: '#054DA4', // Consistent blue accent
 

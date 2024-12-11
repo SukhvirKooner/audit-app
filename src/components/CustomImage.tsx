@@ -36,7 +36,7 @@ const CustomImage = ({
       disabled={disabled}
       style={isBorder ? styles.btnContainer : {...containerStyle}}>
       <FastImage
-        source={uri ? {uri: uri} : source}
+        source={uri ? {uri: uri, cache: 'cacheOnly'} : source}
         defaultSource={source ? source : undefined}
         style={[{width: size, height: size}, imageStyle]}
         resizeMode={resizeMode}

@@ -11,7 +11,7 @@ interface Props {
   isVisible: boolean;
 }
 
-const CustomModal = ({isVisible}: Props) => {
+const PdfDownloadModal = ({isVisible}: Props) => {
   const [visible, setVisible] = useState(false);
 
   const {colors} = useTheme();
@@ -48,7 +48,7 @@ const CustomModal = ({isVisible}: Props) => {
   );
 };
 
-export default CustomModal;
+export default PdfDownloadModal;
 
 const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({

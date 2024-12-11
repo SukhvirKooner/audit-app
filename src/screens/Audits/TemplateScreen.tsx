@@ -40,11 +40,11 @@ import Geocoder from 'react-native-geocoding';
 import {GOOGLE_API_KEY} from '../../utils/apiConstants';
 import {requestLocationPermission} from '../../utils/locationHandler';
 import ImageSelectionModal from '../../components/ImageSelectionModal';
-import CustomModal from '../../components/PdfDownloadModal';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import {IS_LOADING} from '../../redux/actionTypes';
 import {SCREENS} from '../../navigation/screenNames';
-import {errorToast, successToast} from '../../utils/commonFunction';
+import {errorToast, navigateTo, successToast} from '../../utils/commonFunction';
+import PdfDownloadModal from '../../components/PdfDownloadModal';
 
 Geocoder.init(GOOGLE_API_KEY, {language: 'en'});
 
@@ -182,6 +182,12 @@ const TemplateScreen = () => {
   useEffect(() => {
     // Merging form template with values data
     if (params?.auditDetails?.fields?.length !== 0 && params?.type === 'edit') {
+      setValue();
+    }
+  }, [params?.auditDetails?.fields, params?.type]);
+
+  const setValue = () => {
+    if (params?.auditDetails?.fields?.length !== 0 && params?.type === 'edit') {
       const newData = params?.auditDetails?.fields.reduce(
         (acc: any, item: any) => {
           acc[item.template_field] = item.value;
@@ -191,7 +197,7 @@ const TemplateScreen = () => {
       );
       setFormValues(newData);
     }
-  }, [params?.auditDetails?.fields, params?.type]);
+  };
 
   // Update form values on input change
   const handleInputChange = (id: number, value: any) => {
@@ -582,7 +588,6 @@ const TemplateScreen = () => {
         },
         {},
       );
-      console.log('groupedData', groupedData);
       // Profile image path (for local image)
       const profileImagePath = groupedData?.Profile
         ? groupedData?.Profile[0]?.value
@@ -614,7 +619,6 @@ const TemplateScreen = () => {
      )
      .join('')}
  `;
-      console.log('htmlContent', htmlContent);
       const pdf = await RNHTMLtoPDF.convert({
         html: htmlContent,
         fileName: 'Report',
@@ -623,8 +627,10 @@ const TemplateScreen = () => {
 
       // Alert.alert('Success', `PDF saved at: ${pdf.filePath}`);
       // setPdfFilePath(pdf.filePath);
-      setPdfModal(false);
-      navigationRef.navigate(SCREENS.PdfScreen, {pdfPath: pdf.filePath});
+      setTimeout(() => {
+        setPdfModal(false);
+        navigationRef.navigate(SCREENS.PdfScreen, {pdfPath: pdf.filePath});
+      }, 300);
     } catch (error) {
       console.log('error', error);
       Alert.alert('Error', 'Failed to generate PDF');
@@ -640,19 +646,31 @@ const TemplateScreen = () => {
         downloadIcon
         refreshIcon={params?.type === 'edit' ? false : true}
         showMap
-        editIcon={params?.type === 'edit' ? true : false}
+        editIcon={isEdit ? false : params?.type === 'edit' ? true : false}
+        crossIcon={params?.type === 'create' ? false : isEdit ? true : false}
+        onCrossPress={() => {
+          setIsEdit(!isEdit);
+          errorToast('Edit mode disabled');
+          setValue();
+        }}
         onEditPress={() => {
           setIsEdit(!isEdit);
-          if (isEdit) {
-            errorToast('Edit mode disabled');
-          } else {
-            successToast('Edit mode enabled');
-          }
+          successToast('Edit mode enabled');
         }}
         onMapPress={() => {
-          navigationRef.navigate(SCREENS.MapScreen, {
-            headerTitle: params?.headerTitle,
-          });
+          const filter = templateData.find(
+            (field: any) => field.field_type === 'location',
+          );
+          const locationData = params.auditDetails?.fields.find(
+            (field: any) => field.template_field === filter?.id,
+          );
+
+          if (filter?.id) {
+            navigateTo(SCREENS.MapScreen, {
+              headerTitle: params?.headerTitle,
+              listData: [locationData],
+            });
+          }
         }}
         onDownloadPress={() => {
           generatePDF();
@@ -709,7 +727,7 @@ const TemplateScreen = () => {
             }}
             onClose={setImageModal}
           />
-          <CustomModal isVisible={pdfModal} />
+          <PdfDownloadModal isVisible={pdfModal} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -1324,7 +1324,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-google-maps (1.20.1):
+  - react-native-google-maps (1.18.2):
     - Google-Maps-iOS-Utils (= 5.0.0)
     - GoogleMaps (= 8.4.0)
     - React-Core
@@ -1351,7 +1351,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-maps (1.20.1):
+  - react-native-maps (1.18.2):
     - React-Core
   - react-native-pdf (6.7.6):
     - DoubleConversion
@@ -2185,10 +2185,10 @@ SPEC CHECKSUMS:
   react-native-blob-util: e6a3b23a99ac2c3d9fa48722db049a1e1808efc2
   react-native-date-picker: 3399a55d9de13510ab9cb2fed2013484a6f6ebca
   react-native-geolocation: 830fca20f962efbfcd670066c58a94e5d41eb8e1
-  react-native-google-maps: 7cc1184afe41fbd15a3dffd53c924819f6587b69
+  react-native-google-maps: 8cb46ae72c332204bc364dcbaf09423d244480d5
   react-native-html-to-pdf: 4c5c6e26819fe202971061594058877aa9b25265
   react-native-image-picker: e7331948589e764ecd5a9c715c3fc14d4e6187e6
-  react-native-maps: ee1e65647460c3d41e778071be5eda10e3da6225
+  react-native-maps: d7c0974353b8a495642d7ce3b80f239fc6b87bfb
   react-native-pdf: 612757482d19b59e9c2ff42148118248b9080950
   react-native-safe-area-context: 782fec0553f14a630a2bac87b116e512a9f35500
   react-native-slider: 124ce99f9cd2d04c79f020da6dee9f8d38a6b8c7

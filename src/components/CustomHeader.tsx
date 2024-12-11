@@ -30,6 +30,11 @@ interface Props {
   onQrCodePress?: () => void;
   editIcon?: any;
   onEditPress?: () => void;
+  crossIcon?: any;
+  onCrossPress?: () => void;
+  isBack?: boolean;
+  shareIcon?: any;
+  onSharePress?: () => void;
 }
 
 const CustomHeader = ({
@@ -54,6 +59,11 @@ const CustomHeader = ({
   showQrCode,
   editIcon,
   onEditPress,
+  crossIcon,
+  onCrossPress,
+  isBack = true,
+  shareIcon,
+  onSharePress,
 }: Props) => {
   const {colors}: any = useTheme();
   const {goBack} = useNavigation();
@@ -75,7 +85,7 @@ const CustomHeader = ({
               imageStyle={{borderRadius: wps(45)}}
             />
           </>
-        ) : (
+        ) : isBack ? (
           <CustomImage
             source={Icons.ic_back}
             size={hps(24)}
@@ -85,7 +95,7 @@ const CustomHeader = ({
               padding: wps(10),
             }}
           />
-        )}
+        ) : null}
         {type === 'home' ? (
           <View style={{paddingLeft: wps(10), flex: 1}}>
             {subTitle && <CustomText text={subTitle} style={styles.text1} />}
@@ -160,6 +170,23 @@ const CustomHeader = ({
               source={Icons.ic_edit}
               size={hps(45)}
               tintColor={colors.black}
+            />
+          )}
+          {shareIcon && (
+            <CustomImage
+              onPress={onSharePress}
+              source={Icons.ic_share}
+              size={hps(45)}
+              tintColor={colors.black}
+            />
+          )}
+          {crossIcon && (
+            <CustomImage
+              onPress={onCrossPress}
+              source={Icons.ic_add}
+              size={hps(45)}
+              tintColor={colors.black}
+              imageStyle={{transform: [{rotate: '45deg'}]}}
             />
           )}
           {showQrCode && (

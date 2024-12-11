@@ -36,6 +36,7 @@ export const Icons = {
   camera: require('../assets/Icons/camera.png'),
   gallery: require('../assets/Icons/gallery.png'),
   theme: require('../assets/Icons/theme.png'),
+  ic_share: require('../assets/Icons/ic_share.png'),
 };
 
 export const GIF = {

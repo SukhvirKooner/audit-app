@@ -138,7 +138,7 @@ const getGlobalStyles = (props: any) => {
       width: SCREEN_WIDTH,
     },
     textStyleToast: {
-      ...commonFontStyle(500, fontValue + 14, colors.white),
+      ...commonFontStyle(500, fontValue + 14, '#FFFF'),
       textAlign: 'center',
     },
   });

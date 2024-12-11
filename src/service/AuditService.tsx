@@ -26,8 +26,6 @@ export const getAudits =
     onFailure,
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
-    dispatch({type: IS_LOADING, payload: true});
-
     return makeAPIRequest({
       method: GET,
       url: api.audits,
@@ -61,7 +59,6 @@ export const getAuditsDetails =
     onFailure,
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
-    dispatch({type: IS_LOADING, payload: true});
     return makeAPIRequest({
       method: GET,
       url: api.audits + data?.id + api.audits_details,

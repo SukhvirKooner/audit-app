@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import React, {useEffect} from 'react';
-import {useTheme} from '@react-navigation/native';
+import {useIsFocused, useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
 import {Icons} from '../../theme/images';
@@ -19,6 +19,7 @@ import {navigationRef} from '../../navigation/RootContainer';
 import {SCREENS} from '../../navigation/screenNames';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {getAudits} from '../../service/AuditService';
+import {IS_LOADING} from '../../redux/actionTypes';
 
 const audits = [
   {
@@ -63,6 +64,7 @@ const AuditScreen = () => {
   const {colors} = useTheme();
   const {fontValue} = useAppSelector((state: any) => state.common);
   const {auditsList} = useAppSelector(state => state.home);
+  const isFocused = useIsFocused();
 
   const dispatch = useAppDispatch();
   const styles = React.useMemo(
@@ -72,7 +74,11 @@ const AuditScreen = () => {
 
   useEffect(() => {
     onGetAudits();
-  }, []);
+  }, [isFocused]);
+
+  useEffect(() => {
+    dispatch({type: IS_LOADING, payload: true});
+  }, [dispatch]);
 
   const onGetAudits = async () => {
     let obj = {
@@ -209,7 +215,7 @@ const getGlobalStyles = props => {
       opacity: 0.6,
     },
     moreAvatar: {
-      backgroundColor: colors.naveBg,
+      backgroundColor: colors.mainBlue,
       width: 28,
       height: 28,
       borderRadius: 28,

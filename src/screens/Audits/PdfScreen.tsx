@@ -6,6 +6,7 @@ import {commonFontStyle} from '../../theme/fonts';
 import {useTranslation} from 'react-i18next';
 import PDFView from 'react-native-pdf';
 import CustomHeader from '../../components/CustomHeader';
+import {navigationRef} from '../../navigation/RootContainer';
 
 const PdfScreen = () => {
   const {t} = useTranslation();
@@ -22,7 +23,16 @@ const PdfScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CustomHeader title={t('Report.pdf')} />
+      <CustomHeader
+        title={t('Report.pdf')}
+        isBack={false}
+        shareIcon
+        crossIcon
+        onSharePress={() => {}}
+        onCrossPress={() => {
+          navigationRef.goBack();
+        }}
+      />
       {params.pdfPath && (
         <PDFView
           source={{uri: `file://${params.pdfPath}`}}
