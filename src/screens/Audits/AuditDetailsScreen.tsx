@@ -22,7 +22,7 @@ import {getAuditsDetails} from '../../service/AuditService';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {navigationRef} from '../../navigation/RootContainer';
 import {navigateTo} from '../../utils/commonFunction';
-import {IS_LOADING} from '../../redux/actionTypes';
+import {GET_AUDITS_DETAILS, IS_LOADING} from '../../redux/actionTypes';
 
 const audits = [
   {
@@ -66,6 +66,7 @@ const AuditDetailsScreen = () => {
 
   useEffect(() => {
     dispatch({type: IS_LOADING, payload: true});
+    dispatch({type: GET_AUDITS_DETAILS, payload: []});
   }, [dispatch]);
 
   const onGetAudits = async () => {
@@ -98,9 +99,9 @@ const AuditDetailsScreen = () => {
       />
       <View>
         <CustomText text={item?.filled_by} style={styles.auditTitle} />
-        <CustomText style={styles.auditDescription}>
+        {/* <CustomText style={styles.auditDescription}>
           {`${t('Last updated on')}${item.description}}`}
-        </CustomText>
+        </CustomText> */}
       </View>
     </TouchableOpacity>
   );
@@ -144,6 +145,7 @@ const AuditDetailsScreen = () => {
         renderItem={renderAudit}
         keyExtractor={(item: any) => item?.response_id}
         contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );

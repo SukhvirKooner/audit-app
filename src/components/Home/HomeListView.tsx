@@ -9,11 +9,14 @@ import {light_theme} from '../../theme/colors';
 import {useSelector} from 'react-redux';
 
 interface Props {
+  title: string;
+  subtitle: string;
+  progress: any;
   data: any;
   onPress?: () => void;
 }
 
-const HomeListView = ({data, onPress}: Props) => {
+const HomeListView = ({data, onPress, subtitle, title, progress}: Props) => {
   const {t} = useTranslation();
 
   const {colors}: any = useTheme();
@@ -25,14 +28,14 @@ const HomeListView = ({data, onPress}: Props) => {
   );
 
   const widthAndHeight = 30;
-  const value = 100 - Number(data?.progress);
-  const series = [Number(data?.progress), value];
+  const value = 100 - Number(progress);
+  const series = [Number(progress), value];
   const sliceColor = [colors.naveBg, colors.white];
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.container}>
-      <CustomText text={data.title} style={styles.titleStyle} />
-      <CustomText text={data.subtitle} style={styles.subTitleStyle} />
+      <CustomText text={title} style={styles.titleStyle} />
+      <CustomText text={subtitle} style={styles.subTitleStyle} />
       <View style={styles.line} />
       <View style={styles.row}>
         <View style={styles.pieStyle}>
@@ -45,7 +48,7 @@ const HomeListView = ({data, onPress}: Props) => {
         </View>
 
         <CustomText style={styles.subTitleStyle}>
-          {data?.progress}% {t('Complete')}
+          {progress}% {t('Complete')}
         </CustomText>
       </View>
     </TouchableOpacity>

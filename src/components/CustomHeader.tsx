@@ -39,6 +39,7 @@ interface Props {
 
 const CustomHeader = ({
   type = 'other',
+  userImage,
   title,
   subTitle,
   showAdd,
@@ -79,11 +80,19 @@ const CustomHeader = ({
       <View style={styles.container}>
         {type === 'home' ? (
           <>
-            <CustomImage
-              uri="https://picsum.photos/200"
-              size={wps(45)}
-              imageStyle={{borderRadius: wps(45)}}
-            />
+            {userImage ? (
+              <CustomImage
+                uri={userImage}
+                size={wps(45)}
+                imageStyle={{borderRadius: wps(45)}}
+              />
+            ) : (
+              <CustomImage
+                source={Icons.user}
+                size={wps(45)}
+                imageStyle={{borderRadius: wps(45)}}
+              />
+            )}
           </>
         ) : isBack ? (
           <CustomImage

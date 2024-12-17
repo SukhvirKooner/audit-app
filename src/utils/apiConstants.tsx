@@ -3,6 +3,8 @@ export const api = {
 
   login: 'login/',
 
+  user: '/users/me/',
+
   audits: 'audits/',
   audits_details: '/responses/',
   audits_details_id: '/audit-responses/',

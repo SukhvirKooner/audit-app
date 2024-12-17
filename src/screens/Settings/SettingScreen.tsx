@@ -23,12 +23,16 @@ import {navigationRef} from '../../navigation/RootContainer';
 import {screenNames} from '../../navigation/screenNames';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {setDarkTheme} from '../../utils/commonActions';
+import {clearAsync, clearOfflineAsync} from '../../utils/asyncStorageManager';
 
 const SettingScreen = () => {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const {colors}: any = useTheme();
-  const {fontValue, isDarkTheme} = useAppSelector(state => state.common);
+  const {fontValue, isDarkTheme, userInfo} = useAppSelector(
+    state => state.common,
+  );
+
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
@@ -80,6 +84,8 @@ const SettingScreen = () => {
       title: 'Logout',
       onPress: () => {
         onPressLogOut();
+        clearAsync();
+        clearOfflineAsync();
       },
     },
   ];
@@ -114,8 +120,15 @@ const SettingScreen = () => {
         }}
       />
       <View style={{flex: 1}}>
-        <CustomImage
+        {/* <CustomImage
           uri="https://picsum.photos/200"
+          size={wps(90)}
+          imageStyle={{borderRadius: wps(90)}}
+          containerStyle={{alignSelf: 'center', marginTop: 40}}
+        /> */}
+        <CustomImage
+          uri={userInfo?.profile_image ?? ''}
+          source={userInfo?.profile_image ?? Icons.user}
           size={wps(90)}
           imageStyle={{borderRadius: wps(90)}}
           containerStyle={{alignSelf: 'center', marginTop: 40}}

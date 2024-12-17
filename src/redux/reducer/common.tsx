@@ -1,15 +1,22 @@
-import {IS_LOADING, SET_APP_THEME, SET_FONT_VALUE} from '../actionTypes';
+import {
+  IS_LOADING,
+  SET_APP_THEME,
+  SET_FONT_VALUE,
+  SET_USER_INFO,
+} from '../actionTypes';
 
 interface CommonState {
   isLoading: boolean;
   isDarkTheme: boolean;
   fontValue: number;
+  userInfo: any;
 }
 
 const initialState: CommonState = {
   isLoading: false,
   isDarkTheme: true,
   fontValue: 0,
+  userInfo: undefined,
 };
 
 export default function (state = initialState, action: any) {
@@ -22,6 +29,9 @@ export default function (state = initialState, action: any) {
     }
     case SET_FONT_VALUE: {
       return {...state, fontValue: action.payload};
+    }
+    case SET_USER_INFO: {
+      return {...state, userInfo: action.payload};
     }
     default:
       return state;

@@ -8,7 +8,7 @@ import {
   makeAPIRequest,
   setAuthorization,
 } from '../utils/apiGlobal';
-import {api, POST} from '../utils/apiConstants';
+import {api, GET, POST} from '../utils/apiConstants';
 import {setAsyncToken, setAsyncUserInfo} from '../utils/asyncStorageManager';
 import {resetNavigation} from '../utils/commonFunction';
 import {SCREENS} from '../navigation/screenNames';
@@ -50,5 +50,30 @@ export const onUserLogin =
       })
       .catch(error => {
         handleErrorRes(error, onFailure, dispatch);
+      });
+  };
+
+export const getUserDetails =
+  ({
+    data,
+    params,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    return makeAPIRequest({
+      method: GET,
+      url: api.user,
+    })
+      .then(async (response: any) => {
+        dispatch({type: IS_LOADING, payload: false});
+        dispatch({type: SET_USER_INFO, payload: response.data});
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {
+        handleErrorRes(error, onFailure, dispatch);
+        dispatch({type: IS_LOADING, payload: false});
       });
   };

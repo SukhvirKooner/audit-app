@@ -1353,6 +1353,8 @@ PODS:
     - Yoga
   - react-native-maps (1.18.2):
     - React-Core
+  - react-native-netinfo (11.4.1):
+    - React-Core
   - react-native-pdf (6.7.6):
     - DoubleConversion
     - glog
@@ -1938,6 +1940,7 @@ DEPENDENCIES:
   - react-native-html-to-pdf (from `../node_modules/react-native-html-to-pdf`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-maps (from `../node_modules/react-native-maps`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
@@ -2070,6 +2073,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
   react-native-safe-area-context:
@@ -2189,6 +2194,7 @@ SPEC CHECKSUMS:
   react-native-html-to-pdf: 4c5c6e26819fe202971061594058877aa9b25265
   react-native-image-picker: e7331948589e764ecd5a9c715c3fc14d4e6187e6
   react-native-maps: d7c0974353b8a495642d7ce3b80f239fc6b87bfb
+  react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-pdf: 612757482d19b59e9c2ff42148118248b9080950
   react-native-safe-area-context: 782fec0553f14a630a2bac87b116e512a9f35500
   react-native-slider: 124ce99f9cd2d04c79f020da6dee9f8d38a6b8c7

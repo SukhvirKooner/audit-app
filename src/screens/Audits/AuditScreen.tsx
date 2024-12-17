@@ -21,45 +21,6 @@ import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {getAudits} from '../../service/AuditService';
 import {IS_LOADING} from '../../redux/actionTypes';
 
-const audits = [
-  {
-    id: '1',
-    title: 'Check Ambulance TS 456789',
-    description: 'Update Maintenance Check',
-    date: 'Mon, 10 July 2022',
-    avatars: [
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-    ],
-  },
-  {
-    id: '2',
-    title: 'Site Inspection',
-    description: 'g4C Highway lane',
-    date: 'Mon, 10 July 2022',
-    avatars: [
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-    ],
-  },
-  {
-    id: '3',
-    title: 'Traffic Signal Survey',
-    description: 'Check Road condition, report and update the status',
-    date: 'Mon, 10 July 2022',
-    avatars: [
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-      'https://picsum.photos/200',
-    ],
-  },
-];
-
 const AuditScreen = () => {
   const {colors} = useTheme();
   const {fontValue} = useAppSelector((state: any) => state.common);
@@ -108,7 +69,7 @@ const AuditScreen = () => {
             tintColor={colors.black}
           />
           <CustomText
-            text={item?.date ?? item?.start_date}
+            text={item?.start_date + ' - ' + item?.end_date}
             style={styles.dateText}
           />
         </View>
@@ -161,7 +122,7 @@ const getGlobalStyles = props => {
     },
     listContainer: {
       padding: 16,
-      flex: 1,
+      flexGrow: 1,
     },
     viewStyle: {
       borderWidth: 0.8,

@@ -3,6 +3,8 @@
 
 import Toast from 'react-native-toast-message';
 import {navigationRef} from '../navigation/RootContainer';
+import {getUserDetails} from '../service/AuthServices';
+import {getAudits} from '../service/AuditService';
 
 export const emailCheck = (email: string) => {
   let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -88,7 +90,7 @@ export const errorToast = (message: string) => {
 export const homeScreenList = [
   {
     title: 'Active Audits',
-    subtitle: '112 Ongoing',
+    subtitle: 'Ongoing',
     progress: '40',
     status: 'Complete',
   },
@@ -111,3 +113,8 @@ export const homeScreenList = [
   //   status: 'Complete',
   // },
 ];
+
+export const commonApiCall = (dispatch: any) => {
+  dispatch(getUserDetails({}));
+  dispatch(getAudits({}));
+};

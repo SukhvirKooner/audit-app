@@ -17,7 +17,7 @@ export const light_theme = {
   gray_E7: '#E7E7E7',
   gray_A8: '#A8A8A8',
   gray_DF: '#DFDFDF',
-
+  gray_ea: '#eaeaea',
   red: '#DF1525',
   red_FF: '#FF0000',
   modalBg: '#fff',
@@ -43,6 +43,7 @@ export const dark_theme = {
   gray_E7: '#E7E7E7',
   gray_A8: '#A8A8A8',
   gray_DF: '#DFDFDF',
+  gray_ea: '#373737',
 
   red: '#DF1525',
   red_FF: '#FF0000',

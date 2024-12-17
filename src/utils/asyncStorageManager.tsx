@@ -9,6 +9,10 @@ export const asyncKeys = {
   // no clear in logout time
   fcm_token: '@fcm_token',
   fontSize: '@fontSize',
+
+  audits_list: '@audits_list',
+  template_data: '@template_data',
+  template_fill_data: '@template_fill_data',
 };
 
 export const clearAsync = async () => {
@@ -19,6 +23,57 @@ export const clearAsync = async () => {
     // asyncKeys.fcm_token,
     // asyncKeys.fontSize,
   ]);
+};
+
+export const clearOfflineAsync = async () => {
+  await AsyncStorage.multiRemove([
+    asyncKeys.audits_list,
+    asyncKeys.template_data,
+    asyncKeys.template_fill_data,
+  ]);
+};
+
+export const setAsyncAudit = async (data: string) => {
+  console.log('  setAsyncAudit(auditsList);', data);
+  await AsyncStorage.setItem(asyncKeys.audits_list, JSON.stringify(data));
+};
+
+export const getAsyncAudit = async () => {
+  const data = await AsyncStorage.getItem(asyncKeys.audits_list);
+  if (data) {
+    return JSON.parse(data);
+  } else {
+    return [];
+  }
+};
+
+export const setAsyncTemplate = async (data: any) => {
+  await AsyncStorage.setItem(asyncKeys.template_data, JSON.stringify(data));
+};
+
+export const getAsyncTemplate = async () => {
+  const data = await AsyncStorage.getItem(asyncKeys.template_data);
+  if (data) {
+    return JSON.parse(data);
+  } else {
+    return [];
+  }
+};
+
+export const setAsyncTemplateFillData = async (data: any) => {
+  await AsyncStorage.setItem(
+    asyncKeys.template_fill_data,
+    JSON.stringify(data),
+  );
+};
+
+export const getAsyncTemplateFillData = async () => {
+  const data = await AsyncStorage.getItem(asyncKeys.template_fill_data);
+  if (data) {
+    return JSON.parse(data);
+  } else {
+    return [];
+  }
 };
 
 export const setAsyncToken = async (token: string) => {

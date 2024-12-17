@@ -1,4 +1,5 @@
 export const Icons = {
+  user: require('../assets/Icons/user.png'),
   login: require('../assets/Icons/login.png'),
   email: require('../assets/Icons/email.png'),
   lock: require('../assets/Icons/lock.png'),
@@ -37,6 +38,7 @@ export const Icons = {
   gallery: require('../assets/Icons/gallery.png'),
   theme: require('../assets/Icons/theme.png'),
   ic_share: require('../assets/Icons/ic_share.png'),
+  tick: require('../assets/Icons/tick.png'),
 };
 
 export const GIF = {

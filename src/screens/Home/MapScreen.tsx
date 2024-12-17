@@ -14,7 +14,6 @@ import Loader from '../../components/Loader';
 const MapScreen = () => {
   const {params}: any = useRoute();
   const mapCameraRef = useRef<any>(null);
-  console.log('params', mapCameraRef);
 
   const {colors} = useTheme();
   // const {fontValue} = useSelector((state: any) => state.common);

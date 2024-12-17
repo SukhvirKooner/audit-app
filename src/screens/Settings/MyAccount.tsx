@@ -36,8 +36,14 @@ const MyAccount = () => {
       <CustomHeader title={'My Account'} />
       <ScrollView style={{flex: 1, marginHorizontal: wps(16)}}>
         <View style={{alignSelf: 'center', marginBottom: 40}}>
-          <CustomImage
+          {/* <CustomImage
             uri="https://picsum.photos/200"
+            size={wps(90)}
+            imageStyle={{borderRadius: wps(90)}}
+            containerStyle={{alignSelf: 'center', marginTop: 40}}
+          /> */}
+          <CustomImage
+            source={Icons.user}
             size={wps(90)}
             imageStyle={{borderRadius: wps(90)}}
             containerStyle={{alignSelf: 'center', marginTop: 40}}
