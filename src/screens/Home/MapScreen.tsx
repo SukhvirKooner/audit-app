@@ -25,13 +25,6 @@ const MapScreen = () => {
 
   const [isMapLoaded, setIsMapLoaded] = useState(true);
 
-  const [region, setRegion] = useState({
-    latitude: bangaloreRegion.latitude,
-    longitude: bangaloreRegion.longitude,
-    latitudeDelta: bangaloreRegion.latitudeDelta,
-    longitudeDelta: bangaloreRegion.longitudeDelta,
-  });
-
   useEffect(() => {
     if (params?.listData?.length > 0) {
       setTimeout(() => {
@@ -62,7 +55,29 @@ const MapScreen = () => {
   }, [params?.listData, mapCameraRef?.current]);
 
   const onMapLoad = () => {
+    console.log('onMapLoad');
     setIsMapLoaded(false);
+
+    const newList = params?.listData?.map((item: any) => {
+      return {
+        latitude: Number(item?.value?.split(',')[0] || 0),
+        longitude: Number(item?.value?.split(',')[1] || 0),
+      };
+    });
+    setMarkerList(newList);
+    if (mapCameraRef?.current) {
+      mapCameraRef?.current?.setCamera({
+        center: {
+          latitude: Number(newList[0]?.latitude || 0),
+          longitude: Number(newList[0]?.longitude || 0),
+        },
+        zoom: 11, // Adjust zoom level
+        animation: {
+          duration: 1000, // Duration of the animation
+          easing: () => {},
+        },
+      });
+    }
   };
 
   return (

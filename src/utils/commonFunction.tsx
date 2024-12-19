@@ -4,7 +4,7 @@
 import Toast from 'react-native-toast-message';
 import {navigationRef} from '../navigation/RootContainer';
 import {getUserDetails} from '../service/AuthServices';
-import {getAudits} from '../service/AuditService';
+import {getAudits, getGroupsList} from '../service/AuditService';
 
 export const emailCheck = (email: string) => {
   let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
@@ -118,4 +118,5 @@ export const homeScreenList = [
 export const commonApiCall = (dispatch: any) => {
   dispatch(getUserDetails({}));
   dispatch(getAudits({}));
+  dispatch(getGroupsList({}));
 };

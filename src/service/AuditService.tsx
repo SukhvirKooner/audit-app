@@ -7,9 +7,15 @@ import {
   setAuthorization,
 } from '../utils/apiGlobal';
 import {api, GET, POST, PUT} from '../utils/apiConstants';
-import {GET_AUDITS, GET_AUDITS_DETAILS, IS_LOADING} from '../redux/actionTypes';
+import {
+  GET_AUDITS,
+  GET_AUDITS_DETAILS,
+  IS_LOADING,
+  SET_GROUP_LIST,
+} from '../redux/actionTypes';
 import axios from 'axios';
 import {getAsyncToken} from '../utils/asyncStorageManager';
+import {errorToast} from '../utils/commonFunction';
 
 interface requestProps {
   data?: any;
@@ -89,7 +95,7 @@ export const getAuditsDetailsByID =
 
     return makeAPIRequest({
       method: GET,
-      url: api.audits_details_id + data?.id,
+      url: api.audits_details_id + data,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -186,3 +192,53 @@ export const getTemplate =
         dispatch({type: IS_LOADING, payload: false});
       });
   };
+export const getGroupsList =
+  ({
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    dispatch({type: IS_LOADING, payload: true});
+
+    return makeAPIRequest({
+      method: GET,
+      url: api.groups,
+    })
+      .then(async (response: any) => {
+        dispatch({type: IS_LOADING, payload: false});
+
+        dispatch({type: SET_GROUP_LIST, payload: response.data});
+
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {
+        handleErrorRes(error, onFailure, dispatch);
+        dispatch({type: IS_LOADING, payload: false});
+      });
+  };
+
+export const uploadImage = async (data: any) => {
+  // dispatch({type: IS_LOADING, payload: true});
+
+  return makeAPIRequest({
+    method: POST,
+    url: api.upload_image,
+    data: data,
+  })
+    .then(async (response: any) => {
+      // dispatch({type: IS_LOADING, payload: false});
+
+      return response.data;
+    })
+    .catch(error => {
+      // handleErrorRes(error, onFailure, dispatch);
+      if (error?.message) {
+        errorToast(error?.message);
+      } else {
+        errorToast('Please try again');
+      }
+      // dispatch({type: IS_LOADING, payload: false});
+    });
+};

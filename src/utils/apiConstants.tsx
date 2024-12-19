@@ -9,6 +9,8 @@ export const api = {
   audits_details: '/responses/',
   audits_details_id: '/audit-responses/',
   templates: 'templates/',
+  upload_image: 'upload-image/',
+  groups: 'api/groups/',
 };
 
 export const POST = 'POST';

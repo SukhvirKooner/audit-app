@@ -10,5 +10,7 @@ export const SET_FONT_VALUE = 'SET_FONT_VALUE';
 
 export const SET_USER_INFO = 'SET_USER_INFO';
 
+export const SET_GROUP_LIST = 'SET_GROUP_LIST';
+
 export const GET_AUDITS = 'GET_AUDITS';
 export const GET_AUDITS_DETAILS = 'GET_AUDITS_DETAILS';

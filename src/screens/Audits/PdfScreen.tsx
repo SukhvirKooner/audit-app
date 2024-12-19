@@ -1,4 +1,4 @@
-import {SafeAreaView, StyleSheet} from 'react-native';
+import {SafeAreaView, Share, StyleSheet} from 'react-native';
 import React from 'react';
 import {useRoute, useTheme} from '@react-navigation/native';
 import {useAppSelector} from '../../redux/hooks';
@@ -28,7 +28,12 @@ const PdfScreen = () => {
         isBack={false}
         shareIcon
         crossIcon
-        onSharePress={() => {}}
+        onSharePress={() => {
+          Share.share({
+            url: `file://${params.pdfPath}`,
+            title: 'Report.pdf',
+          });
+        }}
         onCrossPress={() => {
           navigationRef.goBack();
         }}

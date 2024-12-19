@@ -17,7 +17,7 @@ import {GET_AUDITS} from '../../redux/actionTypes';
 const HomeScreen = () => {
   const dispatch = useAppDispatch();
   const {auditsList} = useAppSelector(state => state.home);
-  const {userInfo} = useAppSelector(state => state.common);
+  const {userInfo, groupList} = useAppSelector(state => state.common);
   const {colors} = useTheme();
   const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
 
@@ -37,6 +37,13 @@ const HomeScreen = () => {
         if (newList?.length === 0) {
           setAsyncAudit(auditsList);
         }
+        const filterBy = groupList.filter((i: any) => i.name === 'Site');
+
+        const filterList = auditsList.filter((i: any) => {
+          return i?.assigned_group === filterBy[0]?.id;
+        });
+
+        dispatch({type: GET_AUDITS, payload: filterList});
       }
     })();
   }, [auditsList]);

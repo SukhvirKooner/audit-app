@@ -25,11 +25,14 @@ const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
       } else if (response.errorCode) {
         console.error('Image Picker Error:', response.errorMessage);
       } else {
-        const {uri, base64, fileSize} = response.assets[0];
+        const {uri, base64, type} = response.assets[0];
+        const newI = {
+          uri: uri,
+          base64: base64,
+          type: type,
+        };
 
-        console.log('fileSize', fileSize);
-
-        onImageSelected({uri: uri, base64: base64});
+        onImageSelected([newI]);
         closeModal();
       }
       closeModal();
@@ -41,9 +44,10 @@ const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
       {
         mediaType: 'photo',
         includeBase64: true,
-        maxHeight: 100,
-        maxWidth: 100,
+        maxHeight: 800,
+        maxWidth: 800,
         quality: 1,
+        selectionLimit: 5,
       },
       (response: any) => {
         if (response.didCancel) {
@@ -51,11 +55,15 @@ const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
         } else if (response.errorCode) {
           console.error('Image Picker Error:', response.errorMessage);
         } else {
-          const {uri, base64, fileSize} = response.assets[0];
-
-          console.log('fileSize', base64, fileSize);
-
-          onImageSelected({uri: uri, base64: base64});
+          const newData = response.assets?.map((item: any) => {
+            return {
+              uri: item.uri,
+              base64: item.base64,
+              type: item.type,
+            };
+          });
+          // console.log('newData', newData);
+          onImageSelected(newData);
           closeModal();
         }
         closeModal();
