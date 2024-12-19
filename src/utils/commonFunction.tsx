@@ -50,7 +50,7 @@ export const resetNavigation = (name: string, _undefined: undefined) => {
   });
 };
 
-export const navigateTo = (name: string, params: any) => {
+export const navigateTo = (name: string, params?: any | undefined) => {
   navigationRef.navigate(name, params);
 };
 

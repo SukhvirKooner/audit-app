@@ -1,20 +1,23 @@
 import {FlatList, SafeAreaView, StyleSheet} from 'react-native';
 import React, {useEffect} from 'react';
-import {useNavigation, useTheme} from '@react-navigation/native';
-import {commonApiCall, homeScreenList} from '../../utils/commonFunction';
+import {useTheme} from '@react-navigation/native';
+import {
+  commonApiCall,
+  homeScreenList,
+  navigateTo,
+} from '../../utils/commonFunction';
 import HomeListView from '../../components/Home/HomeListView';
 import CustomHeader from '../../components/CustomHeader';
 import {SCREENS} from '../../navigation/screenNames';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
-import axios from 'axios';
 import {getAsyncAudit, setAsyncAudit} from '../../utils/asyncStorageManager';
 import NetInfo from '@react-native-community/netinfo';
 import {GET_AUDITS} from '../../redux/actionTypes';
 
 const HomeScreen = () => {
-  const {navigate} = useNavigation();
   const dispatch = useAppDispatch();
   const {auditsList} = useAppSelector(state => state.home);
+  const {userInfo} = useAppSelector(state => state.common);
   const {colors} = useTheme();
   const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
 
@@ -55,12 +58,16 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
-        title={'Riya Samuel'}
+        title={
+          userInfo?.username ||
+          userInfo?.first_name + ' ' + userInfo?.last_name ||
+          'Ria Samuel'
+        }
         subTitle={'Good Evening!'}
         notificationIcon={true}
         type="home"
         onNotificationPress={() => {
-          navigate(SCREENS.NotificationScreen);
+          navigateTo(SCREENS.NotificationScreen);
         }}
       />
       <FlatList
@@ -72,7 +79,7 @@ const HomeScreen = () => {
             title={item?.title}
             subtitle={auditsList.length + ' ' + item?.subtitle}
             onPress={() => {
-              navigate(SCREENS.Audits);
+              navigateTo(SCREENS.Audits);
             }}
             key={index}
           />

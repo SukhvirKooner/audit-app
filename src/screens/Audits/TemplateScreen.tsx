@@ -89,6 +89,11 @@ interface FormField {
     | 'radio'
     | 'radio_badge'
     | 'switch'
+    | 'section'
+    | 'label'
+    | 'sub_form'
+    | 'signature'
+    | 'file'
     | 'heading';
   is_required?: boolean;
   options?: FieldOptions | null;
@@ -97,6 +102,7 @@ interface FormField {
   order?: number;
   date?: any;
   location?: any;
+  sub_fields?: any[];
 }
 
 // Utility function to group fields by section
@@ -131,6 +137,7 @@ const TemplateScreen = () => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   // console.log('formValues', formValues);
   const sections = groupBySection(templateData);
+  console.log('sections', JSON.stringify(sections));
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -287,6 +294,7 @@ const TemplateScreen = () => {
 
   useEffect(() => {
     // Merging form template with values data
+
     if (params?.auditDetails?.fields?.length !== 0 && params?.type === 'edit') {
       setValue();
     }
@@ -297,6 +305,10 @@ const TemplateScreen = () => {
       const [checkboxData] = templateData.filter(
         (i: any) => i?.field_type === 'checkbox',
       );
+      const [imageData] = templateData.filter(
+        (i: any) => i?.field_type === 'image',
+      );
+      console.log('imageData', imageData);
       const [dropdownData] = templateData.filter(
         (i: any) =>
           i?.field_type === 'dropdown' &&
@@ -511,7 +523,7 @@ const TemplateScreen = () => {
     return null;
   };
   // Render individual fields
-  const renderField = (field: FormField) => {
+  const renderField = (field: FormField | any) => {
     switch (field.field_type) {
       case 'heading':
         return (
@@ -643,7 +655,11 @@ const TemplateScreen = () => {
               }}>
               {formValues[field.id] || imageSource?.uri ? (
                 <CustomImage
-                  uri={formValues[field.id] || imageSource?.uri}
+                  uri={
+                    formValues[field.id][0].url ||
+                    formValues[field.id] ||
+                    imageSource?.uri
+                  }
                   size={hp(14)}
                   disabled
                   containerStyle={{borderRadius: 10, overflow: 'hidden'}}
@@ -979,11 +995,518 @@ const TemplateScreen = () => {
             {renderError(field.id)}
           </>
         );
+      case 'section':
+        // console.log('section', field);
+        return (
+          <>
+            {field?.sub_fields.map((FItem: any) => (
+              <View key={FItem.id} style={styles.field}>
+                <>
+                  {FItem.field_type !== 'heading' && (
+                    <CustomText style={styles.label}>{FItem.label}</CustomText>
+                  )}
+                  {renderField(FItem)}
+                </>
+              </View>
+            ))}
+          </>
+        );
       default:
         return null;
     }
   };
 
+  const renderSectionField = (field: FormField | any) => {
+    switch (field.field_type) {
+      case 'heading':
+        return (
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>{field.label}</Text>
+          </View>
+        );
+      case 'text':
+        return (
+          <>
+            <TextInput
+              style={{
+                ...styles.input,
+                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+              }}
+              placeholder={field.label}
+              value={formValues[field.id] || ''}
+              onChangeText={text => handleInputChange(field.id, text)}
+              editable={isEdit}
+              placeholderTextColor={colors.black}
+            />
+            {renderError(field.id)}
+          </>
+        );
+      case 'text_area':
+        return (
+          <>
+            <TextInput
+              style={{
+                ...styles.input,
+                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+                height: 100,
+              }}
+              placeholder={field.label}
+              value={formValues[field.id] || ''}
+              onChangeText={text => handleInputChange(field.id, text)}
+              editable={isEdit}
+              placeholderTextColor={colors.black}
+              multiline
+              textAlignVertical="top"
+            />
+            {renderError(field.id)}
+          </>
+        );
+      case 'number':
+        return (
+          <>
+            <TextInput
+              style={{
+                ...styles.input,
+                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+              }}
+              placeholder={field.label}
+              keyboardType="numeric"
+              value={formValues[field.id] || ''}
+              onChangeText={text => handleInputChange(field.id, text)}
+              editable={isEdit}
+              placeholderTextColor={colors.black}
+            />
+            {renderError(field.id)}
+          </>
+        );
+      case 'dropdown':
+        return (
+          <>
+            {field.options?.selection_type === 'multiple' ? (
+              <MultiSelect
+                disable={!isEdit}
+                style={{
+                  ...styles.dropdown,
+                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+                }}
+                data={
+                  field.options?.choices?.map(choice => ({
+                    label: choice,
+                    value: choice,
+                  })) || []
+                }
+                labelField="label"
+                valueField="value"
+                placeholder={field.label}
+                value={formValues[field.id] ?? []}
+                onChange={item => handleInputChange(field.id, item, 'multiple')}
+                placeholderStyle={{
+                  ...commonFontStyle(400, 16, colors.black),
+                }}
+                selectedTextStyle={{
+                  ...commonFontStyle(400, 16, colors.black),
+                }}
+              />
+            ) : (
+              <Dropdown
+                disable={!isEdit}
+                style={{
+                  ...styles.dropdown,
+                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+                }}
+                data={
+                  field.options?.choices?.map(choice => ({
+                    label: choice,
+                    value: choice,
+                  })) || []
+                }
+                labelField="label"
+                valueField="value"
+                placeholder={field.label}
+                value={formValues[field.id]}
+                onChange={item => handleInputChange(field.id, item.value)}
+                placeholderStyle={{
+                  ...commonFontStyle(400, 16, colors.black),
+                }}
+                selectedTextStyle={{
+                  ...commonFontStyle(400, 16, colors.black),
+                }}
+              />
+            )}
+            {renderError(field.id)}
+          </>
+        );
+      case 'image':
+        console.log('formValues[field.id][0].url', formValues[field.id][0].url);
+        return (
+          <>
+            <TouchableOpacity
+              style={styles.imageContainer}
+              disabled={!isEdit}
+              onPress={() => {
+                setSelectFieldId(field.id);
+                setImageModal(true);
+              }}>
+              {formValues[field.id] || imageSource?.uri ? (
+                <CustomImage
+                  uri={
+                    'https:/' + formValues[field.id][0].url || imageSource?.uri
+                  }
+                  size={hp(14)}
+                  disabled
+                  containerStyle={{borderRadius: 10, overflow: 'hidden'}}
+                />
+              ) : (
+                <CustomText text={'Upload Image'} style={styles.imageText} />
+              )}
+              {(formValues[field.id] || imageSource?.uri) && (
+                <CustomImage
+                  source={Icons.cross}
+                  disabled={!isEdit}
+                  size={hps(30)}
+                  onPress={() => {
+                    setImageSource(null);
+                    handleInputChange(field.id, '');
+                  }}
+                  containerStyle={{position: 'absolute', top: -10, right: -10}}
+                  tintColor={colors.black}
+                />
+              )}
+            </TouchableOpacity>
+            {renderError(field.id)}
+          </>
+        );
+      case 'location':
+        return (
+          <>
+            <View style={styles.locationContainer}>
+              {!isMapLoaded && <Loader />}
+              <MapView
+                ref={mapCameraRef}
+                initialRegion={{
+                  latitude: Number(formValues[field.id]?.split(',')[0]) || 0,
+                  longitude: Number(formValues[field.id]?.split(',')[1]) || 0,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+                provider="google"
+                loadingEnabled
+                showsUserLocation={formValues[field.id] ? true : false}
+                onMapReady={() => setIsMapLoaded(true)}
+                style={{flex: 1}}>
+                {formValues[field.id] && (
+                  <Marker
+                    coordinate={{
+                      latitude:
+                        Number(formValues[field.id]?.split(',')[0]) || 0,
+                      longitude:
+                        Number(formValues[field.id]?.split(',')[1]) || 0,
+                    }}
+                  />
+                )}
+              </MapView>
+
+              {isEdit && (
+                <TouchableOpacity
+                  style={styles.locationView}
+                  onPress={getAddress}>
+                  <CustomText text={'Get Location'} style={styles.location} />
+                </TouchableOpacity>
+              )}
+
+              {formValues[field.id] && (
+                <CustomText
+                  text={formValues[field.id]}
+                  style={styles.location}
+                />
+              )}
+            </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'date':
+        return (
+          <>
+            <TouchableOpacity
+              disabled={!isEdit}
+              onPress={() => setOpen(true)}
+              style={{
+                ...styles.dateContainer,
+                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+                gap: 15,
+              }}>
+              <CustomImage
+                source={Icons.calendar}
+                size={hps(25)}
+                tintColor={colors.black}
+              />
+              <CustomText
+                text={
+                  formValues[field.id]
+                    ? moment(formValues[field.id]).format('DD/MM/YYYY')
+                    : 'Select Date'
+                }
+                style={{flex: 1}}
+              />
+            </TouchableOpacity>
+            <DatePicker
+              modal
+              open={open}
+              mode="date"
+              theme="auto"
+              minimumDate={new Date()}
+              date={
+                formValues[field.id]
+                  ? new Date(formValues[field.id])
+                  : new Date()
+              }
+              onConfirm={date => {
+                setOpen(false);
+                // setDate(date);
+                handleInputChange(field.id, date);
+              }}
+              onCancel={() => {
+                setOpen(false);
+              }}
+            />
+            {renderError(field.id)}
+          </>
+        );
+      case 'time':
+        return (
+          <>
+            <TouchableOpacity
+              disabled={!isEdit}
+              onPress={() => setTimeOpen(true)}
+              style={{
+                ...styles.dateContainer,
+                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+                gap: 15,
+              }}>
+              <CustomImage
+                source={Icons.calendar}
+                size={hps(25)}
+                tintColor={colors.black}
+              />
+              <CustomText
+                text={
+                  formValues[field.id]
+                    ? moment(formValues[field.id]).format() === 'Invalid date'
+                      ? formValues[field.id]
+                      : moment(formValues[field.id]).format('hh:mm A')
+                    : 'Select Time'
+                }
+                style={{flex: 1}}
+              />
+            </TouchableOpacity>
+            <DatePicker
+              modal
+              open={timeOpen}
+              mode="time"
+              theme="auto"
+              minimumDate={new Date()}
+              is24hourSource="device"
+              date={
+                formValues[field.id]
+                  ? moment(formValues[field.id]).format() === 'Invalid date'
+                    ? new Date()
+                    : new Date(formValues[field.id])
+                  : new Date()
+              }
+              onConfirm={(date: any) => {
+                setTimeOpen(false);
+                handleInputChange(field.id, date);
+              }}
+              onCancel={() => {
+                setTimeOpen(false);
+              }}
+            />
+            {renderError(field.id)}
+          </>
+        );
+      case 'yes_no':
+        return (
+          <>
+            <View
+              style={{
+                ...styles.switchContainer,
+                justifyContent: 'flex-start',
+                gap: 15,
+              }}>
+              <TouchableOpacity
+                style={{...styles.switchContainer, gap: 15}}
+                disabled={!isEdit}
+                onPress={() => {
+                  handleInputChange(field.id, field.options?.yes_label);
+                }}>
+                <RenderRadioButton
+                  value={formValues[field.id] === field.options?.yes_label}
+                />
+                <CustomText
+                  style={styles.label}
+                  text={field.options?.yes_label}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{...styles.switchContainer, gap: 15}}
+                disabled={!isEdit}
+                onPress={() =>
+                  handleInputChange(field.id, field.options?.no_label)
+                }>
+                <RenderRadioButton
+                  value={formValues[field.id] === field.options?.no_label}
+                />
+                <CustomText
+                  style={styles.label}
+                  text={field.options?.no_label}
+                />
+              </TouchableOpacity>
+            </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'radio':
+        return (
+          <>
+            <View
+              style={{
+                justifyContent: 'flex-start',
+                gap: 15,
+              }}>
+              {field.options?.choices?.map((choice: string, index: number) => (
+                <TouchableOpacity
+                  style={{
+                    ...styles.switchContainer,
+                    justifyContent: 'flex-start',
+                    gap: 15,
+                  }}
+                  disabled={!isEdit}
+                  onPress={() => {
+                    handleInputChange(field.id, choice);
+                  }}>
+                  <RenderRadioButton value={formValues[field.id] === choice} />
+                  <CustomText style={styles.label} text={choice} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'radio_badge':
+        return (
+          <>
+            <View
+              style={{
+                justifyContent: 'flex-start',
+                gap: 15,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+              }}>
+              {field.options?.choices?.map((choice: string, index: number) => (
+                <TouchableOpacity
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.gray_7B,
+                    paddingVertical: 10,
+                    borderRadius: 10,
+                    paddingHorizontal: 15,
+                    backgroundColor:
+                      formValues[field.id] === choice
+                        ? colors.gray_7B
+                        : 'transparent',
+                  }}
+                  disabled={!isEdit}
+                  onPress={() => {
+                    handleInputChange(field.id, choice);
+                  }}>
+                  <CustomText
+                    style={{
+                      ...styles.label,
+                      color:
+                        formValues[field.id] === choice
+                          ? colors.white
+                          : colors.black,
+                    }}
+                    text={choice}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'checkbox':
+        return (
+          <>
+            <View
+              style={{
+                justifyContent: 'flex-start',
+                gap: 15,
+              }}>
+              {field.options?.choices?.map((choice: string, index: number) => (
+                <TouchableOpacity
+                  disabled={!isEdit}
+                  onPress={() =>
+                    handleInputChange(field.id, choice, 'checkbox')
+                  }
+                  key={index}
+                  style={{
+                    ...styles.switchContainer,
+                    justifyContent: 'flex-start',
+                    gap: 15,
+                  }}>
+                  <RenderCheckbox
+                    isChecked={
+                      formValues[field?.id]
+                        ? formValues[field?.id].includes(choice)
+                        : false
+                    }
+                  />
+                  <CustomText style={styles.label} text={choice} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'switch':
+        return (
+          <>
+            <View
+              style={{
+                justifyContent: 'flex-start',
+                gap: 15,
+              }}>
+              <ToggleComponent
+                isToggleOn={Boolean(formValues[field.id]) || false}
+                onToggleSwitch={() => {
+                  handleInputChange(field.id, Boolean(!formValues[field.id]));
+                }}
+              />
+            </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'section':
+        // console.log('section', field);
+        return (
+          <>
+            {field?.sub_fields.map((FItem: any) => (
+              <View key={FItem.id} style={styles.field}>
+                <>
+                  {FItem.field_type !== 'heading' && (
+                    <CustomText style={styles.label}>{FItem.label}</CustomText>
+                  )}
+                  {renderField(FItem)}
+                </>
+              </View>
+            ))}
+          </>
+        );
+      default:
+        return null;
+    }
+  };
   const generatePDF = async () => {
     try {
       setPdfModal(true);
