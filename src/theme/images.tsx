@@ -1,5 +1,6 @@
 export const Icons = {
   user: require('../assets/Icons/user.png'),
+  logo: require('../assets/Icons/logo.png'),
   login: require('../assets/Icons/login.png'),
   email: require('../assets/Icons/email.png'),
   lock: require('../assets/Icons/lock.png'),

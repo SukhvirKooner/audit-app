@@ -20,12 +20,16 @@ import CustomButton from '../../components/CustomButton';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {SCREENS} from '../../navigation/screenNames';
 import {useSelector} from 'react-redux';
-import {errorToast, passwordCheck} from '../../utils/commonFunction';
+import {
+  emailCheck,
+  errorToast,
+  passwordCheck,
+} from '../../utils/commonFunction';
 import {useAppDispatch} from '../../redux/hooks';
-import {onUserLogin} from '../../service/AuthServices';
+import {onUserLogin, onUserRegister} from '../../service/AuthServices';
 import {navigationRef} from '../../navigation/RootContainer';
 
-const LoginScreen = () => {
+const Register = () => {
   const {t} = useTranslation();
   // const navigation = useNavigation();
   const dispatch = useAppDispatch();
@@ -38,31 +42,40 @@ const LoginScreen = () => {
     [colors, fontValue],
   );
 
-  const [userName, setUserName] = useState(__DEV__ ? 'admin' : '');
-  const [password, setPassword] = useState(__DEV__ ? 'admin' : '');
+  const [userName, setUserName] = useState(__DEV__ ? '' : '');
+  const [email, setEmail] = useState(__DEV__ ? '' : '');
+  const [password, setPassword] = useState(__DEV__ ? '' : '');
+  const [confirmPassword, setConfirmPassword] = useState(__DEV__ ? '' : '');
 
   const onLogin = () => {
     if (userName.trim() === '') {
       errorToast(t('Please enter username'));
-    }
-    // if (!passwordCheck(password)) {
-    //   errorToast(
-    //     t(
-    //       'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
-    //     ),
-    //   );
-    // }
-    else {
+    } else if (!emailCheck(email)) {
+      errorToast(t('Enter a valid email'));
+    } else if (password.length < 8) {
+      errorToast('Password must be at least 8 characters');
+    } else if (!passwordCheck(password)) {
+      errorToast(
+        'Password must be at Including numerics,alphabets,8 words at least',
+      );
+    } else if (confirmPassword.length < 8) {
+      errorToast('Password must be at least 8 characters');
+    } else if (confirmPassword !== password) {
+      errorToast('Passwords do not match. Please re-enter to confirm.');
+    } else {
       let obj = {
         data: {
           username: userName.trim(),
+          email: email,
           password: password.trim(),
+          confirm_password: confirmPassword.trim(),
+          group: 'Site',
         },
         onSuccess: () => {
-          // resetNavigation(SCREENS.HomeScreen, undefined);
+          // resetNavigation(SCREENS.LoginScreen);
         },
       };
-      dispatch(onUserLogin(obj));
+      dispatch(onUserRegister(obj));
     }
   };
 
@@ -78,14 +91,10 @@ const LoginScreen = () => {
           <CustomImage
             source={Icons.logo}
             containerStyle={{alignSelf: 'center'}}
-            imageStyle={{width: 160, height: 58, top: hp(5)}}
+            imageStyle={{width: 160, height: 58, marginTop: hp(5)}}
             resizeMode={'contain'}
           />
-          <CustomImage
-            source={Icons.login}
-            size={hp(40)}
-            containerStyle={{alignSelf: 'center'}}
-          />
+
           <View style={styles.mainView}>
             <View style={styles.row}>
               <CustomImage
@@ -94,7 +103,7 @@ const LoginScreen = () => {
                 isBorder
                 tintColor={colors.black}
               />
-              <CustomText text="Login" style={styles.loginText} />
+              <CustomText text="Register" style={styles.loginText} />
             </View>
             <Input
               value={userName}
@@ -102,6 +111,16 @@ const LoginScreen = () => {
               icon={Icons.email}
               title={t('Username')}
               placeHolder={t('Enter your username')}
+              isRequired
+              extraStyle={styles.inputExtraStyle}
+              iconTintColor={colors.black}
+            />
+            <Input
+              value={email}
+              onChangeText={setEmail}
+              icon={Icons.email}
+              title={t('email')}
+              placeHolder={t('Enter your email')}
               isRequired
               extraStyle={styles.inputExtraStyle}
               iconTintColor={colors.black}
@@ -117,26 +136,53 @@ const LoginScreen = () => {
               secureTextEntry
               iconTintColor={colors.black}
             />
+            <Input
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              icon={Icons.lock}
+              title={t('confirmPassword')}
+              placeHolder={t('Enter your confirmPassword')}
+              isRequired
+              extraStyle={styles.inputExtraStyle}
+              secureTextEntry
+              iconTintColor={colors.black}
+            />
 
             <CustomButton
-              title={t('Login')}
-              disabled={userName === '' || password === ''}
-              type={userName === '' || password === '' ? 'gray' : 'blue'}
+              title={t('Register')}
+              disabled={
+                userName === '' ||
+                password === '' ||
+                !emailCheck(email) ||
+                password.length < 8 ||
+                !passwordCheck(password) ||
+                confirmPassword !== password
+              }
+              type={
+                userName === '' ||
+                password === '' ||
+                !emailCheck(email) ||
+                password.length < 8 ||
+                !passwordCheck(password) ||
+                confirmPassword !== password
+                  ? 'gray'
+                  : 'blue'
+              }
               extraStyle={{marginTop: hp(4)}}
               onPress={onLogin}
             />
             <Text
               onPress={() => {
-                navigationRef.navigate(SCREENS.Register);
+                navigationRef.navigate(SCREENS.LoginScreen);
               }}
               style={styles.footerText}>
-              {t('Don’t have an account?')}{' '}
+              {t('Already have account?')}{' '}
               <Text
                 onPress={() => {
-                  navigationRef.navigate(SCREENS.Register);
+                  navigationRef.navigate(SCREENS.LoginScreen);
                 }}
                 style={styles.footerText1}>
-                {t('Register')}
+                {t('Login')}
               </Text>
             </Text>
           </View>
@@ -146,7 +192,7 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
+export default Register;
 
 const getGlobalStyles = (props: any) => {
   const {colors, fontValue} = props;

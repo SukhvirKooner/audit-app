@@ -10,8 +10,9 @@ import {
 } from '../utils/apiGlobal';
 import {api, GET, POST} from '../utils/apiConstants';
 import {setAsyncToken, setAsyncUserInfo} from '../utils/asyncStorageManager';
-import {resetNavigation} from '../utils/commonFunction';
+import {resetNavigation, successToast} from '../utils/commonFunction';
 import {SCREENS} from '../navigation/screenNames';
+import {navigationRef} from '../navigation/RootContainer';
 
 interface requestProps {
   data?: any;
@@ -47,6 +48,29 @@ export const onUserLogin =
         //   dispatchAction(dispatch, SET_USER_INFO, response?.data?.data?.user);
         //   resetNavigation(SCREENS.HomeScreen, undefined);
         // });
+      })
+      .catch(error => {
+        handleErrorRes(error, onFailure, dispatch);
+      });
+  };
+
+export const onUserRegister =
+  ({
+    data,
+    params,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    dispatchAction(dispatch, IS_LOADING, true);
+    return makeAPIRequest({method: POST, url: api.register, data: data})
+      .then(async (response: any) => {
+        dispatchAction(dispatch, IS_LOADING, false);
+        console.log('response', response);
+        if (response?.status === 200 || response?.status === 201) {
+          successToast('Successfully Registered');
+          navigationRef.navigate(SCREENS.LoginScreen);
+        }
       })
       .catch(error => {
         handleErrorRes(error, onFailure, dispatch);

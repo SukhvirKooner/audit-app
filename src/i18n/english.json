@@ -5,9 +5,11 @@
     "Login": "Login",
     "Enter your email": "Enter your email",
     "Enter your password": "Enter your password",
+    "Enter your confirmPassword": "Enter your confirmPassword",
     "Remember me": "Remember me",
     "Email": "Email",
     "Password": "Password",
+    "confirmPassword": "Confirm Password",
     "Complete": "Complete",
     "Home": "Home",
     "Audits": "Audits",
@@ -24,6 +26,7 @@
     "Yes": "Yes",
     "No notifications": "No notifications",
     "Username": "Username",
+    "email": "Email",
     "Enter your username": "Enter your username",
     "My Account": "My Account",
     "Save": "Save",
@@ -33,6 +36,9 @@
     "Large": "Large",
     "Font size": "Font size",
     "Theme": "Theme",
-    "Update": "Update"
+    "Update": "Update",
+    "Don’t have an account?": "Don’t have an account?",
+    "Register": "Register",
+    "Already have account?": "Already have account?"
   }
 }

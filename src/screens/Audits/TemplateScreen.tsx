@@ -137,7 +137,7 @@ const TemplateScreen = () => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   // console.log('formValues', formValues);
   const sections = groupBySection(templateData);
-  console.log('sections', JSON.stringify(sections));
+  console.log('sectionsasdas', JSON.stringify(formValues));
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -1507,6 +1507,7 @@ const TemplateScreen = () => {
         return null;
     }
   };
+
   const generatePDF = async () => {
     try {
       setPdfModal(true);
@@ -1517,6 +1518,8 @@ const TemplateScreen = () => {
           const template = templateData.find(
             field => field.id.toString() === key,
           );
+          console.log('template', template);
+
           if (template) {
             const section = template.section_heading;
             if (!acc[section]) acc[section] = [];
@@ -1526,37 +1529,101 @@ const TemplateScreen = () => {
         },
         {},
       );
+
+      console.log('daasdaasdasda', JSON.stringify(groupedData));
+
       // Profile image path (for local image)
       const profileImagePath = groupedData?.Profile
         ? groupedData?.Profile[0]?.value
         : null;
 
+      console.log('profileImagePath', profileImagePath);
+
+      console.log('groupedData', groupedData);
+
+      // ${
+      //   profileImagePath
+      //     ? `<h2>Profile</h2>
+      // <img src="${profileImagePath}" alt="Profile Picture" width="150" height="150" />`
+      //     : `<br>`
+      // }
       // Create HTML content
-      const htmlContent = `
-    ${
-      profileImagePath
-        ? `<h2>Profile</h2>
-    <img src="${profileImagePath}" alt="Profile Picture" width="150" height="150" />`
-        : ''
-    } 
-   ${Object.entries(groupedData)
-     .map(
-       ([section, fields]) => `
-       <h2>${section === 'Profile' ? '' : section}</h2>
-       ${fields
-         .map(
-           (field: any) => `
-          ${
-            section === 'Profile'
-              ? ''
-              : `<p><strong>${field.label}:</strong> ${field.value}</p>`
-          } `,
-         )
-         .join('')}
-     `,
-     )
-     .join('')}
- `;
+      //       const htmlContent = `
+
+      //    ${Object.entries(groupedData)
+      //      .map(
+      //        ([section, fields]) => `
+      //        <h2>${section === 'Profile' ? `<br>` : `<br>`}</h2>
+      //        ${fields
+      //          .map(
+      //            (field: any, index) => `
+      //           ${
+      //             section === 'Profile'
+      //               ? ''
+      //               : `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
+      //                   field.label
+      //                 }:</strong></h2><p style="font-size:150%;margin-left: 30px;">${
+      //                   field.value
+      //                 }</p>`
+      //           } `,
+      //          )
+      //          .join('')}
+      //      `,
+      //      )
+      //      .join('')}
+      //  `;
+      const htmlContent = `<html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+          }
+          .header {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+          }
+          .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+          }
+          .content {
+            text-align: justify;
+            margin: 0 20px;
+          }
+        </style>
+      </head>
+      <body>
+       
+        <div class="content">
+         ${Object.entries(groupedData)
+           .map(
+             ([section, fields]) => `
+             <h2>${section === 'Profile' ? `<br>` : `<br>`}</h2>
+             ${fields
+               .map(
+                 (field: any, index) => `
+                ${
+                  section === 'Profile'
+                    ? ''
+                    : `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
+                        field.label
+                      }:</strong></h2><p style="font-size:150%;margin-left: 30px;">${
+                        field.value
+                      }</p>`
+                } `,
+               )
+               .join('')}
+           `,
+           )
+           .join('')}
+        </div>
+          
+      </body>
+    </html>`;
       const pdf = await RNHTMLtoPDF.convert({
         html: htmlContent,
         fileName: 'Report',

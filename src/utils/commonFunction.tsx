@@ -14,6 +14,7 @@ export const emailCheck = (email: string) => {
     return true;
   }
 };
+
 export const numberCheck = (string: string) => {
   let reg = /^(?=.*[0-9]).+$/;
   return reg.test(string);

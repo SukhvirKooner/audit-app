@@ -18,6 +18,7 @@ import {SET_USER_INFO} from '../redux/actionTypes';
 import TemplateScreen from '../screens/Audits/TemplateScreen';
 import PdfScreen from '../screens/Audits/PdfScreen';
 import SearchScreen from '../screens/SearchScreen';
+import Register from '../screens/Auth/Register';
 
 const Stack = createStackNavigator();
 
@@ -56,6 +57,7 @@ const Navigator = () => {
         headerShown: false,
       }}>
       <Stack.Screen name={SCREENS.LoginScreen} component={LoginScreen} />
+      <Stack.Screen name={SCREENS.Register} component={Register} />
       <Stack.Screen name={SCREENS.HomeScreen} component={TabNavigator} />
       <Stack.Screen name={SCREENS.EditProfile} component={EditProfile} />
       <Stack.Screen

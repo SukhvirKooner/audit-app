@@ -66,14 +66,14 @@ const SettingScreen = () => {
       marginVertical: hps(14),
       onPress: () => navigationRef.navigate(screenNames.SettingNotification),
     },
-    {
-      icon: Icons.help,
-      title: 'Help',
-      description: 'Theme, wallpapers, chat history',
-      onPress: () => {
-        navigationRef.navigate(screenNames.HelpScreen);
-      },
-    },
+    // {
+    //   icon: Icons.help,
+    //   title: 'Help',
+    //   description: 'Theme, wallpapers, chat history',
+    //   onPress: () => {
+    //     navigationRef.navigate(screenNames.HelpScreen);
+    //   },
+    // },
     {
       icon: Icons.theme,
       title: 'theme',
@@ -114,7 +114,7 @@ const SettingScreen = () => {
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title={'Settings'}
-        showQrCode
+        // showQrCode
         onQrCodePress={() => {
           Alert.alert('Open QR code');
         }}
@@ -151,7 +151,7 @@ const SettingScreen = () => {
         </View>
         <CustomText
           numberOfLines={1}
-          text={'Riya Samuel'}
+          text={userInfo?.username}
           style={styles.text2}
         />
         <View style={styles.listText}>
@@ -198,7 +198,7 @@ const SettingScreen = () => {
         </View>
       </View>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={{
           alignItems: 'center',
           justifyContent: 'center',
@@ -211,7 +211,7 @@ const SettingScreen = () => {
         }}
         onPress={onPressDeleteAccount}>
         <CustomText text="Delete Account" style={styles.deleteText} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {modalVisibleLog && (
         <ShowModal

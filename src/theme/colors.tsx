@@ -21,6 +21,7 @@ export const light_theme = {
   red: '#DF1525',
   red_FF: '#FF0000',
   modalBg: '#fff',
+  naveBg1: '#054DA4',
 };
 
 export const dark_theme = {
@@ -48,4 +49,5 @@ export const dark_theme = {
   red: '#DF1525',
   red_FF: '#FF0000',
   modalBg: '#1D1E20', // Dark background for modals
+  naveBg1: '#054DA4',
 };

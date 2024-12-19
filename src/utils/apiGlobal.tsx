@@ -116,6 +116,8 @@ export const handleErrorRes = (
       errorToast(err?.response?.data?.message);
     } else if (err?.response?.data?.detail) {
       errorToast(err?.response?.data?.detail);
+    } else if (err?.response?.data?.username) {
+      errorToast(err?.response?.data?.username);
     } else if (err?.response?.data?.message) {
       errorToast(err?.response?.data?.message);
     } else if (err?.response?.data?.error) {

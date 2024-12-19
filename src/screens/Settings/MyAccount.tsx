@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {commonFontStyle, hp, wps} from '../../theme/fonts';
 import CustomHeader from '../../components/CustomHeader';
@@ -19,17 +19,26 @@ import Input from '../../components/Input';
 import CustomButton from '../../components/CustomButton';
 import {navigationRef} from '../../navigation/RootContainer';
 import {useAppSelector} from '../../redux/hooks';
+import {emailCheck} from '../../utils/commonFunction';
 
 const MyAccount = () => {
   const {t} = useTranslation();
 
   const {colors}: any = useTheme();
   const {goBack} = useNavigation();
-  const {fontValue} = useAppSelector(state => state.common);
+  const {fontValue, isDarkTheme, userInfo} = useAppSelector(
+    state => state.common,
+  );
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
+
+  const [userName, setUserName] = useState(userInfo?.username);
+  const [email, setEmail] = useState(userInfo?.email);
+  const [phoneNum, setPhoneNum] = useState(userInfo?.phone);
+
+  console.log('userInfo', userInfo);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,7 +52,8 @@ const MyAccount = () => {
             containerStyle={{alignSelf: 'center', marginTop: 40}}
           /> */}
           <CustomImage
-            source={Icons.user}
+            uri={userInfo?.profile_image ?? ''}
+            source={userInfo?.profile_image ?? Icons.user}
             size={wps(90)}
             imageStyle={{borderRadius: wps(90)}}
             containerStyle={{alignSelf: 'center', marginTop: 40}}
@@ -70,10 +80,12 @@ const MyAccount = () => {
           title={t('User')}
           placeHolder={t('user name')}
           isRequired
+          value={userName}
           extraStyle={styles.inputExtraStyle}
           iconTintColor={colors.black}
         />
         <Input
+          value={email}
           icon={Icons.email}
           title={t('Email')}
           placeHolder={t('email')}
@@ -83,6 +95,7 @@ const MyAccount = () => {
         />
         <Input
           icon={Icons.ic_phone}
+          value={phoneNum}
           title={t('Phone')}
           placeHolder={t('phone number')}
           isRequired
@@ -91,7 +104,12 @@ const MyAccount = () => {
         />
         <CustomButton
           title={t('Save')}
-          type={'gray'}
+          disabled={userName === '' || email === '' || !emailCheck(email)}
+          type={
+            userName === '' || email === '' || !emailCheck(email)
+              ? 'gray'
+              : 'blue'
+          }
           extraStyle={{marginTop: hp(4)}}
           onPress={() => navigationRef.goBack()}
         />
