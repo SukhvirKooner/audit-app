@@ -1518,28 +1518,25 @@ const TemplateScreen = () => {
           const template = templateData.find(
             field => field.id.toString() === key,
           );
-          console.log('template', template);
+          console.log('template', value);
 
           if (template) {
             const section = template.section_heading;
             if (!acc[section]) acc[section] = [];
-            acc[section].push({label: template.label, value});
+            acc[section].push({
+              label: template.label,
+              value: value ? value : '-',
+            });
           }
           return acc;
         },
         {},
       );
 
-      console.log('daasdaasdasda', JSON.stringify(groupedData));
-
       // Profile image path (for local image)
       const profileImagePath = groupedData?.Profile
         ? groupedData?.Profile[0]?.value
         : null;
-
-      console.log('profileImagePath', profileImagePath);
-
-      console.log('groupedData', groupedData);
 
       // ${
       //   profileImagePath
@@ -1605,10 +1602,13 @@ const TemplateScreen = () => {
              <h2>${section === 'Profile' ? `<br>` : `<br>`}</h2>
              ${fields
                .map(
-                 (field: any, index) => `
+                 (field: any, index) =>
+                   `
                 ${
-                  section === 'Profile'
-                    ? ''
+                  field.value == 'Invalid date'
+                    ? `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
+                        field.label
+                      }:</strong></h2><p style="font-size:150%;margin-left: 40px;">-</p>`
                     : `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
                         field.label
                       }:</strong></h2><p style="font-size:150%;margin-left: 30px;">${
