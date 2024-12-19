@@ -14,7 +14,7 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import CustomHeader from '../../components/CustomHeader';
 import {useRoute, useTheme} from '@react-navigation/native';
 import {
@@ -140,6 +140,7 @@ const TemplateScreen = () => {
   const [templateData, setTemplateData] = React.useState<FormField[]>([]);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
+  const [subFieldsValue, setSubFieldsValue] = useState<Record<string, any>>({});
   // console.log('formValues', formValues);
   const sections = groupBySection(templateData);
   // console.log('sectionsasdas', JSON.stringify(formValues));
@@ -184,6 +185,7 @@ const TemplateScreen = () => {
 
         if (template) {
           setTemplateData(template?.fields);
+          // setSubFieldsValue()
         }
       }
     });
@@ -1116,17 +1118,36 @@ const TemplateScreen = () => {
     }
   };
 
+  const memoizedValue = useMemo(
+    () => [
+      ...templateData
+        .map(section => section.sub_fields)
+        .flat()
+        .filter(subField => subField !== null),
+      ...templateData,
+    ],
+    [templateData],
+  );
+
   const generatePDF = async () => {
     try {
       setPdfModal(true);
       // Group Data by Section
+      const subFields = [
+        ...templateData
+          .map(section => section.sub_fields)
+          .flat()
+          .filter(subField => subField !== null),
+        ...templateData,
+      ];
 
       const groupedData = Object.entries(formValues).reduce(
         (acc: any, [key, value]) => {
-          const template = templateData.find(
+          const template = memoizedValue.find(
             field => field.id.toString() === key,
           );
-          console.log('template', value);
+
+          console.log('valuevaluevalue', value);
 
           if (template) {
             const section = template.section_heading;
@@ -1134,12 +1155,15 @@ const TemplateScreen = () => {
             acc[section].push({
               label: template.label,
               value: value ? value : '-',
+              fieldValue: typeof value === 'object' ? 'image' : 'text',
             });
           }
           return acc;
         },
         {},
       );
+
+      console.log('groupedData', JSON.stringify(groupedData));
 
       // Profile image path (for local image)
       const profileImagePath = groupedData?.Profile
@@ -1188,13 +1212,20 @@ const TemplateScreen = () => {
             font-size: 20px;
             margin-bottom: 20px;
           }
-          .footer {
+              .footer {
             position: fixed;
-            bottom: 0;
-            width: 100%;
+            bottom: 20px;
+            left: 0;
+            right: 0;
             text-align: center;
-            font-size: 12px;
-          }
+            font-size: 10px;
+            color: #333;
+            counter-reset: page;
+        }
+        .footer::before {
+            counter-increment: page;
+            content: "Page " counter(page);
+        }
           .content {
             text-align: justify;
             margin: 0 20px;
@@ -1202,7 +1233,14 @@ const TemplateScreen = () => {
         </style>
       </head>
       <body>
-       
+        <div class="header">
+        <h1 style="text-align: left;color:#054DA4" >${
+          params?.auditItem?.title
+        }</h1>
+        <p style="text-align: left;font-size:140%;">${
+          params?.auditItem?.description
+        }</p>
+        </div>
         <div class="content">
          ${Object.entries(groupedData)
            .map(
@@ -1217,6 +1255,18 @@ const TemplateScreen = () => {
                     ? `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
                         field.label
                       }:</strong></h2><p style="font-size:150%;margin-left: 40px;">-</p>`
+                    : field.fieldValue === 'image'
+                    ? `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
+                        field.label
+                      }:</strong></h2>${field.value
+                        .map(
+                          item => `
+                        <img src="${
+                          api.BASE_URL + item.url
+                        }" alt="Image" width="300" height="300" />
+                      `,
+                        )
+                        .join('')}`
                     : `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
                         field.label
                       }:</strong></h2><p style="font-size:150%;margin-left: 30px;">${
@@ -1229,6 +1279,14 @@ const TemplateScreen = () => {
            )
            .join('')}
         </div>
+                <p style="font-size:150%;margin-top: 120px; text-align: center;margin-bottom: 50px;">----- End ------</p>
+
+        <div c style="display: flex; align-items: center; gap: 20px;justify-content: space-between; ">
+        <div>
+              <img  src="${'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/National_Highways_Authority_of_India_logo.svg/600px-National_Highways_Authority_of_India_logo.svg.png?20110614062054'}" alt="Profile Picture" width="100" height="100" />
+              <img style="margin:10px"  src="${'https://scontent.famd15-1.fna.fbcdn.net/v/t39.30808-1/451622324_884403687042073_7161878331476152652_n.jpg?stp=dst-jpg_s480x480_tt6&_nc_cat=103&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=eTma363D5bcQ7kNvgEJ3KcL&_nc_zt=24&_nc_ht=scontent.famd15-1.fna&_nc_gid=AQQ9Phw5i3LrtKGDXOUbmAB&oh=00_AYDIj3OMyOGEHoGdWn0FfZDlYmPVdj9C6-ra7J85sDdALw&oe=676A144B'}" alt="Profile Picture" width="100" height="100" />
+           </div>
+          </div>    
           
       </body>
     </html>`;
