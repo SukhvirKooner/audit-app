@@ -10,6 +10,8 @@ import {api, GET, POST, PUT} from '../utils/apiConstants';
 import {
   GET_AUDITS,
   GET_AUDITS_DETAILS,
+  GET_AUDITS_DETAILS_DATA,
+  GET_TEMPLATE,
   IS_LOADING,
   SET_GROUP_LIST,
 } from '../redux/actionTypes';
@@ -38,8 +40,11 @@ export const getAudits =
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
+        const filterList = response.data.filter((i: any) => {
+          return i?.assigned_group === 2;
+        });
 
-        dispatch({type: GET_AUDITS, payload: response.data});
+        dispatch({type: GET_AUDITS, payload: filterList});
         if (onSuccess) {
           onSuccess(response.data);
         }
@@ -91,7 +96,7 @@ export const getAuditsDetailsByID =
     onFailure,
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
-    dispatch({type: IS_LOADING, payload: true});
+    // dispatch({type: IS_LOADING, payload: true});
 
     return makeAPIRequest({
       method: GET,
@@ -99,6 +104,8 @@ export const getAuditsDetailsByID =
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
+
+        dispatch({type: GET_AUDITS_DETAILS_DATA, payload: response.data});
 
         if (onSuccess) {
           onSuccess(response.data);
@@ -182,6 +189,8 @@ export const getTemplate =
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
+
+        dispatch({type: GET_TEMPLATE, payload: response.data?.fields});
 
         if (onSuccess) {
           onSuccess(response.data);

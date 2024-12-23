@@ -4,8 +4,9 @@ import {configureStore} from '@reduxjs/toolkit';
 import setting from './reducer/setting';
 import common from './reducer/common';
 import home from './reducer/home';
+import {thunk} from 'redux-thunk';
 
-// const middleware = [thunk];
+const middleware = [thunk];
 
 const reducers = combineReducers({
   setting: setting,
@@ -20,6 +21,16 @@ const reducers = combineReducers({
 //   return reducers(state, action);
 // };
 
-const store = configureStore({reducer: reducers});
+// const store = configureStore({reducer: reducers});
+
+const store = configureStore({
+  reducer: reducers,
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      middleware: middleware,
+      serializableCheck: false,
+      immutableCheck: false,
+    }),
+});
 
 export default store;

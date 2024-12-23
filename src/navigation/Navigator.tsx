@@ -19,43 +19,46 @@ import TemplateScreen from '../screens/Audits/TemplateScreen';
 import PdfScreen from '../screens/Audits/PdfScreen';
 import SearchScreen from '../screens/SearchScreen';
 import Register from '../screens/Auth/Register';
+import SyncDataScreen from '../screens/Audits/SyncDataScreen';
+import SplashScreen from '../screens/Auth/SplashScreen';
 
 const Stack = createStackNavigator();
 
 const Navigator = () => {
-  const dispatch = useAppDispatch();
-  const [accessToken, setAccessToken] = React.useState<any>(null);
+  // const dispatch = useAppDispatch();
+  // const [accessToken, setAccessToken] = React.useState<any>(null);
 
-  useEffect(() => {
-    (async () => {
-      let token = await getAsyncToken();
+  // useEffect(() => {
+  //   (async () => {
+  //     let token = await getAsyncToken();
 
-      if (token) {
-        setAccessToken(SCREENS.HomeScreen);
-        let userData = await getAsyncUserInfo();
-        dispatchAction(dispatch, SET_USER_INFO, userData);
-        await setAuthorization(token?.split(' ')[1]);
-        // setTimeout(() => {
-        //   SplashScreen.hide();
-        //   setloading(false);
-        // }, 2000);
-      } else {
-        setAccessToken(SCREENS.LoginScreen);
+  //     if (token) {
+  //       setAccessToken(SCREENS.HomeScreen);
+  //       let userData = await getAsyncUserInfo();
+  //       dispatchAction(dispatch, SET_USER_INFO, userData);
+  //       await setAuthorization(token?.split(' ')[1]);
+  //       // setTimeout(() => {
+  //       //   SplashScreen.hide();
+  //       //   setloading(false);
+  //       // }, 2000);
+  //     } else {
+  //       setAccessToken(SCREENS.LoginScreen);
 
-        // setTimeout(() => {
-        //   SplashScreen.hide();
-        //   setloading(false);
-        // }, 2000);
-      }
-    })();
-  }, [dispatch]);
+  //       // setTimeout(() => {
+  //       //   SplashScreen.hide();
+  //       //   setloading(false);
+  //       // }, 2000);
+  //     }
+  //   })();
+  // }, [dispatch]);
 
   return (
     <Stack.Navigator
-      initialRouteName={accessToken}
+      initialRouteName={SCREENS.SplashScreen}
       screenOptions={{
         headerShown: false,
       }}>
+      <Stack.Screen name={SCREENS.SplashScreen} component={SplashScreen} />
       <Stack.Screen name={SCREENS.LoginScreen} component={LoginScreen} />
       <Stack.Screen name={SCREENS.Register} component={Register} />
       <Stack.Screen name={SCREENS.HomeScreen} component={TabNavigator} />
@@ -74,6 +77,7 @@ const Navigator = () => {
       <Stack.Screen name={SCREENS.TemplateScreen} component={TemplateScreen} />
       <Stack.Screen name={SCREENS.PdfScreen} component={PdfScreen} />
       <Stack.Screen name={SCREENS.SearchScreen} component={SearchScreen} />
+      <Stack.Screen name={SCREENS.SyncDataScreen} component={SyncDataScreen} />
     </Stack.Navigator>
   );
 };

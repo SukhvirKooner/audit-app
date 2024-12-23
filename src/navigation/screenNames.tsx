@@ -1,4 +1,5 @@
 export const SCREENS = {
+  SplashScreen: 'SplashScreen',
   LoginScreen: 'LoginScreen',
   Register: 'Register',
   HomeScreen: 'HomeScreen',
@@ -13,10 +14,12 @@ export const SCREENS = {
   TemplateScreen: 'TemplateScreen',
   PdfScreen: 'PdfScreen',
   SearchScreen: 'SearchScreen',
+  SyncDataScreen: 'SyncDataScreen',
 };
 
 interface ScreenNames {
   [key: string]: string;
+  SplashScreen: string;
   LoginScreen: string;
   Register: string;
   HomeScreen: string;
@@ -31,6 +34,7 @@ interface ScreenNames {
   TemplateScreen: string;
   PdfScreen: string;
   SearchScreen: string;
+  SyncDataScreen: string;
 }
 
 export const screenNames: ScreenNames = {

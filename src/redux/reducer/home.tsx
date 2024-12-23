@@ -1,13 +1,22 @@
-import {GET_AUDITS, GET_AUDITS_DETAILS} from '../actionTypes';
+import {
+  GET_AUDITS,
+  GET_AUDITS_DETAILS,
+  GET_AUDITS_DETAILS_DATA,
+  GET_TEMPLATE,
+} from '../actionTypes';
 
 interface CommonState {
   auditsList: any[];
   auditsDetailsList: any[];
+  templateData: any;
+  auditDetails: any;
 }
 
 const initialState: CommonState = {
   auditsList: [],
   auditsDetailsList: [],
+  templateData: null,
+  auditDetails: null,
 };
 
 export default function (state = initialState, action: any) {
@@ -17,6 +26,14 @@ export default function (state = initialState, action: any) {
     }
     case GET_AUDITS_DETAILS: {
       return {...state, auditsDetailsList: action.payload};
+    }
+
+    case GET_AUDITS_DETAILS_DATA: {
+      return {...state, auditDetails: action.payload};
+    }
+
+    case GET_TEMPLATE: {
+      return {...state, templateData: action.payload};
     }
 
     default:

@@ -37,13 +37,13 @@ const HomeScreen = () => {
         if (newList?.length === 0) {
           setAsyncAudit(auditsList);
         }
-        const filterBy = groupList.filter((i: any) => i.name === 'Site');
+        // const filterBy = groupList.filter((i: any) => i.name === 'Site');
 
-        const filterList = auditsList.filter((i: any) => {
-          return i?.assigned_group === filterBy[0]?.id;
-        });
+        // const filterList = auditsList.filter((i: any) => {
+        //   return i?.assigned_group === filterBy[0]?.id;
+        // });
 
-        dispatch({type: GET_AUDITS, payload: filterList});
+        // dispatch({type: GET_AUDITS, payload: filterList});
       }
     })();
   }, [auditsList]);

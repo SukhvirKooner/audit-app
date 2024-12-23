@@ -19,11 +19,11 @@ import {navigationRef} from '../../navigation/RootContainer';
 import {SCREENS} from '../../navigation/screenNames';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {getAudits} from '../../service/AuditService';
-import {IS_LOADING} from '../../redux/actionTypes';
+import {GET_AUDITS, IS_LOADING} from '../../redux/actionTypes';
 
 const AuditScreen = () => {
   const {colors} = useTheme();
-  const {fontValue} = useAppSelector((state: any) => state.common);
+  const {fontValue, groupList} = useAppSelector((state: any) => state.common);
   const {auditsList} = useAppSelector(state => state.home);
   const isFocused = useIsFocused();
 
@@ -42,10 +42,20 @@ const AuditScreen = () => {
   }, [dispatch]);
 
   const onGetAudits = async () => {
-    let obj = {
-      onSuccess: () => {},
-      onFailure: () => {},
+    const obj = {
+      onSuccess: (res: any) => {
+        // console.log(res);
+        // const filterBy = groupList.filter((i: any) => i.name === 'Site');
+        // const filterList = res.filter((i: any) => {
+        //   return i?.assigned_group === filterBy[0]?.id || 2;
+        // });
+        // dispatch({type: GET_AUDITS, payload: filterList});
+      },
+      onFailure: (error: any) => {
+        console.log('error', error);
+      },
     };
+
     dispatch(getAudits(obj));
   };
 

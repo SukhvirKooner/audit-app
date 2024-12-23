@@ -52,7 +52,7 @@ const RootContainer: FC = () => {
   const {isDarkTheme, isLoading} = useAppSelector(state => state.common);
   const dispatch = useAppDispatch();
 
-  const {colors} = useTheme();
+  const {colors}: any = useTheme();
   const {fontValue} = useSelector((state: any) => state.common);
 
   const styles = React.useMemo(
@@ -64,31 +64,35 @@ const RootContainer: FC = () => {
     dispatch(setDarkTheme(theme === 'dark' ? true : false));
   }, [dispatch, theme]);
 
-  useEffect(() => {
-    getToken();
-  }, []);
-
-  const getToken = async () => {
-    let token = await getAsyncToken();
-
-    if (token) {
-      let userData = await getAsyncUserInfo();
-      dispatchAction(dispatch, SET_USER_INFO, userData);
-      await setAuthorization(token?.split(' ')[1]);
-      resetNavigation(SCREENS.HomeScreen, undefined);
-    } else {
-      // setTimeout(() => {
-      //   SplashScreen.hide();
-      //   setloading(false);
-      // }, 2000);
-    }
-  };
-
   const toastConfig = {
     success: ({text1, type}: any) =>
       type === 'success' && (
         <SafeAreaView>
           <View style={styles.textStyleToastSuccess}>
+            <Text style={styles.textStyleToast}>{text1}</Text>
+          </View>
+        </SafeAreaView>
+      ),
+    enable: ({text1, type}: any) =>
+      type === 'enable' && (
+        <SafeAreaView>
+          <View
+            style={{
+              ...styles.textStyleToastSuccess,
+              backgroundColor: '#054DA4',
+            }}>
+            <Text style={styles.textStyleToast}>{text1}</Text>
+          </View>
+        </SafeAreaView>
+      ),
+    disable: ({text1, type}: any) =>
+      type === 'disable' && (
+        <SafeAreaView>
+          <View
+            style={{
+              ...styles.textStyleToastSuccess,
+              backgroundColor: '#B6B6B6',
+            }}>
             <Text style={styles.textStyleToast}>{text1}</Text>
           </View>
         </SafeAreaView>
@@ -116,7 +120,7 @@ const RootContainer: FC = () => {
       />
       <StackNavigator />
       {isLoading && <Loader />}
-      <Toast config={toastConfig} position="top" topOffset={0} />
+      <Toast config={toastConfig} autoHide position="top" topOffset={0} />
     </NavigationContainer>
   );
 };

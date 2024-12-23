@@ -1,3 +1,5 @@
+/* eslint-disable quotes */
+/* eslint-disable curly */
 /* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
@@ -16,7 +18,7 @@ import {
 } from 'react-native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import CustomHeader from '../../components/CustomHeader';
-import {useRoute, useTheme} from '@react-navigation/native';
+import {useIsFocused, useRoute, useTheme} from '@react-navigation/native';
 import {
   dispatchAction,
   useAppDispatch,
@@ -44,23 +46,36 @@ import moment from 'moment';
 import MapView, {Marker} from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
 import {api, GOOGLE_API_KEY} from '../../utils/apiConstants';
-import {requestLocationPermission} from '../../utils/locationHandler';
+import {
+  requestLocationPer,
+  requestLocationPermission,
+} from '../../utils/locationHandler';
 import ImageSelectionModal from '../../components/ImageSelectionModal';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import {IS_LOADING} from '../../redux/actionTypes';
+import {GET_TEMPLATE, IS_LOADING} from '../../redux/actionTypes';
 import {SCREENS} from '../../navigation/screenNames';
-import {errorToast, navigateTo, successToast} from '../../utils/commonFunction';
+import {
+  editDisableToast,
+  editEnableToast,
+  errorToast,
+  navigateTo,
+  successToast,
+} from '../../utils/commonFunction';
 import PdfDownloadModal from '../../components/PdfDownloadModal';
 import RenderCheckbox from '../../components/RenderCheckbox';
 import {
   getAsyncTemplate,
   getAsyncTemplateFillData,
+  setAsyncCreateTemplateData,
+  setAsyncGetTemplateData,
   setAsyncTemplate,
   setAsyncTemplateFillData,
 } from '../../utils/asyncStorageManager';
 import NetInfo from '@react-native-community/netinfo';
 import ToggleComponent from '../../components/ToggleComponent';
 import Loader from '../../components/Loader';
+import TemplateRenderItem from '../../components/Audit/TemplateRenderItem';
+import {use} from 'i18next';
 
 Geocoder.init(GOOGLE_API_KEY, {language: 'en'});
 
@@ -130,20 +145,20 @@ const TemplateScreen = () => {
   const {params}: any = useRoute();
   const dispatch = useAppDispatch();
   const {colors}: any = useTheme();
-  const {fontValue} = useAppSelector(state => state.common);
+  const {fontValue, userInfo} = useAppSelector(state => state.common);
+  const {templateData, auditDetails} = useAppSelector(state => state.home);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
+  const isFocused = useIsFocused();
   const mapCameraRef = useRef<any>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [templateData, setTemplateData] = React.useState<FormField[]>([]);
+  // const [templateData, setTemplateData] = React.useState<any[]>([]);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  const [subFieldsValue, setSubFieldsValue] = useState<Record<string, any>>({});
-  // console.log('formValues', formValues);
+  console.log('formValues', formValues);
   const sections = groupBySection(templateData);
-  // console.log('sectionsasdas', JSON.stringify(formValues));
+  const [isMapLoaded, setIsMapLoaded] = useState(true);
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -156,10 +171,22 @@ const TemplateScreen = () => {
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [imageSource, setImageSource] = useState<any>(null);
   const [auditResponse, setAuditResponse] = useState<any>(null);
-  useEffect(() => {
-    onGetTemplate();
 
-    if (params?.type === 'edit') {
+  useEffect(() => {
+    setTimeout(() => {
+      setIsMapLoaded(false);
+    }, 2000);
+  }, []);
+  useEffect(() => {
+    if (params?.type === 'view') {
+      setValue(params?.auditDetails);
+    }
+  }, [isFocused, params?.auditDetails, params?.type]);
+
+  useEffect(() => {
+    // onGetTemplate();
+
+    if (params?.type === 'edit' || params?.type === 'view') {
       setIsEdit(false);
     } else {
       setIsEdit(true);
@@ -184,8 +211,8 @@ const TemplateScreen = () => {
         }
 
         if (template) {
-          setTemplateData(template?.fields);
-          // setSubFieldsValue()
+          dispatch({type: GET_TEMPLATE, payload: template?.fields});
+          // setTemplateData(template?.fields);
         }
       }
     });
@@ -226,136 +253,43 @@ const TemplateScreen = () => {
     });
   };
 
-  const onGetTemplate = async () => {
-    let obj = {
-      data: {
-        id: params?.auditItem?.template,
-      },
-      onSuccess: async (res: any) => {
-        setTemplateData(res?.fields);
-
-        const template_list = await getAsyncTemplate();
-
-        if (template_list?.length > 0) {
-          const template = template_list.find(
-            (item: any) => item.template_id === params?.auditItem?.template,
-          );
-
-          if (template) {
-          } else {
-            const newData = {
-              template_id: params?.auditItem?.template,
-              fields: res?.fields,
-            };
-            await setAsyncTemplate([...template_list, newData]);
-          }
+  useEffect(() => {
+    (async () => {
+      const template_list = await getAsyncTemplate();
+      if (template_list?.length > 0) {
+        const template = template_list.find(
+          (item: any) => item.template_id === params?.auditItem?.template,
+        );
+        if (template) {
         } else {
-          const newData: any = {
+          const newData = {
             template_id: params?.auditItem?.template,
-            fields: res?.fields,
+            fields: templateData?.fields,
           };
-          await setAsyncTemplate([newData]);
+          await setAsyncTemplate([...template_list, newData]);
         }
-      },
-      onFailure: (error: any) => {
-        console.log('error', error);
-      },
-    };
-    dispatch(getTemplate(obj));
-  };
-
-  const getAddress = async (id: any) => {
-    // console.log('id', id);
-    dispatch({type: IS_LOADING, payload: true});
-    await requestLocationPermission(
-      async response => {
-        setCurrentLocation(response);
-
-        const {latitude, longitude} = response;
-        dispatch({type: IS_LOADING, payload: false});
-        if (mapCameraRef?.current) {
-          mapCameraRef?.current?.setCamera({
-            center: {
-              latitude: latitude,
-              longitude: longitude,
-            },
-            zoom: 11, // Adjust zoom level
-            animation: {
-              duration: 1000, // Duration of the animation
-              easing: () => {},
-            },
-          });
-        }
-        if (id?.id) {
-          handleInputChange(id?.id, `${latitude},${longitude}`);
-          dispatch({type: IS_LOADING, payload: false});
-        }
-      },
-      err => {
-        dispatch({type: IS_LOADING, payload: false});
-        console.log('<---current location error --->\n', err);
-      },
-    );
-  };
-
-  // console.log('formValues[selectFieldId]', formValues);
-  const onUploadImage = async (data: any) => {
-    const uploadLinks = [];
-
-    for (const image of data) {
-      try {
-        const obj = {
-          audit: params?.auditItem?.id,
-          filled_by: 1,
-          template_field: selectFieldId,
-          image: `data:${image.type};base64,${image?.base64}`,
+      } else {
+        const newData: any = {
+          template_id: params?.auditItem?.template,
+          fields: templateData?.fields,
         };
-        const linkData = await uploadImage(obj);
-        uploadLinks.push(linkData); // Store each link in the array
-      } catch (error) {
-        console.error(`Failed to upload ${image.filename}:`, error);
+        await setAsyncTemplate([newData]);
       }
-    }
-
-    // console.log('uploadLinks', uploadLinks);
-    const newValue: any = uploadLinks.map((link: any) => {
-      return {
-        url: link?.image_url,
-        id: link?.image_id,
-      };
-    });
-
-    handleInputChange(selectFieldId, newValue);
-
-    // console.log('uploadLinks', newValue);
-  };
+    })();
+  }, [params?.auditItem?.template, templateData]);
 
   useEffect(() => {
-    // Merging form template with values data
-
-    if (params?.auditDetails?.fields?.length !== 0 && params?.type === 'edit') {
-      // setValue();
-      const obj = {
-        data: params?.auditDetails?.response_id,
-        onSuccess: (res: any) => {
-          setAuditResponse(res);
-          setValue(res);
-        },
-        onFailure: () => {},
-      };
-      dispatch(getAuditsDetailsByID(obj));
+    if (params?.type === 'edit') {
+      setFormValues(params?.auditDetails?.fields);
     }
   }, [params?.auditDetails?.fields, params?.type]);
 
   const setValue = (data: any) => {
-    if (data?.fields?.length !== 0 && params?.type === 'edit') {
+    if (data?.fields?.length !== 0 && params?.type === 'view') {
       const [checkboxData] = templateData.filter(
         (i: any) => i?.field_type === 'checkbox',
       );
-      const [imageData] = templateData.filter(
-        (i: any) => i?.field_type === 'image',
-      );
-      // console.log('imageData', imageData);
+
       const [dropdownData] = templateData.filter(
         (i: any) =>
           i?.field_type === 'dropdown' &&
@@ -377,7 +311,52 @@ const TemplateScreen = () => {
     }
   };
 
-  // // Update form values on input change
+  useEffect(() => {
+    if (params?.type === 'create' || params?.type === 'edit') {
+      const locationID = getLocationID(templateData, 'current');
+      if (locationID) {
+        getAddress(locationID);
+      }
+    }
+  }, [params?.type, templateData]);
+
+  const getAddress = async (id: any) => {
+    try {
+      dispatch({type: IS_LOADING, payload: true});
+      await requestLocationPer(
+        async (response: any) => {
+          // setCurrentLocation(response);
+
+          const {latitude, longitude} = response;
+          dispatch({type: IS_LOADING, payload: false});
+          if (mapCameraRef?.current) {
+            mapCameraRef?.current?.setCamera({
+              center: {
+                latitude: latitude,
+                longitude: longitude,
+              },
+              zoom: 11, // Adjust zoom level
+              animation: {
+                duration: 1000, // Duration of the animation
+                easing: () => {},
+              },
+            });
+          }
+          if (id) {
+            console.log('id', id);
+            handleInputChange(id, `${latitude},${longitude}`);
+            dispatch({type: IS_LOADING, payload: false});
+          }
+        },
+        (err: any) => {
+          dispatch({type: IS_LOADING, payload: false});
+          console.log('<---current location error --->\n', err);
+        },
+      );
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
 
   const handleInputChange = (
     id: any,
@@ -404,7 +383,7 @@ const TemplateScreen = () => {
   };
 
   const validateField = (field: FormField, value: any): string | null => {
-    const {validation_rules, label, is_required} = field;
+    const {validation_rules, label, is_required}: any = field;
 
     if (is_required && (value === undefined || value === '')) {
       return `${label} is required.`;
@@ -462,6 +441,17 @@ const TemplateScreen = () => {
 
     templateData.forEach((field: any) => {
       const error = validateField(field, formValues[field.id]);
+
+      if (field.field_type === 'section') {
+        field.sub_fields.forEach((subField: any) => {
+          const aError = validateField(subField, formValues[subField.id]);
+          if (aError) {
+            isValid = false;
+            errors[subField.id] = aError;
+          }
+        });
+      }
+
       if (error) {
         isValid = false;
         errors[field.id] = error;
@@ -489,15 +479,18 @@ const TemplateScreen = () => {
         }
       });
 
+      // console.log('imageFields', imageFields);
+
       let formattedValue = value;
-      if (field?.field_type === 'date') {
+      if (imageFields[0].id === Number(key)) {
+        console.log('imageFields', imageFields);
+        formattedValue = value.map((i: any) => i.id).toString() || '';
+      } else if (field?.field_type === 'date') {
         formattedValue = moment(value).format('YYYY-MM-DD');
       } else if (field?.field_type === 'time') {
         formattedValue = moment(value).format('hh:mm A');
       } else if (field?.field_type === 'checkbox') {
         formattedValue = value.toString();
-      } else if (imageFields[0].id === Number(key)) {
-        formattedValue = value.map((i: any) => i.id).toString() || '';
       } else if (
         field?.field_type === 'dropdown' &&
         field?.options?.selection_type === 'multiple'
@@ -515,37 +508,62 @@ const TemplateScreen = () => {
     NetInfo.fetch().then(async state => {
       if (state.isConnected) {
         if (validateForm()) {
-          if (params?.type === 'edit') {
-            const obj = {
-              data: {
-                response_id: params?.auditDetails?.response_id,
-                filled_by: 1,
-                audit: params.auditItem.id,
-                fields: convertData(formValues),
-              },
-              onSuccess: () => {
-                navigationRef.goBack();
-              },
-              onFailure: () => {},
-            };
+          // if (params?.type === 'edit') {
+          //   const obj = {
+          //     data: {
+          //       response_id: params?.auditDetails?.response_id,
+          //       filled_by: 1,
+          //       audit: params.auditItem.id,
+          //       fields: convertData(formValues),
+          //     },
+          //     onSuccess: () => {
+          //       navigationRef.goBack();
+          //     },
+          //     onFailure: () => {},
+          //   };
+          //   console.log('obj-->', JSON.stringify(obj?.data));
 
-            dispatch(editAudits(obj));
-          } else {
+          //   dispatch(editAudits(obj));
+          // } else {
+
+          const locationID = getLocationID(templateData, 'current');
+
+          const filteredLocations = formValues[locationID];
+          if (filteredLocations) {
             const obj = {
               data: {
-                filled_by: 1,
+                filled_by: userInfo?.id,
                 audit: params.auditItem.id,
                 fields: convertData(formValues),
               },
               onSuccess: async () => {
+                if (params?.type === 'edit') {
+                  const listData: any = await setAsyncGetTemplateData();
+                  const findData = listData.find(
+                    (item: any) =>
+                      item?.create_at !== params?.auditDetails?.create_at,
+                  );
+
+                  if (findData) {
+                    await setAsyncCreateTemplateData([
+                      ...listData,
+                      ...findData,
+                    ]);
+                    navigationRef.goBack();
+                  }
+                }
+
                 navigationRef.goBack();
               },
               onFailure: () => {},
             };
-            // console.log('obj-->', JSON.stringify(obj));
+            console.log('obj-->', JSON.stringify(obj));
 
             dispatch(createAudits(obj));
+          } else {
+            getAddress(locationID);
           }
+          // }
         } else {
           console.log('Form has errors');
         }
@@ -554,7 +572,7 @@ const TemplateScreen = () => {
           const formData = await getAsyncTemplateFillData();
 
           const obj = {
-            filled_by: 1,
+            filled_by: userInfo?.id,
             audit: params.auditItem.id,
             fields: convertData(formValues),
           };
@@ -582,540 +600,39 @@ const TemplateScreen = () => {
     }
   };
 
-  const renderError = (fieldId: number) => {
-    if (formErrors[fieldId]) {
-      return <Text style={styles.errorText}>{formErrors[fieldId]}</Text>;
+  const onUploadImage = async (data: any) => {
+    dispatch({type: IS_LOADING, payload: true});
+    const newFormValues = formValues[selectFieldId] || [];
+    const uploadLinks = [...newFormValues];
+
+    for (const image of data) {
+      try {
+        const obj = {
+          audit: params?.auditItem?.id,
+          filled_by: userInfo?.id,
+          template_field: selectFieldId,
+          image: `data:${image.type};base64,${image?.base64}`,
+        };
+        const linkData = await uploadImage(obj);
+        uploadLinks.push(linkData); // Store each link in the array
+      } catch (error) {
+        console.error(`Failed to upload ${image.filename}:`, error);
+        dispatch({type: IS_LOADING, payload: false});
+      }
     }
-    return null;
-  };
-  // Render individual fields
-  const renderField = (field: FormField | any) => {
-    switch (field.field_type) {
-      case 'heading':
-        return (
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>{field.label}</Text>
-          </View>
-        );
-      case 'text':
-        return (
-          <>
-            <TextInput
-              style={{
-                ...styles.input,
-                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-              }}
-              placeholder={field.label}
-              value={formValues[field.id] || ''}
-              onChangeText={text => handleInputChange(field.id, text)}
-              editable={isEdit}
-              placeholderTextColor={colors.black}
-            />
-            {renderError(field.id)}
-          </>
-        );
-      case 'text_area':
-        return (
-          <>
-            <TextInput
-              style={{
-                ...styles.input,
-                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                height: 100,
-              }}
-              placeholder={field.label}
-              value={formValues[field.id] || ''}
-              onChangeText={text => handleInputChange(field.id, text)}
-              editable={isEdit}
-              placeholderTextColor={colors.black}
-              multiline
-              textAlignVertical="top"
-            />
-            {renderError(field.id)}
-          </>
-        );
-      case 'number':
-        return (
-          <>
-            <TextInput
-              style={{
-                ...styles.input,
-                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-              }}
-              placeholder={field.label}
-              keyboardType="numeric"
-              value={formValues[field.id] || ''}
-              onChangeText={text => handleInputChange(field.id, text)}
-              editable={isEdit}
-              placeholderTextColor={colors.black}
-            />
-            {renderError(field.id)}
-          </>
-        );
-      case 'dropdown':
-        return (
-          <>
-            {field.options?.selection_type === 'multiple' ? (
-              <MultiSelect
-                disable={!isEdit}
-                style={{
-                  ...styles.dropdown,
-                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                }}
-                data={
-                  field.options?.choices?.map(choice => ({
-                    label: choice,
-                    value: choice,
-                  })) || []
-                }
-                labelField="label"
-                valueField="value"
-                dropdownPosition="auto"
-                placeholder={field.label}
-                value={formValues[field.id] ?? []}
-                onChange={item => handleInputChange(field.id, item, 'multiple')}
-                placeholderStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                selectedTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-              />
-            ) : (
-              <Dropdown
-                disable={!isEdit}
-                style={{
-                  ...styles.dropdown,
-                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                }}
-                data={
-                  field.options?.choices?.map(choice => ({
-                    label: choice,
-                    value: choice,
-                  })) || []
-                }
-                dropdownPosition="auto"
-                labelField="label"
-                valueField="value"
-                placeholder={field.label}
-                value={formValues[field.id]}
-                onChange={item => handleInputChange(field.id, item.value)}
-                placeholderStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                selectedTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-              />
-            )}
-            {renderError(field.id)}
-          </>
-        );
-      case 'image':
-        return (
-          <>
-            <FlatList
-              horizontal
-              contentContainerStyle={{
-                gap: 10,
-                overflow: 'visible',
-              }}
-              data={formValues[field.id]}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={item => item.id}
-              renderItem={({item}: any) => (
-                <View style={styles.imageContainer}>
-                  <CustomImage
-                    uri={api.BASE_URL + item.url}
-                    size={hp(14)}
-                    disabled
-                    containerStyle={{borderRadius: 10, overflow: 'hidden'}}
-                  />
-                  <CustomImage
-                    source={Icons.cross}
-                    disabled={!isEdit}
-                    size={hps(30)}
-                    onPress={() => {
-                      handleDeleteImage(field.id, item.id);
-                    }}
-                    containerStyle={{
-                      position: 'absolute',
-                      top: -10,
-                      right: -10,
-                    }}
-                    tintColor={colors.black}
-                  />
-                </View>
-              )}
-              ListFooterComponent={() => (
-                <TouchableOpacity
-                  disabled={!isEdit}
-                  onPress={() => {
-                    setSelectFieldId(field.id);
-                    setImageModal(true);
-                  }}
-                  style={styles.imageContainer}>
-                  <CustomText text={'Upload Image'} style={styles.imageText} />
-                </TouchableOpacity>
-              )}
-            />
 
-            {renderError(field.id)}
-          </>
-        );
-      case 'location':
-        return (
-          <>
-            <View style={styles.locationContainer}>
-              {/* {!isMapLoaded && <Loader />} */}
-              <MapView
-                ref={mapCameraRef}
-                initialRegion={{
-                  latitude: Number(formValues[field.id]?.split(',')[0]) || 0,
-                  longitude: Number(formValues[field.id]?.split(',')[1]) || 0,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                }}
-                provider="google"
-                loadingEnabled
-                showsUserLocation={formValues[field.id] ? true : false}
-                onMapReady={() => {
-                  console.log('map loaded');
-                  setIsMapLoaded(true);
+    // console.log('uploadLinks', uploadLinks);
+    const newValue: any = uploadLinks.map((link: any) => {
+      return {
+        url: link?.image_url || link?.url,
+        id: link?.image_id || link?.id,
+      };
+    });
 
-                  mapCameraRef?.current?.setCamera({
-                    center: {
-                      latitude: Number(formValues[field.id]?.split(',')[0]),
-                      longitude: Number(formValues[field.id]?.split(',')[1]),
-                    },
-                    zoom: 11, // Adjust zoom level
-                    animation: {
-                      duration: 1000, // Duration of the animation
-                      easing: () => {},
-                    },
-                  });
-                }}
-                style={{flex: 1}}>
-                {formValues[field.id] && (
-                  <Marker
-                    coordinate={{
-                      latitude:
-                        Number(formValues[field.id]?.split(',')[0]) || 0,
-                      longitude:
-                        Number(formValues[field.id]?.split(',')[1]) || 0,
-                    }}
-                  />
-                )}
-              </MapView>
+    handleInputChange(selectFieldId, newValue);
+    dispatch({type: IS_LOADING, payload: false});
 
-              {isEdit && (
-                <TouchableOpacity
-                  style={styles.locationView}
-                  onPress={() => getAddress(field)}>
-                  <CustomText text={'Get Location'} style={styles.location} />
-                </TouchableOpacity>
-              )}
-
-              {formValues[field.id] && (
-                <CustomText
-                  text={formValues[field.id]}
-                  style={styles.location}
-                />
-              )}
-            </View>
-            {renderError(field.id)}
-          </>
-        );
-      case 'date':
-        return (
-          <>
-            <TouchableOpacity
-              disabled={!isEdit}
-              onPress={() => setOpen(true)}
-              style={{
-                ...styles.dateContainer,
-                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                gap: 15,
-              }}>
-              <CustomImage
-                source={Icons.calendar}
-                size={hps(25)}
-                tintColor={colors.black}
-              />
-              <CustomText
-                text={
-                  formValues[field.id]
-                    ? moment(formValues[field.id]).format('DD/MM/YYYY')
-                    : 'Select Date'
-                }
-                style={{flex: 1}}
-              />
-            </TouchableOpacity>
-            <DatePicker
-              modal
-              open={open}
-              mode="date"
-              theme="auto"
-              minimumDate={new Date()}
-              date={
-                formValues[field.id]
-                  ? new Date(formValues[field.id])
-                  : new Date()
-              }
-              onConfirm={date => {
-                setOpen(false);
-                // setDate(date);
-                handleInputChange(field.id, date);
-              }}
-              onCancel={() => {
-                setOpen(false);
-              }}
-            />
-            {renderError(field.id)}
-          </>
-        );
-      case 'time':
-        return (
-          <>
-            <TouchableOpacity
-              disabled={!isEdit}
-              onPress={() => setTimeOpen(true)}
-              style={{
-                ...styles.dateContainer,
-                backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                gap: 15,
-              }}>
-              <CustomImage
-                source={Icons.calendar}
-                size={hps(25)}
-                tintColor={colors.black}
-              />
-              <CustomText
-                text={
-                  formValues[field.id]
-                    ? moment(formValues[field.id]).format() === 'Invalid date'
-                      ? formValues[field.id]
-                      : moment(formValues[field.id]).format('hh:mm A')
-                    : 'Select Time'
-                }
-                style={{flex: 1}}
-              />
-            </TouchableOpacity>
-            <DatePicker
-              modal
-              open={timeOpen}
-              mode="time"
-              theme="auto"
-              minimumDate={new Date()}
-              is24hourSource="device"
-              date={
-                formValues[field.id]
-                  ? moment(formValues[field.id]).format() === 'Invalid date'
-                    ? new Date()
-                    : new Date(formValues[field.id])
-                  : new Date()
-              }
-              onConfirm={(date: any) => {
-                setTimeOpen(false);
-                handleInputChange(field.id, date);
-              }}
-              onCancel={() => {
-                setTimeOpen(false);
-              }}
-            />
-            {renderError(field.id)}
-          </>
-        );
-      case 'yes_no':
-        return (
-          <>
-            <View
-              style={{
-                ...styles.switchContainer,
-                justifyContent: 'flex-start',
-                gap: 15,
-              }}>
-              <TouchableOpacity
-                style={{...styles.switchContainer, gap: 15}}
-                disabled={!isEdit}
-                onPress={() => {
-                  handleInputChange(field.id, field.options?.yes_label);
-                }}>
-                <RenderRadioButton
-                  value={formValues[field.id] === field.options?.yes_label}
-                />
-                <CustomText
-                  style={styles.label}
-                  text={field.options?.yes_label}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{...styles.switchContainer, gap: 15}}
-                disabled={!isEdit}
-                onPress={() =>
-                  handleInputChange(field.id, field.options?.no_label)
-                }>
-                <RenderRadioButton
-                  value={formValues[field.id] === field.options?.no_label}
-                />
-                <CustomText
-                  style={styles.label}
-                  text={field.options?.no_label}
-                />
-              </TouchableOpacity>
-            </View>
-            {renderError(field.id)}
-          </>
-        );
-      case 'radio':
-        return (
-          <>
-            <View
-              style={{
-                justifyContent: 'flex-start',
-                gap: 15,
-              }}>
-              {field.options?.choices?.map((choice: string, index: number) => (
-                <TouchableOpacity
-                  style={{
-                    ...styles.switchContainer,
-                    justifyContent: 'flex-start',
-                    gap: 15,
-                  }}
-                  disabled={!isEdit}
-                  onPress={() => {
-                    handleInputChange(field.id, choice);
-                  }}>
-                  <RenderRadioButton value={formValues[field.id] === choice} />
-                  <CustomText style={styles.label} text={choice} />
-                </TouchableOpacity>
-              ))}
-            </View>
-            {renderError(field.id)}
-          </>
-        );
-      case 'radio_badge':
-        return (
-          <>
-            <View
-              style={{
-                justifyContent: 'flex-start',
-                gap: 15,
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-              }}>
-              {field.options?.choices?.map((choice: string, index: number) => (
-                <TouchableOpacity
-                  style={{
-                    borderWidth: 1,
-                    borderColor: colors.gray_7B,
-                    paddingVertical: 10,
-                    borderRadius: 10,
-                    paddingHorizontal: 15,
-                    backgroundColor:
-                      formValues[field.id] === choice
-                        ? colors.gray_7B
-                        : 'transparent',
-                  }}
-                  disabled={!isEdit}
-                  onPress={() => {
-                    handleInputChange(field.id, choice);
-                  }}>
-                  <CustomText
-                    style={{
-                      ...styles.label,
-                      color:
-                        formValues[field.id] === choice
-                          ? colors.white
-                          : colors.black,
-                    }}
-                    text={choice}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-            {renderError(field.id)}
-          </>
-        );
-      case 'checkbox':
-        return (
-          <>
-            <View
-              style={{
-                justifyContent: 'flex-start',
-                gap: 15,
-              }}>
-              {field.options?.choices?.map((choice: string, index: number) => (
-                <TouchableOpacity
-                  disabled={!isEdit}
-                  onPress={() =>
-                    handleInputChange(field.id, choice, 'checkbox')
-                  }
-                  key={index}
-                  style={{
-                    ...styles.switchContainer,
-                    justifyContent: 'flex-start',
-                    gap: 15,
-                  }}>
-                  <RenderCheckbox
-                    isChecked={
-                      formValues[field?.id]
-                        ? formValues[field?.id].includes(choice)
-                        : false
-                    }
-                  />
-                  <CustomText style={styles.label} text={choice} />
-                </TouchableOpacity>
-              ))}
-            </View>
-            {renderError(field.id)}
-          </>
-        );
-      case 'switch':
-        return (
-          <>
-            <View
-              style={{
-                justifyContent: 'flex-start',
-                gap: 15,
-              }}>
-              <ToggleComponent
-                isToggleOn={Boolean(formValues[field.id]) || false}
-                onToggleSwitch={() => {
-                  handleInputChange(field.id, Boolean(!formValues[field.id]));
-                }}
-              />
-            </View>
-            {renderError(field.id)}
-          </>
-        );
-      case 'section':
-        return (
-          <>
-            {field?.sub_fields.map((FItem: any) => (
-              <View key={FItem.id} style={styles.field}>
-                <>
-                  {FItem.field_type !== 'heading' && (
-                    <CustomText
-                      style={{
-                        ...styles.label,
-                        color: colors.gray_7B,
-                      }}>
-                      {FItem.label}
-                      <Text style={{color: 'red'}}>
-                        {FItem.is_required ? '*' : ''}
-                      </Text>
-                    </CustomText>
-                  )}
-                  {renderField(FItem)}
-                </>
-              </View>
-            ))}
-          </>
-        );
-      default:
-        return null;
-    }
+    // console.log('uploadLinks', newValue);
   };
 
   const memoizedValue = useMemo(
@@ -1170,37 +687,6 @@ const TemplateScreen = () => {
         ? groupedData?.Profile[0]?.value
         : null;
 
-      // ${
-      //   profileImagePath
-      //     ? `<h2>Profile</h2>
-      // <img src="${profileImagePath}" alt="Profile Picture" width="150" height="150" />`
-      //     : `<br>`
-      // }
-      // Create HTML content
-      //       const htmlContent = `
-
-      //    ${Object.entries(groupedData)
-      //      .map(
-      //        ([section, fields]) => `
-      //        <h2>${section === 'Profile' ? `<br>` : `<br>`}</h2>
-      //        ${fields
-      //          .map(
-      //            (field: any, index) => `
-      //           ${
-      //             section === 'Profile'
-      //               ? ''
-      //               : `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
-      //                   field.label
-      //                 }:</strong></h2><p style="font-size:150%;margin-left: 30px;">${
-      //                   field.value
-      //                 }</p>`
-      //           } `,
-      //          )
-      //          .join('')}
-      //      `,
-      //      )
-      //      .join('')}
-      //  `;
       const htmlContent = `<html>
       <head>
         <style>
@@ -1244,11 +730,11 @@ const TemplateScreen = () => {
         <div class="content">
          ${Object.entries(groupedData)
            .map(
-             ([section, fields]) => `
+             ([section, fields]: any) => `
              <h2>${section === 'Profile' ? `<br>` : `<br>`}</h2>
              ${fields
                .map(
-                 (field: any, index) =>
+                 (field: any, index: any) =>
                    `
                 ${
                   field.value == 'Invalid date'
@@ -1260,7 +746,7 @@ const TemplateScreen = () => {
                         field.label
                       }:</strong></h2>${field.value
                         .map(
-                          item => `
+                          (item: any) => `
                         <img src="${
                           api.BASE_URL + item.url
                         }" alt="Image" width="300" height="300" />
@@ -1309,40 +795,147 @@ const TemplateScreen = () => {
     }
   };
 
+  const getLocationID = (fields: any[], type?: string) => {
+    if (type === 'current') {
+      for (const field of fields || []) {
+        if (
+          field?.field_type === 'location' &&
+          field?.label == 'Current Location'
+        ) {
+          return field?.id;
+        }
+
+        if (field?.field_type === 'section') {
+          const subField = field?.sub_fields?.find(
+            (mItem: any) =>
+              mItem?.field_type === 'location' &&
+              mItem?.label == 'Current Location',
+          );
+          if (subField) {
+            return subField?.id;
+          }
+        }
+      }
+      return null;
+    } else {
+      for (const field of fields || []) {
+        if (field?.field_type === 'location') {
+          return field?.id;
+        }
+
+        if (field?.field_type === 'section') {
+          const subField = field?.sub_fields?.find(
+            (mItem: any) => mItem?.field_type === 'location',
+          );
+          if (subField) {
+            return subField?.id;
+          }
+        }
+      }
+      return null;
+    }
+  };
+
+  const getFilteredLocations = (List: any, locationID: any) => {
+    return Object.keys(List)
+      .map((item: any) => {
+        if (item == locationID) {
+          return List[item];
+        }
+      })
+      .filter((value: any) => value !== undefined)
+      .toString();
+  };
+
+  const handleSave = async () => {
+    const formLength = Object.keys(formValues).length;
+    const listData: any = await setAsyncGetTemplateData();
+
+    if (params?.type === 'edit') {
+      if (formValues && formLength < 10) {
+        errorToast('Please fill at least 10 fields to save');
+        return;
+      }
+
+      const findData = listData.find(
+        (item: any) => item?.create_at === params?.auditDetails?.create_at,
+      );
+
+      if (findData) {
+        findData.fields = formValues;
+
+        const newData = listData.map((item: any) =>
+          item?.create_at === params?.auditDetails?.create_at ? findData : item,
+        );
+        console.log('newData', newData);
+
+        await setAsyncCreateTemplateData(newData);
+
+        navigationRef.goBack();
+      }
+    } else {
+      if (formValues && formLength < 10) {
+        errorToast('Please fill at least 10 fields to save');
+        return;
+      }
+
+      if (listData.length >= 3) {
+        errorToast(
+          'Note: Kindly ensure that you first sync your pending data.',
+        );
+        return;
+      }
+
+      if (listData.length > 0) {
+        const newData = {
+          filled_by: userInfo?.id,
+          audit: params.auditItem.id,
+          fields: formValues,
+          create_at: new Date().getTime(),
+        };
+        await setAsyncCreateTemplateData([...listData, newData]);
+      } else {
+        const newData = {
+          filled_by: userInfo?.id,
+          audit: params.auditItem.id,
+          fields: formValues,
+          create_at: new Date().getTime(),
+        };
+        await setAsyncCreateTemplateData([newData]);
+      }
+
+      navigationRef.goBack();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title={params?.headerTitle}
-        subTitle={'22 Nov 2024'}
-        downloadIcon
+        // subTitle={'22 Nov 2024'}
+        downloadIcon={false}
         refreshIcon={params?.type === 'edit' ? false : true}
         showMap
         editIcon={isEdit ? false : params?.type === 'edit' ? true : false}
         crossIcon={params?.type === 'create' ? false : isEdit ? true : false}
         onCrossPress={() => {
           setIsEdit(!isEdit);
-          errorToast('Edit mode disabled');
-          setValue(auditResponse);
+          editDisableToast('Edit mode disabled');
+          setValue(params?.auditDetails?.fields);
         }}
         onRefreshPress={syncOfflineData}
         onEditPress={() => {
           setIsEdit(!isEdit);
-          successToast('Edit mode enabled');
+          editEnableToast('Edit mode enabled');
         }}
         onMapPress={() => {
-          const filter = templateData.find(
-            (field: any) => field.field_type === 'location',
-          );
-          const locationData = params.auditDetails?.fields.find(
-            (field: any) => field.template_field === filter?.id,
-          );
+          const locationID = getLocationID(templateData, 'current');
 
-          if (filter?.id) {
-            navigateTo(SCREENS.MapScreen, {
-              headerTitle: params?.headerTitle,
-              listData: [locationData],
-            });
-          }
+          const filteredLocations = formValues[locationID];
+          navigateTo(SCREENS.MapScreen, {
+            headerTitle: params?.headerTitle,
+            listData: [{value: filteredLocations}],
+          });
         }}
         onDownloadPress={() => {
           generatePDF();
@@ -1351,73 +944,98 @@ const TemplateScreen = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={hp(1)}>
-        <ScrollView
-          nestedScrollEnabled
-          contentContainerStyle={{
-            paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
-            marginHorizontal: 16,
-          }}
-          showsVerticalScrollIndicator={false}>
-          {Object.keys(sections).map((section, index) => (
-            <View key={index} style={styles.section}>
-              {/* <View style={styles.sectionTitleContainer}>
-                <Text style={styles.sectionTitle}>{section}</Text>
-              </View> */}
-              {sections[section].map((field: any) => (
-                <View key={field.id} style={styles.field}>
-                  <>
-                    {field.field_type !== 'heading' && (
-                      <CustomText
-                        style={{
-                          ...styles.label,
-                          ...commonFontStyle(
-                            400,
-                            fontValue +
-                              (field.field_type === 'section' ? 20 : 16),
-                            colors.black,
-                          ),
-                          color:
-                            field.field_type === 'section'
-                              ? colors.mainBlue
-                              : colors.gray_7B,
-                        }}>
-                        {field.label}
-                        <Text style={{color: 'red'}}>
-                          {field.is_required ? '*' : ''}
-                        </Text>
-                      </CustomText>
-                    )}
-                    {renderField(field)}
-                  </>
-                </View>
-              ))}
-            </View>
-          ))}
-          {params?.type === 'edit' && isEdit && (
-            <CustomButton
-              extraStyle={styles.extraStyle}
-              title={t('Update')}
-              onPress={handleSubmit}
-            />
-          )}
-          {params?.type === 'create' && (
-            <CustomButton
-              extraStyle={styles.extraStyle}
-              title={t('Save')}
-              onPress={handleSubmit}
-            />
-          )}
-          <ImageSelectionModal
-            isVisible={imageModal}
-            onImageSelected={(value: any) => {
-              setImageSource(value);
-              onUploadImage(value);
-              // handleInputChange(selectFieldId, value, 'image');
+        {Object.keys(sections).map((section, index) => (
+          <FlatList
+            data={sections[section]}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{
+              paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
+              marginHorizontal: 16,
             }}
-            onClose={setImageModal}
+            renderItem={({item}: any) => (
+              <View style={styles.section}>
+                {item.field_type == 'heading' ||
+                item.label == 'Current Location' ? null : (
+                  <CustomText
+                    style={{
+                      ...styles.label,
+                      ...commonFontStyle(
+                        400,
+                        fontValue + (item?.field_type === 'section' ? 20 : 16),
+                        colors.black,
+                      ),
+                      color:
+                        item?.field_type === 'section'
+                          ? colors.mainBlue
+                          : colors.gray_7B,
+                    }}>
+                    {item?.label}
+                    <Text style={{color: 'red'}}>
+                      {item?.is_required ? '*' : ''}
+                    </Text>
+                  </CustomText>
+                )}
+                <TemplateRenderItem
+                  fields={item}
+                  formValues={formValues}
+                  getAddress={getAddress}
+                  formErrors={formErrors}
+                  handleDeleteImage={handleDeleteImage}
+                  handleInputChange={handleInputChange}
+                  isEdit={isEdit}
+                  onUploadImage={onUploadImage}
+                  setImageSource={setImageSource}
+                  setSelectFieldId={setSelectFieldId}
+                  isMapLoaded={isMapLoaded}
+                />
+              </View>
+            )}
+            ListFooterComponent={() => {
+              return (
+                <>
+                  {/* {params?.type === 'edit' && isEdit && (
+                    <CustomButton
+                      extraStyle={styles.extraStyle}
+                      title={t('Update')}
+                      onPress={handleSubmit}
+                    />
+                  )} */}
+                  {params?.type === 'create' ||
+                  (params?.type === 'edit' && isEdit) ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 20,
+                      }}>
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Save')}
+                        onPress={handleSave}
+                      />
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Submit')}
+                        onPress={handleSubmit}
+                      />
+                    </View>
+                  ) : null}
+                </>
+              );
+            }}
           />
-          <PdfDownloadModal isVisible={pdfModal} />
-        </ScrollView>
+        ))}
+
+        <ImageSelectionModal
+          isVisible={imageModal}
+          onImageSelected={(value: any) => {
+            setImageSource(value);
+            onUploadImage(value);
+            // handleInputChange(selectFieldId, value, 'image');
+          }}
+          onClose={setImageModal}
+        />
+        <PdfDownloadModal isVisible={pdfModal} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -1432,87 +1050,15 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       backgroundColor: colors.background,
     },
     section: {
-      // marginBottom: 20,
+      marginBottom: 20,
       gap: 20,
-    },
-    sectionTitleContainer: {
-      backgroundColor: colors.black,
-      // marginTop: 20,
-      padding: 10,
-      borderRadius: 10,
-    },
-    sectionTitle: {
-      ...commonFontStyle(400, fontValue + 16, colors.white),
-      textAlign: 'center',
-    },
-    field: {
-      // marginBottom: 15,
-      gap: 15,
-    },
-    label: {
-      ...commonFontStyle(400, fontValue + 16, colors.black),
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 5,
-      padding: 10,
-      ...commonFontStyle(400, fontValue + 16, colors.black),
-    },
-    dropdown: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 5,
-      padding: 10,
-    },
-    switchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    errorText: {
-      ...commonFontStyle(400, fontValue + 12, colors.red),
     },
     extraStyle: {
       marginTop: 20,
+      flex: 1,
     },
-    dateContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#ccc',
-      padding: 10,
-      borderRadius: 10,
-    },
-    locationContainer: {
-      height: hp(25),
-      width: '100%',
-    },
-    imageContainer: {
-      height: hp(15),
-      width: hp(15),
-      borderWidth: 1,
-      borderColor: colors.gray_E7,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    imageText: {
-      ...commonFontStyle(400, fontValue + 16, colors.black_T37),
-      textAlign: 'center',
-    },
-    location: {
-      ...commonFontStyle(400, fontValue + 16, colors.black_T37),
-    },
-    locationView: {
-      borderWidth: 1,
-      borderColor: colors.black,
-      paddingVertical: 10,
-      paddingHorizontal: 5,
-      borderRadius: 10,
-      alignSelf: 'flex-end',
-      alignItems: 'center',
-      marginTop: 10,
+    label: {
+      ...commonFontStyle(400, fontValue + 16, colors.black),
     },
   });
 };

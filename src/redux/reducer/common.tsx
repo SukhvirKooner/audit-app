@@ -16,7 +16,7 @@ interface CommonState {
 
 const initialState: CommonState = {
   isLoading: false,
-  isDarkTheme: true,
+  isDarkTheme: false,
   fontValue: 0,
   userInfo: undefined,
   groupList: [],

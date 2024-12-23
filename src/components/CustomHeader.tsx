@@ -79,21 +79,13 @@ const CustomHeader = ({
       style={[styles.container, {marginHorizontal: wps(15), marginTop: 15}]}>
       <View style={styles.container}>
         {type === 'home' ? (
-          <>
-            {userImage ? (
-              <CustomImage
-                uri={userImage}
-                size={wps(45)}
-                imageStyle={{borderRadius: wps(45)}}
-              />
-            ) : (
-              <CustomImage
-                source={Icons.user}
-                size={wps(45)}
-                imageStyle={{borderRadius: wps(45)}}
-              />
-            )}
-          </>
+          <View style={{flex: 1}}>
+            <CustomImage
+              source={Icons.logo}
+              size={wps(90)}
+              // imageStyle={{borderRadius: wps(45)}}
+            />
+          </View>
         ) : isBack ? (
           <CustomImage
             source={Icons.ic_back}
@@ -105,12 +97,7 @@ const CustomHeader = ({
             }}
           />
         ) : null}
-        {type === 'home' ? (
-          <View style={{paddingLeft: wps(10), flex: 1}}>
-            {subTitle && <CustomText text={subTitle} style={styles.text1} />}
-            <CustomText numberOfLines={1} text={title} style={styles.text} />
-          </View>
-        ) : (
+        {type === 'home' ? null : (
           <View style={{flex: 1}}>
             <CustomText numberOfLines={1} text={title} style={styles.text} />
             {subTitle && <CustomText text={subTitle} style={styles.text1} />}

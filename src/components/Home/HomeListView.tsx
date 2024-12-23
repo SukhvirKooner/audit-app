@@ -27,16 +27,16 @@ const HomeListView = ({data, onPress, subtitle, title, progress}: Props) => {
     [colors, fontValue],
   );
 
-  const widthAndHeight = 30;
-  const value = 100 - Number(progress);
-  const series = [Number(progress), value];
-  const sliceColor = [colors.naveBg, colors.white];
+  // const widthAndHeight = 30;
+  // const value = 100 - Number(progress);
+  // const series = [Number(progress), value];
+  // const sliceColor = [colors.naveBg, colors.white];
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.container}>
       <CustomText text={title} style={styles.titleStyle} />
       <CustomText text={subtitle} style={styles.subTitleStyle} />
-      <View style={styles.line} />
+      {/* <View style={styles.line} />
       <View style={styles.row}>
         <View style={styles.pieStyle}>
           <PieChart
@@ -50,7 +50,7 @@ const HomeListView = ({data, onPress, subtitle, title, progress}: Props) => {
         <CustomText style={styles.subTitleStyle}>
           {progress}% {t('Complete')}
         </CustomText>
-      </View>
+      </View> */}
     </TouchableOpacity>
   );
 };

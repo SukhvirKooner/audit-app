@@ -13,6 +13,8 @@ export const asyncKeys = {
   audits_list: '@audits_list',
   template_data: '@template_data',
   template_fill_data: '@template_fill_data',
+
+  create_template_data: '@create_template_data',
 };
 
 export const clearAsync = async () => {
@@ -33,8 +35,23 @@ export const clearOfflineAsync = async () => {
   ]);
 };
 
+export const setAsyncCreateTemplateData = async (data: any) => {
+  await AsyncStorage.setItem(
+    asyncKeys.create_template_data,
+    JSON.stringify(data),
+  );
+};
+
+export const setAsyncGetTemplateData = async () => {
+  const data = await AsyncStorage.getItem(asyncKeys.create_template_data);
+  if (data) {
+    return JSON.parse(data);
+  } else {
+    return [];
+  }
+};
+
 export const setAsyncAudit = async (data: string) => {
-  console.log('  setAsyncAudit(auditsList);', data);
   await AsyncStorage.setItem(asyncKeys.audits_list, JSON.stringify(data));
 };
 

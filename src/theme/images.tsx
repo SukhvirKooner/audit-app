@@ -40,6 +40,8 @@ export const Icons = {
   theme: require('../assets/Icons/theme.png'),
   ic_share: require('../assets/Icons/ic_share.png'),
   tick: require('../assets/Icons/tick.png'),
+  ic_noImage: require('../assets/Icons/ic_noImage.png'),
+  image: require('../assets/Icons/image.png'),
 };
 
 export const GIF = {

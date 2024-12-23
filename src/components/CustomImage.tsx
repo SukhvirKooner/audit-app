@@ -1,6 +1,6 @@
 import {StyleSheet, TouchableOpacity, ViewStyle} from 'react-native';
 import React from 'react';
-import FastImage from 'react-native-fast-image';
+import FastImage, {ImageStyle} from 'react-native-fast-image';
 import {hp} from '../theme/fonts';
 import {light_theme} from '../theme/colors';
 
@@ -9,7 +9,7 @@ interface Props {
   source?: any;
   size?: number;
   containerStyle?: ViewStyle;
-  imageStyle?: any;
+  imageStyle?: ImageStyle;
   tintColor?: any;
   uri?: string;
   isBorder?: boolean;
@@ -36,7 +36,7 @@ const CustomImage = ({
       disabled={disabled}
       style={isBorder ? styles.btnContainer : {...containerStyle}}>
       <FastImage
-        source={uri ? {uri: uri} : source}
+        source={uri ? {uri: uri, priority: 'high'} : source}
         defaultSource={source ? source : undefined}
         style={[{width: size, height: size}, imageStyle]}
         resizeMode={resizeMode}

@@ -13,7 +13,11 @@ import CustomImage from '../../components/CustomImage';
 import {commonFontStyle, wps} from '../../theme/fonts';
 import CustomText from '../../components/CustomText';
 import {SCREENS} from '../../navigation/screenNames';
-import {getAuditsDetails, getTemplate} from '../../service/AuditService';
+import {
+  getAuditsDetails,
+  getAuditsDetailsByID,
+  getTemplate,
+} from '../../service/AuditService';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {navigateTo} from '../../utils/commonFunction';
 import {GET_AUDITS_DETAILS, IS_LOADING} from '../../redux/actionTypes';
@@ -84,19 +88,29 @@ const AuditDetailsScreen = () => {
     return title ?? identifier;
   };
 
+  const getDetails = (item: any) => {
+    const obj = {
+      data: item.response_id,
+      onSuccess: (res: any) => {
+        navigateTo(SCREENS.TemplateScreen, {
+          headerTitle: getTitle(item.fields),
+          auditItem: params?.auditItem,
+          auditDetails: res,
+          type: 'view',
+        });
+      },
+      onFailure: () => {},
+    };
+    dispatch(getAuditsDetailsByID(obj));
+  };
   const renderAudit = ({item, index}: any) => (
     <TouchableOpacity
       key={index}
       onPress={() => {
-        navigateTo(SCREENS.TemplateScreen, {
-          headerTitle: getTitle(item.fields),
-          auditItem: params?.auditItem,
-          auditDetails: item,
-          type: 'edit',
-        });
+        getDetails(item);
       }}
       style={styles.auditCard}>
-      <CustomImage
+      {/* <CustomImage
         uri={templateData?.logo ?? 'https://picsum.photos/200'}
         size={wps(28)}
         imageStyle={{
@@ -104,38 +118,68 @@ const AuditDetailsScreen = () => {
           borderWidth: 1,
           borderColor: '#ccc',
         }}
-      />
+      /> */}
       <View>
-        <CustomText text={getTitle(item.fields)} style={styles.auditTitle} />
+        <CustomText
+          text={item?.response_id + '-' + getTitle(item.fields)}
+          style={styles.auditTitle}
+        />
         {/* <CustomText style={styles.auditDescription}>
           {`${t('Last updated on')}${item.description}}`}
         </CustomText> */}
       </View>
     </TouchableOpacity>
   );
+  const getLocationID = (fields: any[]) => {
+    for (const field of fields || []) {
+      if (field?.field_type === 'location') {
+        return field?.id;
+      }
 
+      if (field?.field_type === 'section') {
+        const subField = field?.sub_fields?.find(
+          (mItem: any) => mItem?.field_type === 'location',
+        );
+        if (subField) {
+          return subField?.id;
+        }
+      }
+    }
+    return null;
+  };
+
+  const getFilteredLocations = (auditsDetailsList: any[], locationID: any) => {
+    return auditsDetailsList
+      .map((item: any) => {
+        const locationField = item.fields.find(
+          (IField: any) => IField.template_field === locationID,
+        );
+        return locationField ? {value: locationField.value} : null;
+      })
+      .filter((value: any) => value !== null);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title={params?.headerTitle}
         subTitle={'22 Nov 2024'}
         showMap
-        searchIcon
         showAdd
+        refreshIcon={true}
+        onRefreshPress={() => {
+          navigateTo(SCREENS.SyncDataScreen, {
+            templateData: templateData,
+            headerTitle: params?.headerTitle,
+            auditItem: params?.auditItem,
+          });
+        }}
         onMapPress={() => {
-          const LocationsID = templateData?.fields?.find(
-            (field: any) => field?.field_type === 'location',
+          const locationID = getLocationID(templateData?.fields);
+
+          const filteredLocations = getFilteredLocations(
+            auditsDetailsList,
+            locationID,
           );
-
-          const filteredLocations = auditsDetailsList
-            .map((item: any) => {
-              const locationField = item.fields.find(
-                (field: any) => field.template_field === LocationsID?.id,
-              );
-              return locationField ? {value: locationField.value} : null;
-            })
-            .filter((value: any) => value !== null);
-
           navigateTo(SCREENS.MapScreen, {
             headerTitle: params?.headerTitle,
             listData: filteredLocations,

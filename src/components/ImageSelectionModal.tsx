@@ -19,24 +19,33 @@ const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
   }, [isVisible]);
 
   const handleCamera = () => {
-    launchCamera({mediaType: 'photo', includeBase64: true}, (response: any) => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        console.error('Image Picker Error:', response.errorMessage);
-      } else {
-        const {uri, base64, type} = response.assets[0];
-        const newI = {
-          uri: uri,
-          base64: base64,
-          type: type,
-        };
+    launchCamera(
+      {
+        mediaType: 'photo',
+        includeBase64: true,
+        maxHeight: 800,
+        maxWidth: 800,
+        quality: 1,
+      },
+      (response: any) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.error('Image Picker Error:', response.errorMessage);
+        } else {
+          const {uri, base64, type} = response.assets[0];
+          const newI = {
+            uri: uri,
+            base64: base64,
+            type: type,
+          };
 
-        onImageSelected([newI]);
+          onImageSelected([newI]);
+          closeModal();
+        }
         closeModal();
-      }
-      closeModal();
-    });
+      },
+    );
   };
 
   const handleGallery = () => {

@@ -62,6 +62,13 @@ export const successToast = (message: string) => {
 export const errorToast = (message: string) => {
   Toast.show({type: 'error', text1: message});
 };
+export const editEnableToast = (message: string) => {
+  Toast.show({type: 'enable', text1: message});
+};
+
+export const editDisableToast = (message: string) => {
+  Toast.show({type: 'disable', text1: message});
+};
 
 // export const successToast = (message: string) => {
 //   Snackbar.show({
