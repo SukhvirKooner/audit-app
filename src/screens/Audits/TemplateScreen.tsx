@@ -157,6 +157,7 @@ const TemplateScreen = () => {
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   console.log('formValues', formValues);
+  console.log('templateData', JSON.stringify(templateData));
   const sections = groupBySection(templateData);
   const [isMapLoaded, setIsMapLoaded] = useState(true);
 
@@ -507,6 +508,7 @@ const TemplateScreen = () => {
   const handleSubmit = () => {
     NetInfo.fetch().then(async state => {
       if (state.isConnected) {
+        const locationIDs = getLocationID(templateData, 'current');
         if (validateForm()) {
           // if (params?.type === 'edit') {
           //   const obj = {
@@ -525,11 +527,8 @@ const TemplateScreen = () => {
 
           //   dispatch(editAudits(obj));
           // } else {
-
           const locationID = getLocationID(templateData, 'current');
-
-          const filteredLocations = formValues[locationID];
-          if (filteredLocations) {
+          if (locationID == null) {
             const obj = {
               data: {
                 filled_by: userInfo?.id,
@@ -543,7 +542,6 @@ const TemplateScreen = () => {
                     (item: any) =>
                       item?.create_at !== params?.auditDetails?.create_at,
                   );
-
                   if (findData) {
                     await setAsyncCreateTemplateData([
                       ...listData,
@@ -552,19 +550,51 @@ const TemplateScreen = () => {
                     navigationRef.goBack();
                   }
                 }
-
                 navigationRef.goBack();
               },
               onFailure: () => {},
             };
-            console.log('obj-->', JSON.stringify(obj));
-
+            console.log('obj-->', JSON.stringify(obj?.data));
             dispatch(createAudits(obj));
           } else {
-            getAddress(locationID);
+            const filteredLocations = formValues[locationID];
+            if (filteredLocations) {
+              const obj = {
+                data: {
+                  filled_by: userInfo?.id,
+                  audit: params.auditItem.id,
+                  fields: convertData(formValues),
+                },
+                onSuccess: async () => {
+                  if (params?.type === 'edit') {
+                    const listData: any = await setAsyncGetTemplateData();
+                    const findData = listData.find(
+                      (item: any) =>
+                        item?.create_at !== params?.auditDetails?.create_at,
+                    );
+                    if (findData) {
+                      await setAsyncCreateTemplateData([
+                        ...listData,
+                        ...findData,
+                      ]);
+                      navigationRef.goBack();
+                    }
+                  }
+                  navigationRef.goBack();
+                },
+                onFailure: () => {},
+              };
+              console.log('obj-->', JSON.stringify(obj?.data));
+              dispatch(createAudits(obj));
+            } else {
+              getAddress(locationID);
+            }
           }
           // }
         } else {
+          if (locationIDs) {
+            getAddress(locationIDs);
+          }
           console.log('Form has errors');
         }
       } else {

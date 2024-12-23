@@ -16,7 +16,7 @@ import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import RenderRadioButton from '../RenderRadioButton';
 import CustomImage from '../CustomImage';
-import {api} from '../../utils/apiConstants';
+import {api, GOOGLE_API_KEY} from '../../utils/apiConstants';
 import {Icons} from '../../theme/images';
 import CustomText from '../CustomText';
 import MapView, {Marker} from 'react-native-maps';
@@ -29,6 +29,7 @@ import {IS_LOADING} from '../../redux/actionTypes';
 import {requestLocationPer} from '../../utils/locationHandler';
 import ImageModal from '../ImageModal';
 import Loader from '../Loader';
+import CustomMapView from '../CustomMapView';
 
 // Define types for field options and validation rules
 interface ValidationRule {
@@ -385,7 +386,7 @@ const TemplateRenderItem = ({
           <>
             {field.label === 'Current Location' ? null : (
               <View style={styles.locationContainer}>
-                {isMapLoaded ? (
+                {/* {isMapLoaded ? (
                   <View>
                     <Loader />
                   </View>
@@ -403,16 +404,17 @@ const TemplateRenderItem = ({
                     provider="google"
                     loadingEnabled
                     zoomControlEnabled
+                    key={GOOGLE_API_KEY}
                     showsUserLocation={true}
                     moveOnMarkerPress
+                    // onRegionChangeComplete={onRegionDidChange}
                     onPress={(e: any) => {
                       if (!isEdit) return;
                       const {latitude, longitude} = e.nativeEvent.coordinate;
                       handleInputChange(field.id, `${latitude},${longitude}`);
                     }}
-                    onMapReady={() => {
+                    onRegionChangeComplete={() => {
                       // setIsMapLoaded(true);
-
                       mapCameraRef?.current?.setCamera({
                         center: {
                           latitude: Number(formValues[field.id]?.split(',')[0]),
@@ -441,7 +443,23 @@ const TemplateRenderItem = ({
                       />
                     )}
                   </MapView>
-                )}
+                )} */}
+                <CustomMapView
+                  isEdit={isEdit}
+                  latitude={
+                    Number(formValues[field.id]?.split(',')[0]) || 20.5937
+                  }
+                  longitude={
+                    Number(formValues[field.id]?.split(',')[1]) || 78.9629
+                  }
+                  field={field}
+                  formValues={formValues}
+                  handleInputChange={(latitude, longitude) => {
+                    console.log('latitude, longitude', latitude, longitude);
+
+                    handleInputChange(field.id, `${latitude},${longitude}`);
+                  }}
+                />
                 {isEdit && (
                   <TouchableOpacity
                     style={styles.locationView}
