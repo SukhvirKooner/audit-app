@@ -178,6 +178,17 @@ const TemplateScreen = () => {
       setIsMapLoaded(false);
     }, 2000);
   }, []);
+
+  useEffect(() => {
+    if (params?.type === 'edit') {
+      setFormValues(params?.auditDetails?.fields);
+      const locationID = getLocationID(templateData, 'current');
+      if (locationID) {
+        getAddress1(locationID, params?.auditDetails?.fields);
+      }
+    }
+  }, [params?.auditDetails?.fields, params?.type]);
+
   useEffect(() => {
     if (params?.type === 'view') {
       setValue(params?.auditDetails);
@@ -279,12 +290,6 @@ const TemplateScreen = () => {
     })();
   }, [params?.auditItem?.template, templateData]);
 
-  useEffect(() => {
-    if (params?.type === 'edit') {
-      setFormValues(params?.auditDetails?.fields);
-    }
-  }, [params?.auditDetails?.fields, params?.type]);
-
   const setValue = (data: any) => {
     if (data?.fields?.length !== 0 && params?.type === 'view') {
       const [checkboxData] = templateData.filter(
@@ -313,7 +318,7 @@ const TemplateScreen = () => {
   };
 
   useEffect(() => {
-    if (params?.type === 'create' || params?.type === 'edit') {
+    if (params?.type === 'create') {
       const locationID = getLocationID(templateData, 'current');
       if (locationID) {
         getAddress(locationID);
@@ -346,6 +351,44 @@ const TemplateScreen = () => {
           if (id) {
             console.log('id', id);
             handleInputChange(id, `${latitude},${longitude}`);
+            dispatch({type: IS_LOADING, payload: false});
+          }
+        },
+        (err: any) => {
+          dispatch({type: IS_LOADING, payload: false});
+          console.log('<---current location error --->\n', err);
+        },
+      );
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
+  const getAddress1 = async (id: any, allFiled) => {
+    try {
+      dispatch({type: IS_LOADING, payload: true});
+      await requestLocationPer(
+        async (response: any) => {
+          // setCurrentLocation(response);
+
+          const {latitude, longitude} = response;
+          dispatch({type: IS_LOADING, payload: false});
+          if (mapCameraRef?.current) {
+            mapCameraRef?.current?.setCamera({
+              center: {
+                latitude: latitude,
+                longitude: longitude,
+              },
+              zoom: 11, // Adjust zoom level
+              animation: {
+                duration: 1000, // Duration of the animation
+                easing: () => {},
+              },
+            });
+          }
+          if (id) {
+            // handleInputChange(id, `${latitude},${longitude}`);
+            setFormValues({...allFiled, [id]: `${latitude},${longitude}`});
             dispatch({type: IS_LOADING, payload: false});
           }
         },
@@ -878,9 +921,9 @@ const TemplateScreen = () => {
     const listData: any = await setAsyncGetTemplateData();
     const subFields = [
       ...templateData
-        .map(section => section.sub_fields)
-        .flat()
-        .filter(subField => subField !== null),
+        ?.map(section => section?.sub_fields)
+        ?.flat()
+        ?.filter(subField => subField !== null),
       ...templateData,
     ];
 
