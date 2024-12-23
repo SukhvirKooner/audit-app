@@ -480,11 +480,8 @@ const TemplateScreen = () => {
         }
       });
 
-      // console.log('imageFields', imageFields);
-
       let formattedValue = value;
-      if (imageFields[0].id === Number(key)) {
-        console.log('imageFields', imageFields);
+      if (imageFields.some((field: any) => field.id === Number(key))) {
         formattedValue = value.map((i: any) => i.id).toString() || '';
       } else if (field?.field_type === 'date') {
         formattedValue = moment(value).format('YYYY-MM-DD');
@@ -538,17 +535,15 @@ const TemplateScreen = () => {
               onSuccess: async () => {
                 if (params?.type === 'edit') {
                   const listData: any = await setAsyncGetTemplateData();
-                  const findData = listData.find(
-                    (item: any) =>
-                      item?.create_at !== params?.auditDetails?.create_at,
-                  );
-                  if (findData) {
-                    await setAsyncCreateTemplateData([
-                      ...listData,
-                      ...findData,
-                    ]);
-                    navigationRef.goBack();
-                  }
+                  // const findData = listData.find(
+                  //   (item: any) =>
+                  //     item?.create_at !== params?.auditDetails?.create_at,
+                  // );
+                  const findData = listData?.filter(item => {
+                    item?.create_at !== params?.auditDetails?.create_at;
+                  });
+                  await setAsyncCreateTemplateData(findData);
+                  navigationRef.goBack();
                 }
                 navigationRef.goBack();
               },
@@ -568,17 +563,15 @@ const TemplateScreen = () => {
                 onSuccess: async () => {
                   if (params?.type === 'edit') {
                     const listData: any = await setAsyncGetTemplateData();
-                    const findData = listData.find(
-                      (item: any) =>
-                        item?.create_at !== params?.auditDetails?.create_at,
-                    );
-                    if (findData) {
-                      await setAsyncCreateTemplateData([
-                        ...listData,
-                        ...findData,
-                      ]);
-                      navigationRef.goBack();
-                    }
+                    // const findData = listData.find(
+                    //   (item: any) =>
+                    //     item?.create_at !== params?.auditDetails?.create_at,
+                    // );
+                    const findData = listData?.filter(item => {
+                      item?.create_at !== params?.auditDetails?.create_at;
+                    });
+                    await setAsyncCreateTemplateData(findData);
+                    navigationRef.goBack();
                   }
                   navigationRef.goBack();
                 },
@@ -693,8 +686,6 @@ const TemplateScreen = () => {
           const template = memoizedValue.find(
             field => field.id.toString() === key,
           );
-
-          console.log('valuevaluevalue', value);
 
           if (template) {
             const section = template.section_heading;
@@ -880,6 +871,15 @@ const TemplateScreen = () => {
   const handleSave = async () => {
     const formLength = Object.keys(formValues).length;
     const listData: any = await setAsyncGetTemplateData();
+    const subFields = [
+      ...templateData
+        .map(section => section.sub_fields)
+        .flat()
+        .filter(subField => subField !== null),
+      ...templateData,
+    ];
+
+    console.log('subFields?.length', subFields?.length / 3);
 
     if (params?.type === 'edit') {
       if (formValues && formLength < 10) {
@@ -904,8 +904,12 @@ const TemplateScreen = () => {
         navigationRef.goBack();
       }
     } else {
-      if (formValues && formLength < 10) {
-        errorToast('Please fill at least 10 fields to save');
+      if (formValues && formLength < (subFields?.length / 3).toFixed()) {
+        errorToast(
+          `Please fill at least ${(
+            subFields?.length / 3
+          ).toFixed()} fields to save`,
+        );
         return;
       }
 
@@ -997,7 +1001,7 @@ const TemplateScreen = () => {
                       color:
                         item?.field_type === 'section'
                           ? colors.mainBlue
-                          : colors.gray_7B,
+                          : colors.black,
                     }}>
                     {item?.label}
                     <Text style={{color: 'red'}}>

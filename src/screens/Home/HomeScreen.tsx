@@ -112,7 +112,7 @@ const getGlobalStyles = (props: any) => {
       // justifyContent: 'center',
       gap: 10,
       paddingHorizontal: 10,
-      paddingTop: 10,
+      paddingTop: 0,
     },
   });
 };

@@ -4,12 +4,15 @@ import {
   Text,
   ViewStyle,
   TouchableOpacity,
+  View,
 } from 'react-native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {light_theme} from '../theme/colors';
-import {commonFontStyle, hp} from '../theme/fonts';
-import MapView, {Marker} from 'react-native-maps';
+import {commonFontStyle, hp, SCREEN_WIDTH} from '../theme/fonts';
+import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import {GOOGLE_API_KEY} from '../utils/apiConstants';
+import Loader from './Loader';
+import {useTheme} from '@react-navigation/native';
 
 type Props = {
   title: string;
@@ -37,6 +40,17 @@ const CustomMapView = ({
   isEdit,
 }: Props) => {
   const mapCameraRef = useRef<any>(null);
+  const {colors}: any = useTheme();
+  const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
+  const [isMapLoaded, setIsMapLoaded] = useState(true);
+
+  console.log('latitude', latitude);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsMapLoaded(false);
+    }, 1500);
+  }, []);
 
   useEffect(() => {
     mapCameraRef?.current?.setCamera({
@@ -56,40 +70,71 @@ const CustomMapView = ({
 
   return (
     <>
-      <MapView
-        ref={mapCameraRef}
-        initialRegion={{
-          latitude: latitude,
-          longitude: longitude,
-          latitudeDelta: 28.679079,
-          longitudeDelta: 77.06971,
-        }}
-        provider="google"
-        loadingEnabled
-        zoomControlEnabled
-        key={GOOGLE_API_KEY}
-        showsUserLocation={true}
-        moveOnMarkerPress
-        // onRegionChangeComplete={onRegionDidChange}
-        onPress={(e: any) => {
-          if (!isEdit) return;
-          const {latitude, longitude} = e.nativeEvent.coordinate;
-          handleInputChange(latitude, longitude);
-        }}
-        style={{flex: 1}}>
-        {formValues[field.id] && (
-          <Marker
-            coordinate={{
-              latitude: latitude,
-              longitude: longitude,
-            }}
-          />
-        )}
-      </MapView>
+      {isMapLoaded ? (
+        <View
+          style={{
+            width: SCREEN_WIDTH * 0.9,
+            height: hp(25),
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: colors.white,
+          }}>
+          <Loader />
+        </View>
+      ) : (
+        <MapView
+          ref={mapCameraRef}
+          initialRegion={{
+            latitude: latitude,
+            longitude: longitude,
+            latitudeDelta: 28.679079,
+            longitudeDelta: 77.06971,
+          }}
+          provider={PROVIDER_GOOGLE}
+          loadingEnabled
+          zoomControlEnabled
+          key={GOOGLE_API_KEY}
+          showsUserLocation={true}
+          moveOnMarkerPress
+          // onRegionChangeComplete={onRegionDidChange}
+          onPress={(e: any) => {
+            if (!isEdit) return;
+            const {latitude, longitude} = e.nativeEvent.coordinate;
+            handleInputChange(latitude, longitude);
+          }}
+          onMapReady={() => {
+            // setIsMapLoaded(true);
+            mapCameraRef?.current?.setCamera({
+              center: {
+                latitude: Number(formValues[field.id]?.split(',')[0]),
+                longitude: Number(formValues[field.id]?.split(',')[1]),
+                latitudeDelta: 28.679079,
+                longitudeDelta: 77.06971,
+              },
+              zoom: 11, // Adjust zoom level
+              animation: {
+                duration: 1000, // Duration of the animation
+                easing: () => {},
+              },
+            });
+          }}
+          style={{flex: 1}}>
+          {formValues[field.id] && (
+            <Marker
+              coordinate={{
+                latitude: latitude,
+                longitude: longitude,
+              }}
+            />
+          )}
+        </MapView>
+      )}
     </>
   );
 };
 
 export default CustomMapView;
 
-const styles = StyleSheet.create({});
+const getGlobalStyles = ({colors}: any) => {
+  return StyleSheet.create({});
+};

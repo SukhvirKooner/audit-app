@@ -64,7 +64,7 @@ const getGlobalStyles = (props: any) => {
       padding: 15,
       backgroundColor: colors.white,
       borderRadius: 10,
-      marginTop: 10,
+      // marginTop: 10,
       // flex: 1,
       gap: 8,
       paddingVertical: 25,

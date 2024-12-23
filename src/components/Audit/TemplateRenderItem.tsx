@@ -209,7 +209,7 @@ const TemplateRenderItem = ({
               value={formValues[field.id] || ''}
               onChangeText={text => handleInputChange(field.id, text)}
               editable={isEdit}
-              placeholderTextColor={colors.black}
+              placeholderTextColor={colors.gray}
             />
             {renderError(field.id)}
           </>
@@ -227,7 +227,7 @@ const TemplateRenderItem = ({
               value={formValues[field.id] || ''}
               onChangeText={text => handleInputChange(field.id, text)}
               editable={isEdit}
-              placeholderTextColor={colors.black}
+              placeholderTextColor={colors.gray}
               multiline
               textAlignVertical="top"
             />
@@ -247,7 +247,7 @@ const TemplateRenderItem = ({
               value={formValues[field.id] || ''}
               onChangeText={text => handleInputChange(field.id, text)}
               editable={isEdit}
-              placeholderTextColor={colors.black}
+              placeholderTextColor={colors.gray}
             />
             {renderError(field.id)}
           </>
@@ -446,12 +446,8 @@ const TemplateRenderItem = ({
                 )} */}
                 <CustomMapView
                   isEdit={isEdit}
-                  latitude={
-                    Number(formValues[field.id]?.split(',')[0]) || 20.5937
-                  }
-                  longitude={
-                    Number(formValues[field.id]?.split(',')[1]) || 78.9629
-                  }
+                  latitude={Number(formValues[field.id]?.split(',')[0]) || 0}
+                  longitude={Number(formValues[field.id]?.split(',')[1]) || 0}
                   field={field}
                   formValues={formValues}
                   handleInputChange={(latitude, longitude) => {
@@ -757,7 +753,7 @@ const TemplateRenderItem = ({
                     <CustomText
                       style={{
                         ...styles.label,
-                        color: colors.gray_7B,
+                        color: colors.black,
                       }}>
                       {FItem.label}
                       <Text style={{color: 'red'}}>

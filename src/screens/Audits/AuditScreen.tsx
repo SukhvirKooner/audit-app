@@ -20,6 +20,7 @@ import {SCREENS} from '../../navigation/screenNames';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {getAudits} from '../../service/AuditService';
 import {GET_AUDITS, IS_LOADING} from '../../redux/actionTypes';
+import moment from 'moment';
 
 const AuditScreen = () => {
   const {colors} = useTheme();
@@ -105,7 +106,7 @@ const AuditScreen = () => {
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title={'Audits'}
-        subTitle={'22 Nov 2024'}
+        subTitle={moment().format('DD MMM yyyy')}
         searchIcon
         onSearchPress={() => {
           navigationRef.navigate(SCREENS.SearchScreen);

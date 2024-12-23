@@ -210,10 +210,10 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       // gap: 10,
     },
     text: {
-      ...commonFontStyle(600, 18 + fontValue, colors.black_B23),
+      ...commonFontStyle(600, 22 + fontValue, colors.black_B23),
     },
     text1: {
-      ...commonFontStyle(400, 12 + fontValue, colors.gray_7B),
+      ...commonFontStyle(400, 13 + fontValue, colors.gray_7B),
       marginTop: 2,
     },
   });
