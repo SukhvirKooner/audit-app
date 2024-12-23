@@ -24,6 +24,7 @@ import {screenNames} from '../../navigation/screenNames';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {setDarkTheme} from '../../utils/commonActions';
 import {clearAsync, clearOfflineAsync} from '../../utils/asyncStorageManager';
+import {dispatchNavigation} from '../../utils/globalFunctions';
 
 const SettingScreen = () => {
   const {t} = useTranslation();
@@ -46,7 +47,6 @@ const SettingScreen = () => {
   const onPressLogOut = () => {
     setModalVisibleLog(true);
   };
-  console.log(modalVisibleLog);
 
   const onPressDeleteAccount = () => {
     setModalVisibleDelete(true);
@@ -84,8 +84,6 @@ const SettingScreen = () => {
       title: 'Logout',
       onPress: () => {
         onPressLogOut();
-        clearAsync();
-        clearOfflineAsync();
       },
     },
   ];
@@ -220,7 +218,9 @@ const SettingScreen = () => {
           isVisible={modalVisibleLog}
           onYesClose={() => {
             setModalVisibleLog(false);
-            navigationRef.navigate(screenNames.LoginScreen);
+            clearAsync();
+            clearOfflineAsync();
+            dispatchNavigation(screenNames.LoginScreen);
           }}
           onCloseModal={() => setModalVisibleLog(false)}
         />

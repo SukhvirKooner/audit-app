@@ -156,8 +156,8 @@ const TemplateScreen = () => {
   // const [templateData, setTemplateData] = React.useState<any[]>([]);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  console.log('formValues', formValues);
-  console.log('templateData', JSON.stringify(templateData));
+  // console.log('formValues', formValues);
+  // console.log('templateData', JSON.stringify(templateData));
   const sections = groupBySection(templateData);
   const [isMapLoaded, setIsMapLoaded] = useState(true);
 
@@ -459,6 +459,8 @@ const TemplateScreen = () => {
       }
     });
 
+    console.log(errors);
+
     setFormErrors(errors);
     return isValid;
   };
@@ -477,6 +479,9 @@ const TemplateScreen = () => {
               imageFields.push({id: subField.id, label: subField.field_type});
             }
           });
+        }
+        if (item?.field_type === 'image') {
+          imageFields.push({id: item.id, label: item.field_type});
         }
       });
 
