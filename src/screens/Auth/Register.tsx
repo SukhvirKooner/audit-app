@@ -69,7 +69,7 @@ const Register = () => {
           email: email,
           password: password.trim(),
           confirm_password: confirmPassword.trim(),
-          group: 'Site',
+          group: 'Admin', //Site
         },
         onSuccess: () => {
           // resetNavigation(SCREENS.LoginScreen);

@@ -53,6 +53,8 @@
 	<string>We need your location to provide better service.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>For upload profile picture</string>
+	<key>NSDocumentDirectoryUsageDescription</key>
+<string>We need access to your files to upload documents.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>For upload profile picture</string>
 	<key>UIAppFonts</key>

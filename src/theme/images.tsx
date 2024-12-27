@@ -42,6 +42,7 @@ export const Icons = {
   tick: require('../assets/Icons/tick.png'),
   ic_noImage: require('../assets/Icons/ic_noImage.png'),
   image: require('../assets/Icons/image.png'),
+  document: require('../assets/Icons/document.png'),
 };
 
 export const GIF = {

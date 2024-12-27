@@ -146,6 +146,8 @@ const TemplateScreen = () => {
   const dispatch = useAppDispatch();
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
   const {templateData, auditDetails} = useAppSelector(state => state.home);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -156,10 +158,13 @@ const TemplateScreen = () => {
   // const [templateData, setTemplateData] = React.useState<any[]>([]);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  // console.log('formValues', formValues);
-  // console.log('templateData', JSON.stringify(templateData));
+  console.log('formValues123654', formValues);
+  console.log('templateData', templateData);
   const sections = groupBySection(templateData);
   const [isMapLoaded, setIsMapLoaded] = useState(true);
+  const [conditionalFields, setConditionalFields] = useState([]);
+
+  let showFieldIds = conditionalFields.flatMap(update => update.show_fields);
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -416,13 +421,35 @@ const TemplateScreen = () => {
       setFormValues({...formValues, [id]: updatedValues});
     } else {
       setFormValues({...formValues, [id]: value});
-
       // Clear the error for the field being updated
       setFormErrors(prev => {
         const updatedErrors = {...prev};
         delete updatedErrors[id]; // Remove the error for this field
         return updatedErrors;
       });
+    }
+  };
+
+  const handlesConditionalFields = (id, value) => {
+    if (value.length !== 0) {
+      let newField = {
+        id: id,
+        show_fields: value,
+      };
+      let updateValue = conditionalFields.find(item => item?.id == id);
+      console.log('updateValue', updateValue?.id);
+
+      if (updateValue?.id == id) {
+        setConditionalFields(prevFields =>
+          prevFields.filter(list => list?.id !== id),
+        );
+      } else {
+        setConditionalFields(prevFields => [...prevFields, newField]);
+      }
+    } else {
+      setConditionalFields(prevFields =>
+        prevFields.filter(list => list?.id !== id),
+      );
     }
   };
 
@@ -535,6 +562,10 @@ const TemplateScreen = () => {
         formattedValue = moment(value).format('YYYY-MM-DD');
       } else if (field?.field_type === 'time') {
         formattedValue = moment(value).format('hh:mm A');
+      } else if (field?.field_type === 'file') {
+        formattedValue = value[0].base64;
+      } else if (field?.field_type === 'signature') {
+        formattedValue = value?.id;
       } else if (field?.field_type === 'checkbox') {
         formattedValue = value.toString();
       } else if (
@@ -702,7 +733,6 @@ const TemplateScreen = () => {
 
     handleInputChange(selectFieldId, newValue);
     dispatch({type: IS_LOADING, payload: false});
-
     // console.log('uploadLinks', newValue);
   };
 
@@ -1025,53 +1055,72 @@ const TemplateScreen = () => {
       />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        scrollEnabled={scrollEnabled}
         keyboardVerticalOffset={hp(1)}>
         {Object.keys(sections).map((section, index) => (
           <FlatList
-            data={sections[section]}
+            data={sections[section].filter(
+              field => !showFieldIds.includes(field.order),
+            )}
             keyExtractor={item => item.id}
+            scrollEnabled={scrollEnabled}
             contentContainerStyle={{
               paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
               marginHorizontal: 16,
             }}
-            renderItem={({item}: any) => (
-              <View style={styles.section}>
-                {item.field_type == 'heading' ||
-                item.label == 'Current Location' ? null : (
-                  <CustomText
-                    style={{
-                      ...styles.label,
-                      ...commonFontStyle(
-                        400,
-                        fontValue + (item?.field_type === 'section' ? 20 : 16),
-                        colors.black,
-                      ),
-                      color:
-                        item?.field_type === 'section'
-                          ? colors.mainBlue
-                          : colors.black,
-                    }}>
-                    {item?.label}
-                    <Text style={{color: 'red'}}>
-                      {item?.is_required ? '*' : ''}
-                    </Text>
-                  </CustomText>
-                )}
-                <TemplateRenderItem
-                  fields={item}
-                  formValues={formValues}
-                  getAddress={getAddress}
-                  formErrors={formErrors}
-                  handleDeleteImage={handleDeleteImage}
-                  handleInputChange={handleInputChange}
-                  isEdit={isEdit}
-                  onUploadImage={onUploadImage}
-                  setImageSource={setImageSource}
-                  setSelectFieldId={setSelectFieldId}
-                  isMapLoaded={isMapLoaded}
-                />
-              </View>
-            )}
+            renderItem={({item}: any) => {
+              console.log('itemitemitemitem', item?.order);
+              const isAllIncluded = showFieldIds?.every(order =>
+                sections[section].some(field => field.order === order),
+              );
+              console.log('itemitemitemitemisAllIncluded', showFieldIds);
+
+              return (
+                <View style={styles.section}>
+                  {item.field_type == 'heading' ||
+                  item.label == 'Current Location' ? null : (
+                    <CustomText
+                      style={{
+                        ...styles.label,
+                        ...commonFontStyle(
+                          400,
+                          fontValue +
+                            (item?.field_type === 'section' ? 20 : 16),
+                          colors.black,
+                        ),
+                        color:
+                          item?.field_type === 'section'
+                            ? colors.mainBlue
+                            : colors.black,
+                      }}>
+                      {item?.label}
+                      <Text style={{color: 'red'}}>
+                        {item?.is_required ? '*' : ''}
+                      </Text>
+                    </CustomText>
+                  )}
+
+                  <TemplateRenderItem
+                    fields={item}
+                    params={params}
+                    formValues={formValues}
+                    getAddress={getAddress}
+                    formErrors={formErrors}
+                    handleDeleteImage={handleDeleteImage}
+                    handleInputChange={handleInputChange}
+                    handlesConditionalFields={handlesConditionalFields}
+                    isEdit={isEdit}
+                    onUploadImage={onUploadImage}
+                    setImageSource={setImageSource}
+                    setSelectFieldId={setSelectFieldId}
+                    isMapLoaded={isMapLoaded}
+                    setScrollEnabled={item => {
+                      setScrollEnabled(item);
+                    }}
+                  />
+                </View>
+              );
+            }}
             ListFooterComponent={() => {
               return (
                 <>

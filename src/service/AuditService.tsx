@@ -41,10 +41,10 @@ export const getAudits =
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
         const filterList = response.data.filter((i: any) => {
-          return i?.assigned_group === 2;
+          return i?.assigned_group === 1;
         });
 
-        dispatch({type: GET_AUDITS, payload: filterList});
+        dispatch({type: GET_AUDITS, payload: response.data});
         if (onSuccess) {
           onSuccess(response.data);
         }

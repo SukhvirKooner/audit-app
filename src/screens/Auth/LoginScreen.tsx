@@ -39,7 +39,7 @@ const LoginScreen = () => {
   );
 
   const [userName, setUserName] = useState(__DEV__ ? 'admin' : '');
-  const [password, setPassword] = useState(__DEV__ ? 'admin' : '');
+  const [password, setPassword] = useState(__DEV__ ? 'Ibigroup@123' : '');
 
   const onLogin = () => {
     if (userName.trim() === '') {

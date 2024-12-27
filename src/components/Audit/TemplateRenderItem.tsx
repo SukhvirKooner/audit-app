@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable react-native/no-inline-styles */
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -10,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
-import {commonFontStyle, hp, hps} from '../../theme/fonts';
+import {commonFontStyle, hp, hps, wp} from '../../theme/fonts';
 import {useTheme} from '@react-navigation/native';
 import {useAppDispatch, useAppSelector} from '../../redux/hooks';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
@@ -30,6 +31,11 @@ import {requestLocationPer} from '../../utils/locationHandler';
 import ImageModal from '../ImageModal';
 import Loader from '../Loader';
 import CustomMapView from '../CustomMapView';
+import SignatureScreen from 'react-native-signature-canvas';
+import SignatureExample from '../SignatureExample';
+import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
+import {uploadImage} from '../../service/AuditService';
 
 // Define types for field options and validation rules
 interface ValidationRule {
@@ -78,6 +84,7 @@ interface FormField {
 
 interface TemplateRenderItemProps {
   fields: FormField;
+  params: any;
   formValues: any;
   formErrors?: any;
   handleInputChange: (id: number, value: any, type?: string) => void;
@@ -88,6 +95,7 @@ interface TemplateRenderItemProps {
   setImageSource: (image: any) => void;
   setSelectFieldId: (id: number) => void;
   getAddress: (field: FormField) => void;
+  handlesConditionalFields: () => void;
 }
 
 const TemplateRenderItem = ({
@@ -102,9 +110,13 @@ const TemplateRenderItem = ({
   setSelectFieldId,
   isMapLoaded,
   getAddress,
+  setScrollEnabled,
+  params,
+  handlesConditionalFields,
 }: TemplateRenderItemProps) => {
   const {colors}: any = useTheme();
-  const {fontValue} = useAppSelector(state => state.common);
+  const {fontValue, userInfo} = useAppSelector(state => state.common);
+
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
@@ -116,6 +128,7 @@ const TemplateRenderItem = ({
   const [timeOpen, setTimeOpen] = useState(false);
   const [imageModal, setImageModal] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [showFilePreview, setShowFilePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
   // const [isMapLoaded, setIsMapLoaded] = useState(true);
 
@@ -126,68 +139,67 @@ const TemplateRenderItem = ({
     return null;
   };
 
-  // useEffect(() => {
-  //   if (
-  //     fields.field_type === 'location' ||
-  //     fields.label === 'Current Location'
-  //   ) {
-  //     if (fontValue[fields.id]) {
-  //       return;
-  //     } else {
-  //       getAddress(fields.id);
-  //     }
-  //   } else if (fields.field_type === 'section') {
-  //     fields.sub_fields?.map((i: any) => {
-  //       if (
-  //         i.field_type === 'location' ||
-  //         fields.label === 'Current Location'
-  //       ) {
-  //         if (fontValue[i.id]) {
-  //           return;
-  //         } else {
-  //           getAddress(i.id);
-  //         }
-  //       }
-  //     });
-  //   }
-  // }, []);
+  const onUploadSignature = async (id, data: any) => {
+    dispatch({type: IS_LOADING, payload: true});
+    try {
+      const obj = {
+        audit: params?.auditItem?.id,
+        filled_by: userInfo?.id,
+        template_field: id,
+        image: data,
+      };
+      const linkData = await uploadImage(obj);
+      console.log('linkData', linkData);
 
-  // const getAddress = async (id: any) => {
-  //   try {
-  //     dispatch({type: IS_LOADING, payload: true});
-  //     await requestLocationPer(
-  //       async (response: any) => {
-  //         // setCurrentLocation(response);
+      let newValue = {
+        url: linkData?.image_url || linkData?.url,
+        id: linkData?.image_id || linkData?.id,
+      };
 
-  //         const {latitude, longitude} = response;
-  //         dispatch({type: IS_LOADING, payload: false});
-  //         if (mapCameraRef?.current) {
-  //           mapCameraRef?.current?.setCamera({
-  //             center: {
-  //               latitude: latitude,
-  //               longitude: longitude,
-  //             },
-  //             zoom: 11, // Adjust zoom level
-  //             animation: {
-  //               duration: 1000, // Duration of the animation
-  //               easing: () => {},
-  //             },
-  //           });
-  //         }
-  //         if (id) {
-  //           handleInputChange(id, `${latitude},${longitude}`);
-  //           dispatch({type: IS_LOADING, payload: false});
-  //         }
-  //       },
-  //       (err: any) => {
-  //         dispatch({type: IS_LOADING, payload: false});
-  //         console.log('<---current location error --->\n', err);
-  //       },
-  //     );
-  //   } catch (error) {
-  //     console.log('error', error);
-  //   }
-  // };
+      console.log('linkData123', newValue);
+
+      handleInputChange(id, newValue);
+      setScrollEnabled(true);
+      dispatch({type: IS_LOADING, payload: false});
+    } catch (error) {
+      console.error(`Failed to upload ${image.filename}:`, error);
+      dispatch({type: IS_LOADING, payload: false});
+      setScrollEnabled(true);
+    }
+  };
+
+  const pickDocument = async selectFieldId => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [
+          DocumentPicker.types.plainText,
+          DocumentPicker.types.doc,
+          DocumentPicker.types.pdf,
+          DocumentPicker.types.docx,
+          DocumentPicker.types.xls,
+          DocumentPicker.types.xlsx,
+          DocumentPicker.types.ppt,
+          DocumentPicker.types.pptx,
+        ],
+      });
+      console.log('Selected file: ', result);
+      const fileUri = result[0].uri;
+
+      const base64File = await RNFS.readFile(fileUri, 'base64');
+      console.log('Base64:asdadasdas', base64File);
+      const newValue = {
+        base64: `data:${result[0].type};base64,${base64File}`,
+        name: result[0].name,
+      };
+      handleInputChange(selectFieldId, [newValue]);
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User canceled the picker');
+      } else {
+        console.error('Error picking document:', err);
+      }
+    }
+  };
 
   const renderField = (field: FormField | any) => {
     switch (field.field_type) {
@@ -195,6 +207,12 @@ const TemplateRenderItem = ({
         return (
           <View style={styles.sectionTitleContainer}>
             <Text style={styles.sectionTitle}>{field.label}</Text>
+          </View>
+        );
+      case 'label':
+        return (
+          <View style={{}}>
+            <Text style={styles.sectionTitle1}>{field.options?.text}</Text>
           </View>
         );
       case 'text':
@@ -303,7 +321,15 @@ const TemplateRenderItem = ({
                 valueField="value"
                 placeholder={field.label}
                 value={formValues[field.id]}
-                onChange={item => handleInputChange(field.id, item.value)}
+                onChange={item => {
+                  handleInputChange(field.id, item.value);
+                  handlesConditionalFields(
+                    field.id,
+                    field.conditional_fields[0]?.condition_value == item.value
+                      ? field.conditional_fields[0]?.show_fields
+                      : [],
+                  );
+                }}
                 placeholderStyle={{
                   ...commonFontStyle(400, 16, colors.black),
                 }}
@@ -377,6 +403,53 @@ const TemplateRenderItem = ({
                 </>
               )}
             />
+
+            {renderError(field.id)}
+          </>
+        );
+      case 'file':
+        return (
+          <>
+            {isEdit ? (
+              <TouchableOpacity
+                disabled={!isEdit}
+                onPress={() => {
+                  pickDocument(field.id);
+                }}
+                style={styles.imageContainer}>
+                <CustomText text={'Upload File'} style={styles.imageText} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {}}
+                style={styles.imageContainer}>
+                <CustomImage
+                  source={Icons.document}
+                  size={22}
+                  tintColor={colors.black}
+                />
+                <Text numberOfLines={2} style={styles.fileText}>
+                  {formValues?.[field.id]?.split('/')?.pop() || ''}
+                </Text>
+                {isEdit && (
+                  <CustomImage
+                    source={Icons.plus}
+                    disabled={!isEdit}
+                    size={hps(35)}
+                    onPress={() => {
+                      // handleDeleteImage(field.id, item.id);
+                      handleInputChange(field.id, []);
+                    }}
+                    containerStyle={{
+                      position: 'absolute',
+                      top: -0,
+                      right: -10,
+                    }}
+                    imageStyle={{transform: [{rotate: '45deg'}]}}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
 
             {renderError(field.id)}
           </>
@@ -593,6 +666,13 @@ const TemplateRenderItem = ({
                 disabled={!isEdit}
                 onPress={() => {
                   handleInputChange(field.id, field.options?.yes_label);
+                  handlesConditionalFields(
+                    field.id,
+                    field.conditional_fields[0]?.condition_value ==
+                      field.options?.yes_label
+                      ? field.conditional_fields[0]?.show_fields
+                      : [],
+                  );
                 }}>
                 <RenderRadioButton
                   value={formValues[field.id] === field.options?.yes_label}
@@ -605,9 +685,16 @@ const TemplateRenderItem = ({
               <TouchableOpacity
                 style={{...styles.switchContainer, gap: 15}}
                 disabled={!isEdit}
-                onPress={() =>
-                  handleInputChange(field.id, field.options?.no_label)
-                }>
+                onPress={() => {
+                  handleInputChange(field.id, field.options?.no_label);
+                  handlesConditionalFields(
+                    field.id,
+                    field.conditional_fields[0]?.condition_value ==
+                      field.options?.no_label
+                      ? field.conditional_fields[0]?.show_fields
+                      : [],
+                  );
+                }}>
                 <RenderRadioButton
                   value={formValues[field.id] === field.options?.no_label}
                 />
@@ -701,9 +788,15 @@ const TemplateRenderItem = ({
               {field.options?.choices?.map((choice: string, index: number) => (
                 <TouchableOpacity
                   disabled={!isEdit}
-                  onPress={() =>
-                    handleInputChange(field.id, choice, 'checkbox')
-                  }
+                  onPress={() => {
+                    handleInputChange(field.id, choice, 'checkbox');
+                    handlesConditionalFields(
+                      field.id,
+                      field.conditional_fields[0]?.condition_value == choice
+                        ? field.conditional_fields[0]?.show_fields
+                        : [],
+                    );
+                  }}
                   key={index}
                   style={{
                     ...styles.switchContainer,
@@ -739,6 +832,35 @@ const TemplateRenderItem = ({
                 }}
               />
             </View>
+            {renderError(field.id)}
+          </>
+        );
+      case 'signature':
+        return (
+          <>
+            {isEdit ? (
+              <SignatureExample
+                onBegin={() => setScrollEnabled(false)}
+                onEnd={() => setScrollEnabled(true)}
+                onPress={value => {
+                  onUploadSignature(field.id, value);
+                  // setScrollEnabled(true);
+                }}
+                onClearPress={() => {
+                  setScrollEnabled(true);
+                }}
+              />
+            ) : (
+              <CustomImage
+                uri={api.BASE_URL + formValues?.[field.id]?.[0]?.url}
+                imageStyle={{width: wp(30), height: hp(20), top: 25}}
+                containerStyle={{
+                  ...styles.imageContainer,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              />
+            )}
             {renderError(field.id)}
           </>
         );
@@ -815,6 +937,9 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       ...commonFontStyle(400, fontValue + 16, colors.white),
       textAlign: 'center',
     },
+    sectionTitle1: {
+      ...commonFontStyle(400, fontValue + 15, colors.black),
+    },
     field: {
       // marginBottom: 15,
       gap: 15,
@@ -873,6 +998,12 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     },
     location: {
       ...commonFontStyle(400, fontValue + 16, colors.black_T37),
+    },
+    fileText: {
+      ...commonFontStyle(400, fontValue + 12, colors.black_T37),
+      textAlign: 'center',
+      marginHorizontal: 12,
+      top: 8,
     },
     locationView: {
       borderWidth: 1,
