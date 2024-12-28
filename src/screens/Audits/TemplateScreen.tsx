@@ -158,13 +158,24 @@ const TemplateScreen = () => {
   // const [templateData, setTemplateData] = React.useState<any[]>([]);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  console.log('formValues123654', formValues);
-  console.log('templateData', templateData);
   const sections = groupBySection(templateData);
   const [isMapLoaded, setIsMapLoaded] = useState(true);
-  const [conditionalFields, setConditionalFields] = useState([]);
+  const [conditionalFields, setConditionalFields] = useState(
+    templateData
+      .filter(
+        field =>
+          field.conditional_fields && field.conditional_fields.length > 0,
+      )
+      .map(list => ({
+        id: list.id,
+        show_fields: list?.conditional_fields?.map(cf => cf.show_fields).flat(),
+      })),
+  );
 
-  let showFieldIds = conditionalFields.flatMap(update => update.show_fields);
+  // let showFieldIds = conditionalFields.flatMap(update => update.show_fields);
+  const showFieldIds = useMemo(() => {
+    return conditionalFields.flatMap(update => update.show_fields);
+  }, [conditionalFields]); // Recompute when `fields` changes
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -429,15 +440,13 @@ const TemplateScreen = () => {
       });
     }
   };
-
   const handlesConditionalFields = (id, value) => {
-    if (value.length !== 0) {
+    if (value?.length !== 0) {
       let newField = {
         id: id,
         show_fields: value,
       };
-      let updateValue = conditionalFields.find(item => item?.id == id);
-      console.log('updateValue', updateValue?.id);
+      let updateValue = conditionalFields?.find(item => item?.id == id);
 
       if (updateValue?.id == id) {
         setConditionalFields(prevFields =>
@@ -446,10 +455,26 @@ const TemplateScreen = () => {
       } else {
         setConditionalFields(prevFields => [...prevFields, newField]);
       }
+    }
+  };
+
+  const handlesConditionalFieldsss = (id, value) => {
+    setConditionalFields(prevFields =>
+      prevFields.filter(list => list?.id !== id),
+    );
+  };
+
+  const handlesConditionalFieldsRemove = (id, value) => {
+    let updateValue = conditionalFields.find(item => item?.id == id);
+
+    if (updateValue?.id == id) {
+      setConditionalFields(conditionalFields);
     } else {
-      setConditionalFields(prevFields =>
-        prevFields.filter(list => list?.id !== id),
-      );
+      let newField = {
+        id: id,
+        show_fields: value,
+      };
+      setConditionalFields(prevFields => [...prevFields, newField]);
     }
   };
 
@@ -510,26 +535,29 @@ const TemplateScreen = () => {
     let isValid = true;
     const errors: Record<number, string> = {};
 
-    templateData.forEach((field: any) => {
-      const error = validateField(field, formValues[field.id]);
+    params?.type === 'view'
+      ? templateData
+      : templateData
+          .filter(field => !showFieldIds.includes(field.order))
+          .filter(field => field?.repeatable == false)
+          .forEach((field: any) => {
+            const error = validateField(field, formValues[field.id]);
 
-      if (field.field_type === 'section') {
-        field.sub_fields.forEach((subField: any) => {
-          const aError = validateField(subField, formValues[subField.id]);
-          if (aError) {
-            isValid = false;
-            errors[subField.id] = aError;
-          }
-        });
-      }
+            if (field.field_type === 'section') {
+              field.sub_fields.forEach((subField: any) => {
+                const aError = validateField(subField, formValues[subField.id]);
+                if (aError) {
+                  isValid = false;
+                  errors[subField.id] = aError;
+                }
+              });
+            }
 
-      if (error) {
-        isValid = false;
-        errors[field.id] = error;
-      }
-    });
-
-    console.log(errors);
+            if (error) {
+              isValid = false;
+              errors[field.id] = error;
+            }
+          });
 
     setFormErrors(errors);
     return isValid;
@@ -561,7 +589,7 @@ const TemplateScreen = () => {
       } else if (field?.field_type === 'date') {
         formattedValue = moment(value).format('YYYY-MM-DD');
       } else if (field?.field_type === 'time') {
-        formattedValue = moment(value).format('hh:mm A');
+        formattedValue = moment(value).format('HH:MM:SS');
       } else if (field?.field_type === 'file') {
         formattedValue = value[0].base64;
       } else if (field?.field_type === 'signature') {
@@ -1059,9 +1087,13 @@ const TemplateScreen = () => {
         keyboardVerticalOffset={hp(1)}>
         {Object.keys(sections).map((section, index) => (
           <FlatList
-            data={sections[section].filter(
-              field => !showFieldIds.includes(field.order),
-            )}
+            data={
+              params?.type === 'view'
+                ? sections[section].filter(field => formValues[field.id])
+                : sections[section].filter(
+                    field => !showFieldIds.includes(field.order),
+                  )
+            }
             keyExtractor={item => item.id}
             scrollEnabled={scrollEnabled}
             contentContainerStyle={{
@@ -1069,11 +1101,9 @@ const TemplateScreen = () => {
               marginHorizontal: 16,
             }}
             renderItem={({item}: any) => {
-              console.log('itemitemitemitem', item?.order);
               const isAllIncluded = showFieldIds?.every(order =>
                 sections[section].some(field => field.order === order),
               );
-              console.log('itemitemitemitemisAllIncluded', showFieldIds);
 
               return (
                 <View style={styles.section}>
@@ -1109,11 +1139,16 @@ const TemplateScreen = () => {
                     handleDeleteImage={handleDeleteImage}
                     handleInputChange={handleInputChange}
                     handlesConditionalFields={handlesConditionalFields}
+                    handlesConditionalFieldsRemove={
+                      handlesConditionalFieldsRemove
+                    }
+                    handlesConditionalFieldsss={handlesConditionalFieldsss}
                     isEdit={isEdit}
                     onUploadImage={onUploadImage}
                     setImageSource={setImageSource}
                     setSelectFieldId={setSelectFieldId}
                     isMapLoaded={isMapLoaded}
+                    viewType={params?.type}
                     setScrollEnabled={item => {
                       setScrollEnabled(item);
                     }}

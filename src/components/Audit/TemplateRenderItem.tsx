@@ -36,6 +36,7 @@ import SignatureExample from '../SignatureExample';
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {uploadImage} from '../../service/AuditService';
+import PdfView from '../PdfView';
 
 // Define types for field options and validation rules
 interface ValidationRule {
@@ -96,6 +97,8 @@ interface TemplateRenderItemProps {
   setSelectFieldId: (id: number) => void;
   getAddress: (field: FormField) => void;
   handlesConditionalFields: () => void;
+  handlesConditionalFieldsRemove: () => void;
+  handlesConditionalFieldsss: () => void;
 }
 
 const TemplateRenderItem = ({
@@ -113,9 +116,13 @@ const TemplateRenderItem = ({
   setScrollEnabled,
   params,
   handlesConditionalFields,
+  handlesConditionalFieldsRemove,
+  handlesConditionalFieldsss,
 }: TemplateRenderItemProps) => {
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
+
+  const [checkBox, setCheckBox] = useState('');
 
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -128,8 +135,10 @@ const TemplateRenderItem = ({
   const [timeOpen, setTimeOpen] = useState(false);
   const [imageModal, setImageModal] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [selectedPdf, setSelectedPdf] = useState<any>(null);
   // const [isMapLoaded, setIsMapLoaded] = useState(true);
 
   const renderError = (fieldId: number) => {
@@ -182,6 +191,8 @@ const TemplateRenderItem = ({
           DocumentPicker.types.pptx,
         ],
       });
+      dispatch({type: IS_LOADING, payload: true});
+
       console.log('Selected file: ', result);
       const fileUri = result[0].uri;
 
@@ -192,6 +203,7 @@ const TemplateRenderItem = ({
         name: result[0].name,
       };
       handleInputChange(selectFieldId, [newValue]);
+      dispatch({type: IS_LOADING, payload: false});
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
         console.log('User canceled the picker');
@@ -208,6 +220,21 @@ const TemplateRenderItem = ({
           <View style={styles.sectionTitleContainer}>
             <Text style={styles.sectionTitle}>{field.label}</Text>
           </View>
+        );
+      case 'sub_form':
+        return (
+          <>
+            <TouchableOpacity
+              onPress={() => {
+                if (field?.repeatable) {
+                  Alert.alert('Coming Soon');
+                }
+              }}
+              style={[styles.sectionTitleContainer, {marginBottom: 5}]}>
+              <Text style={styles.sectionTitle}>{field.label}</Text>
+            </TouchableOpacity>
+            {renderError(field.id)}
+          </>
         );
       case 'label':
         return (
@@ -322,13 +349,25 @@ const TemplateRenderItem = ({
                 placeholder={field.label}
                 value={formValues[field.id]}
                 onChange={item => {
-                  handleInputChange(field.id, item.value);
-                  handlesConditionalFields(
-                    field.id,
-                    field.conditional_fields[0]?.condition_value == item.value
-                      ? field.conditional_fields[0]?.show_fields
-                      : [],
-                  );
+                  if (
+                    formValues[field.id] == undefined ||
+                    formValues[field.id] !== item.value
+                  ) {
+                    handleInputChange(field.id, item.value);
+                    if (
+                      field.conditional_fields[0]?.condition_value == item.value
+                    ) {
+                      handlesConditionalFieldsss(
+                        field.id,
+                        field.conditional_fields[0]?.show_fields,
+                      );
+                    } else {
+                      handlesConditionalFieldsRemove(
+                        field.id,
+                        field.conditional_fields[0]?.show_fields,
+                      );
+                    }
+                  }
                 }}
                 placeholderStyle={{
                   ...commonFontStyle(400, 16, colors.black),
@@ -410,7 +449,7 @@ const TemplateRenderItem = ({
       case 'file':
         return (
           <>
-            {isEdit ? (
+            {isEdit && !formValues?.[field.id] && (
               <TouchableOpacity
                 disabled={!isEdit}
                 onPress={() => {
@@ -419,9 +458,13 @@ const TemplateRenderItem = ({
                 style={styles.imageContainer}>
                 <CustomText text={'Upload File'} style={styles.imageText} />
               </TouchableOpacity>
-            ) : (
+            )}
+            {formValues?.[field.id] && (
               <TouchableOpacity
-                onPress={() => {}}
+                onPress={() => {
+                  // setShowPdfPreview(true);
+                  // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
+                }}
                 style={styles.imageContainer}>
                 <CustomImage
                   source={Icons.document}
@@ -429,7 +472,9 @@ const TemplateRenderItem = ({
                   tintColor={colors.black}
                 />
                 <Text numberOfLines={2} style={styles.fileText}>
-                  {formValues?.[field.id]?.split('/')?.pop() || ''}
+                  {formValues?.[field.id][0]?.name?.split('/')?.pop() ||
+                    formValues?.[field.id]?.split('/')?.pop() ||
+                    ''}
                 </Text>
                 {isEdit && (
                   <CustomImage
@@ -438,7 +483,7 @@ const TemplateRenderItem = ({
                     size={hps(35)}
                     onPress={() => {
                       // handleDeleteImage(field.id, item.id);
-                      handleInputChange(field.id, []);
+                      handleInputChange(field.id, '');
                     }}
                     containerStyle={{
                       position: 'absolute',
@@ -450,7 +495,6 @@ const TemplateRenderItem = ({
                 )}
               </TouchableOpacity>
             )}
-
             {renderError(field.id)}
           </>
         );
@@ -663,15 +707,14 @@ const TemplateRenderItem = ({
               }}>
               <TouchableOpacity
                 style={{...styles.switchContainer, gap: 15}}
-                disabled={!isEdit}
+                disabled={
+                  !isEdit || formValues[field.id] === field.options?.yes_label
+                }
                 onPress={() => {
                   handleInputChange(field.id, field.options?.yes_label);
                   handlesConditionalFields(
                     field.id,
-                    field.conditional_fields[0]?.condition_value ==
-                      field.options?.yes_label
-                      ? field.conditional_fields[0]?.show_fields
-                      : [],
+                    field.conditional_fields[0]?.show_fields,
                   );
                 }}>
                 <RenderRadioButton
@@ -684,16 +727,19 @@ const TemplateRenderItem = ({
               </TouchableOpacity>
               <TouchableOpacity
                 style={{...styles.switchContainer, gap: 15}}
-                disabled={!isEdit}
+                disabled={
+                  !isEdit || formValues[field.id] === field.options?.no_label
+                }
                 onPress={() => {
                   handleInputChange(field.id, field.options?.no_label);
-                  handlesConditionalFields(
-                    field.id,
-                    field.conditional_fields[0]?.condition_value ==
-                      field.options?.no_label
-                      ? field.conditional_fields[0]?.show_fields
-                      : [],
-                  );
+                  if (formValues[field.id] == undefined) {
+                    handlesConditionalFields(field.id, []);
+                  } else {
+                    handlesConditionalFields(
+                      field.id,
+                      field.conditional_fields[0]?.show_fields,
+                    );
+                  }
                 }}>
                 <RenderRadioButton
                   value={formValues[field.id] === field.options?.no_label}
@@ -910,6 +956,11 @@ const TemplateRenderItem = ({
         value={selectedImage}
         isVisible={showImagePreview}
         onCloseModal={() => setShowImagePreview(false)}
+      />
+      <PdfView
+        value={selectedPdf}
+        isVisible={showPdfPreview}
+        onCloseModal={() => setShowPdfPreview(false)}
       />
     </View>
   );
