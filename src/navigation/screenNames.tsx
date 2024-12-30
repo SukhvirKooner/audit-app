@@ -15,6 +15,8 @@ export const SCREENS = {
   PdfScreen: 'PdfScreen',
   SearchScreen: 'SearchScreen',
   SyncDataScreen: 'SyncDataScreen',
+  RepeatableDetailsScreen: 'RepeatableDetailsScreen',
+  RepeatableTemplateScreen: 'RepeatableTemplateScreen',
 };
 
 interface ScreenNames {

@@ -21,6 +21,8 @@ import SearchScreen from '../screens/SearchScreen';
 import Register from '../screens/Auth/Register';
 import SyncDataScreen from '../screens/Audits/SyncDataScreen';
 import SplashScreen from '../screens/Auth/SplashScreen';
+import RepeatableDetailsScreen from '../screens/Audits/RepeatableDetailsScreen';
+import RepeatableTemplateScreen from '../screens/Audits/RepeatableTemplateScreen';
 
 const Stack = createStackNavigator();
 
@@ -78,6 +80,14 @@ const Navigator = () => {
       <Stack.Screen name={SCREENS.PdfScreen} component={PdfScreen} />
       <Stack.Screen name={SCREENS.SearchScreen} component={SearchScreen} />
       <Stack.Screen name={SCREENS.SyncDataScreen} component={SyncDataScreen} />
+      <Stack.Screen
+        name={SCREENS.RepeatableDetailsScreen}
+        component={RepeatableDetailsScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.RepeatableTemplateScreen}
+        component={RepeatableTemplateScreen}
+      />
     </Stack.Navigator>
   );
 };

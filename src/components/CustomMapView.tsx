@@ -44,8 +44,6 @@ const CustomMapView = ({
   const styles = React.useMemo(() => getGlobalStyles({colors}), [colors]);
   const [isMapLoaded, setIsMapLoaded] = useState(true);
 
-  console.log('latitude', latitude);
-
   useEffect(() => {
     setTimeout(() => {
       setIsMapLoaded(false);

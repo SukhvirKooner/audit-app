@@ -62,6 +62,8 @@ const HomeScreen = () => {
     });
   };
 
+  console.log('userInfo', userInfo);
+
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader

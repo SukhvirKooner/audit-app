@@ -61,7 +61,6 @@ const SizeSlider = ({onPress}) => {
         step={1}
         value={sliderValue}
         onValueChange={value => {
-          console.log('value', value);
           onPress(fontSizeOptions[value]);
           setSliderValue(value);
         }}

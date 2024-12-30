@@ -52,7 +52,11 @@ import {
 } from '../../utils/locationHandler';
 import ImageSelectionModal from '../../components/ImageSelectionModal';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import {GET_TEMPLATE, IS_LOADING} from '../../redux/actionTypes';
+import {
+  GET_REPEATABLE_AUDITS_DETAILS,
+  GET_TEMPLATE,
+  IS_LOADING,
+} from '../../redux/actionTypes';
 import {SCREENS} from '../../navigation/screenNames';
 import {
   editDisableToast,
@@ -76,6 +80,7 @@ import ToggleComponent from '../../components/ToggleComponent';
 import Loader from '../../components/Loader';
 import TemplateRenderItem from '../../components/Audit/TemplateRenderItem';
 import {use} from 'i18next';
+import RepeatableTemplateRenderItem from '../../components/Audit/RepeatableTemplateRenderItem';
 
 Geocoder.init(GOOGLE_API_KEY, {language: 'en'});
 
@@ -140,78 +145,50 @@ const groupBySection = (data: FormField[]) => {
   }, {});
 };
 
-const filterSectionData = (section: any[], formValue: {[key: string]: any}) => {
-  // Recursive function to filter fields
-  const filterFields = (fields: any[]) => {
-    return fields
-      .filter(field => {
-        // Check if the field is present in formValue or has valid sub_fields
-        if (field?.field_type === 'section' && field?.sub_fields) {
-          const subFields = filterFields(field?.sub_fields); // Recursively check sub_fields
-          field.sub_fields = subFields; // Update filtered sub_fields
-          return subFields.length > 0; // Include only if sub_fields are available
-        }
-        return formValue?.hasOwnProperty(field?.id); // Check if id exists in formValue
-      })
-      .map(field => {
-        // Handle sub_fields filtering if it's a section
-        if (field?.field_type === 'section' && field?.sub_fields) {
-          return {
-            ...field,
-            sub_fields: filterFields(field?.sub_fields), // Filter sub_fields
-          };
-        }
-        return field; // Return field if matched
-      });
-  };
-
-  // Start filtering the main section
-  return filterFields(section);
-};
-
-const TemplateScreen = () => {
+const RepeatableTemplateScreen = () => {
   const {t} = useTranslation();
   const {params}: any = useRoute();
   const dispatch = useAppDispatch();
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
   const [scrollEnabled, setScrollEnabled] = useState(true);
-  const [selectValue, setSelectValue] = useState(null);
+  const templateData = params?.templateData;
 
-  const {templateData, auditDetails, repeatableAuditsDetailsList} =
-    useAppSelector(state => state.home);
+  const {auditDetails, repeatableAuditsDetailsList} = useAppSelector(
+    state => state.home,
+  );
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
   const isFocused = useIsFocused();
-
   const mapCameraRef = useRef<any>(null);
-  // const [templateData, setTemplateData] = React.useState<any[]>([]);
+
+  console.log('templateData', templateData);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  +console.log('formValues', formValues);
-  +console.log('formValues1122', params?.auditDetails);
-
   const sections = groupBySection(templateData);
-
   const [isMapLoaded, setIsMapLoaded] = useState(true);
   const [conditionalFields, setConditionalFields] = useState(
     templateData
-      .filter(
+      ?.filter(
         field =>
           field.conditional_fields && field.conditional_fields.length > 0,
       )
-      .map(list => ({
+      ?.map(list => ({
         id: list.id,
         show_fields: list?.conditional_fields?.map(cf => cf.show_fields).flat(),
       })),
   );
 
+  console.log('conditionalFields', conditionalFields);
+
   // let showFieldIds = conditionalFields.flatMap(update => update.show_fields);
   const showFieldIds = useMemo(() => {
-    return conditionalFields.flatMap(update => update.show_fields);
+    return conditionalFields?.flatMap(update => update?.show_fields);
   }, [conditionalFields]); // Recompute when `fields` changes
+
+  console.log('showFieldIds', showFieldIds);
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -230,27 +207,6 @@ const TemplateScreen = () => {
       setIsMapLoaded(false);
     }, 2000);
   }, []);
-
-  useEffect(() => {
-    if (isFocused) {
-      if (selectValue) {
-        if (repeatableAuditsDetailsList.length == 0) {
-          handleInputChange(selectValue, '');
-        } else {
-          let newValue = repeatableAuditsDetailsList
-            ?.filter(list => list?.audit == selectValue)
-            ?.map(list => {
-              return {
-                template_field: list?.audit,
-                sub_fields: list?.fields,
-              };
-            });
-          handleInputChange(selectValue, newValue);
-        }
-        setSelectValue(null);
-      }
-    }
-  }, [isFocused]);
 
   useEffect(() => {
     if (params?.type === 'edit') {
@@ -288,7 +244,7 @@ const TemplateScreen = () => {
           (item: any) => item.template_id === params?.auditItem?.template,
         );
         const templateFillData = templateFormData.filter(
-          (item: any) => item.audit === params.auditItem.id,
+          (item: any) => item.audit === params?.audit,
         );
 
         if (templateFillData?.length > 0) {
@@ -375,7 +331,7 @@ const TemplateScreen = () => {
           i?.options?.selection_type === 'multiple',
       );
 
-      const newData = data?.fields.reduce((acc: any, item: any) => {
+      const newData = data?.fields?.reduce((acc: any, item: any) => {
         if (item.template_field === checkboxData?.id) {
           // for checkbox
           acc[item.template_field] = item.value?.split(',') || [];
@@ -596,6 +552,7 @@ const TemplateScreen = () => {
       ? templateData
       : templateData
           .filter(field => !showFieldIds.includes(field.order))
+          .filter(field => field?.repeatable == false)
           .forEach((field: any) => {
             const error = validateField(field, formValues[field.id]);
 
@@ -620,8 +577,7 @@ const TemplateScreen = () => {
   };
 
   const convertData = (data: any) => {
-    let updateData = [];
-    let newValue = Object.entries(data).map(([key, value]: any) => {
+    return Object.entries(data).map(([key, value]: any) => {
       const field: any = templateData.find(
         (fields: any) => fields.id === Number(key),
       );
@@ -653,39 +609,17 @@ const TemplateScreen = () => {
         formattedValue = value?.id;
       } else if (field?.field_type === 'checkbox') {
         formattedValue = value.toString();
-      } else if (field?.field_type === 'sub_form') {
-        const transformedData = value?.map(item => ({
-          template_field: item.template_field,
-          sub_fields: item.sub_fields,
-        }));
-
-        transformedData.forEach(obj => {
-          updateData.push({
-            template_field: key,
-            sub_fields: obj?.sub_fields,
-          });
-        });
-        return;
       } else if (
         field?.field_type === 'dropdown' &&
         field?.options?.selection_type === 'multiple'
       ) {
         formattedValue = value.toString();
       }
-
-      updateData.push({
-        template_field: key,
-        value: formattedValue,
-      });
       return {
         template_field: key,
         value: formattedValue,
       };
     });
-    console.log('newValue', newValue);
-    console.log('updateData', updateData);
-
-    return updateData;
   };
 
   const handleSubmit = () => {
@@ -694,88 +628,23 @@ const TemplateScreen = () => {
         const locationIDs = getLocationID(templateData, 'current');
         if (validateForm()) {
           const locationID = getLocationID(templateData, 'current');
-          if (locationID == null) {
-            const obj = {
-              data: {
-                filled_by: userInfo?.id,
-                audit: params.auditItem.id,
-                fields: convertData(formValues),
-              },
-              onSuccess: async () => {
-                if (params?.type === 'edit') {
-                  const listData: any = await setAsyncGetTemplateData();
-                  // const findData = listData.find(
-                  //   (item: any) =>
-                  //     item?.create_at !== params?.auditDetails?.create_at,
-                  // );
-                  const findData = listData?.filter(item => {
-                    item?.create_at !== params?.auditDetails?.create_at;
-                  });
-                  await setAsyncCreateTemplateData(findData);
-                  navigationRef.goBack();
-                }
-                navigationRef.goBack();
-              },
-              onFailure: () => {},
-            };
-            console.log('obj-->', obj?.data);
-            dispatch(createAudits(obj));
-          } else {
-            const filteredLocations = formValues[locationID];
-            if (filteredLocations) {
-              const obj = {
-                data: {
-                  filled_by: userInfo?.id,
-                  audit: params.auditItem.id,
-                  fields: convertData(formValues),
-                },
-                onSuccess: async () => {
-                  if (params?.type === 'edit') {
-                    const listData: any = await setAsyncGetTemplateData();
-                    // const findData = listData.find(
-                    //   (item: any) =>
-                    //     item?.create_at !== params?.auditDetails?.create_at,
-                    // );
-                    const findData = listData?.filter(item => {
-                      item?.create_at !== params?.auditDetails?.create_at;
-                    });
-                    await setAsyncCreateTemplateData(findData);
-                    navigationRef.goBack();
-                  }
-                  navigationRef.goBack();
-                },
-                onFailure: () => {},
-              };
-              console.log('obj-->', obj?.data);
-              dispatch(createAudits(obj));
-            } else {
-              getAddress(locationID);
-            }
-          }
+          let data = [
+            ...repeatableAuditsDetailsList,
+            {
+              filled_by: userInfo?.id,
+              audit: params.headerId,
+              fields: convertData(formValues),
+            },
+          ];
+
+          dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: data});
+          navigationRef.goBack();
           // }
         } else {
           if (locationIDs) {
             getAddress(locationIDs);
           }
           console.log('Form has errors');
-        }
-      } else {
-        if (validateForm()) {
-          const formData = await getAsyncTemplateFillData();
-
-          const obj = {
-            filled_by: userInfo?.id,
-            audit: params.auditItem.id,
-            fields: convertData(formValues),
-          };
-
-          if (formData.length > 0) {
-            setAsyncTemplateFillData([...formData, obj]);
-          } else {
-            setAsyncTemplateFillData([obj]);
-          }
-
-          navigationRef.goBack();
         }
       }
     });
@@ -800,7 +669,7 @@ const TemplateScreen = () => {
     for (const image of data) {
       try {
         const obj = {
-          audit: params?.auditItem?.id,
+          audit: params?.audit,
           filled_by: userInfo?.id,
           template_field: selectFieldId,
           image: `data:${image.type};base64,${image?.base64}`,
@@ -814,7 +683,7 @@ const TemplateScreen = () => {
     }
 
     // console.log('uploadLinks', uploadLinks);
-    const newValue: any = uploadLinks.map((link: any) => {
+    const newValue: any = uploadLinks?.map((link: any) => {
       return {
         url: link?.image_url || link?.url,
         id: link?.image_id || link?.id,
@@ -829,9 +698,9 @@ const TemplateScreen = () => {
   const memoizedValue = useMemo(
     () => [
       ...templateData
-        .map(section => section.sub_fields)
-        .flat()
-        .filter(subField => subField !== null),
+        ?.map(section => section?.sub_fields)
+        ?.flat()
+        ?.filter(subField => subField !== null),
       ...templateData,
     ],
     [templateData],
@@ -849,7 +718,7 @@ const TemplateScreen = () => {
         ...templateData,
       ];
 
-      const groupedData = Object.entries(formValues).reduce(
+      const groupedData = Object.entries(formValues)?.reduce(
         (acc: any, [key, value]) => {
           const template = memoizedValue.find(
             field => field.id.toString() === key,
@@ -1036,102 +905,14 @@ const TemplateScreen = () => {
       .toString();
   };
 
-  const handleSave = async () => {
-    const formLength = Object.keys(formValues).length;
-    const listData: any = await setAsyncGetTemplateData();
-    const subFields = [
-      ...templateData
-        ?.map(section => section?.sub_fields)
-        ?.flat()
-        ?.filter(subField => subField !== null),
-      ...templateData,
-    ];
-
-    console.log('subFields?.length', subFields?.length / 3);
-
-    if (params?.type === 'edit') {
-      if (formValues && formLength < 10) {
-        errorToast('Please fill at least 10 fields to save');
-        return;
-      }
-
-      const findData = listData.find(
-        (item: any) => item?.create_at === params?.auditDetails?.create_at,
-      );
-
-      if (findData) {
-        findData.fields = formValues;
-
-        const newData = listData.map((item: any) =>
-          item?.create_at === params?.auditDetails?.create_at ? findData : item,
-        );
-        console.log('newData', newData);
-
-        await setAsyncCreateTemplateData(newData);
-
-        navigationRef.goBack();
-      }
-    } else {
-      if (formValues && formLength < (subFields?.length / 3).toFixed()) {
-        errorToast(
-          `Please fill at least ${(
-            subFields?.length / 3
-          ).toFixed()} fields to save`,
-        );
-        return;
-      }
-
-      if (listData.length >= 3) {
-        errorToast(
-          'Note: Kindly ensure that you first sync your pending data.',
-        );
-        return;
-      }
-
-      if (listData.length > 0) {
-        const newData = {
-          filled_by: userInfo?.id,
-          audit: params.auditItem.id,
-          fields: formValues,
-          create_at: new Date().getTime(),
-        };
-        await setAsyncCreateTemplateData([...listData, newData]);
-      } else {
-        const newData = {
-          filled_by: userInfo?.id,
-          audit: params.auditItem.id,
-          fields: formValues,
-          create_at: new Date().getTime(),
-        };
-        await setAsyncCreateTemplateData([newData]);
-      }
-
-      navigationRef.goBack();
-    }
-  };
-
-  const onRepeatableViewPress = field => {
-    setSelectValue(field.id);
-    navigationRef.navigate(SCREENS.RepeatableDetailsScreen, {
-      headerTitle: field.label,
-      headerId: field.id,
-      auditItem: field?.sub_fields,
-      templateData: field?.sub_fields,
-      audit: params?.auditItem?.id,
-      isEdit: isEdit,
-      type: params?.type,
-      auditDetails: params?.auditDetails,
-    });
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title={params?.headerTitle}
         // subTitle={'22 Nov 2024'}
         downloadIcon={false}
-        refreshIcon={params?.type === 'edit' ? false : true}
-        showMap
+        // refreshIcon={params?.type === 'edit' ? false : true}
+        // showMap
         editIcon={isEdit ? false : params?.type === 'edit' ? true : false}
         crossIcon={params?.type === 'create' ? false : isEdit ? true : false}
         onCrossPress={() => {
@@ -1161,132 +942,115 @@ const TemplateScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         scrollEnabled={scrollEnabled}
         keyboardVerticalOffset={hp(1)}>
-        {Object.keys(sections).map((section, index) => {
-          // sections[section].filter(field => {
-          //   if (field.field_type == 'section') {
-          //     return field.sub_fields.filter((subField: any) => true);
-          //   } else {
-          //     return formValues[field.id];
-          //   }
-          // })
-          return (
-            <FlatList
-              data={
-                params?.type === 'view'
-                  ? sections[section].filter(field => {
-                      if (field.field_type == 'section') {
-                        return field.sub_fields.filter((subField: any) => true);
-                      } else if (field.field_type == 'sub_form') {
-                        return field.sub_fields.filter((subField: any) => true);
-                      } else {
-                        return formValues[field.id];
-                      }
-                    })
-                  : // sections[section].filter(field => formValues[field.id]) //sections[section] //
-                    sections[section].filter(
-                      field => !showFieldIds.includes(field.order),
-                    )
-              }
-              keyExtractor={item => item.id}
-              scrollEnabled={scrollEnabled}
-              contentContainerStyle={{
-                paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
-                marginHorizontal: 16,
-              }}
-              renderItem={({item}: any) => {
-                const isAllIncluded = showFieldIds?.every(order =>
-                  sections[section].some(field => field.order === order),
-                );
+        {Object.keys(sections).map((section, index) => (
+          <FlatList
+            data={
+              params?.type === 'view'
+                ? sections[section].filter(field => {
+                    if (field.field_type == 'section') {
+                      return field.sub_fields.filter((subField: any) => true);
+                    } else if (field.field_type == 'sub_form') {
+                      return field.sub_fields.filter((subField: any) => true);
+                    } else {
+                      return formValues[field.id];
+                    }
+                  })
+                : sections[section].filter(
+                    field => !showFieldIds.includes(field.order),
+                  )
+            }
+            keyExtractor={item => item.id}
+            scrollEnabled={scrollEnabled}
+            contentContainerStyle={{
+              paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
+              marginHorizontal: 16,
+            }}
+            renderItem={({item}: any) => {
+              const isAllIncluded = showFieldIds?.every(order =>
+                sections[section].some(field => field.order === order),
+              );
 
-                return (
-                  <View style={styles.section}>
-                    {item.field_type == 'heading' ||
-                    item.label == 'Current Location' ? null : (
-                      <CustomText
-                        style={{
-                          ...styles.label,
-                          ...commonFontStyle(
-                            400,
-                            fontValue +
-                              (item?.field_type === 'section' ? 20 : 16),
-                            colors.black,
-                          ),
-                          color:
-                            item?.field_type === 'section'
-                              ? colors.mainBlue
-                              : colors.black,
-                        }}>
-                        {item?.label}
-                        <Text style={{color: 'red'}}>
-                          {item?.is_required ? '*' : ''}
-                        </Text>
-                      </CustomText>
-                    )}
+              return (
+                <View style={styles.section}>
+                  {item.field_type == 'heading' ||
+                  item.label == 'Current Location' ? null : (
+                    <CustomText
+                      style={{
+                        ...styles.label,
+                        ...commonFontStyle(
+                          400,
+                          fontValue +
+                            (item?.field_type === 'section' ? 20 : 16),
+                          colors.black,
+                        ),
+                        color:
+                          item?.field_type === 'section'
+                            ? colors.mainBlue
+                            : colors.black,
+                      }}>
+                      {item?.label}
+                      <Text style={{color: 'red'}}>
+                        {item?.is_required ? '*' : ''}
+                      </Text>
+                    </CustomText>
+                  )}
 
-                    <TemplateRenderItem
-                      fields={item}
-                      selectValue={selectValue}
-                      params={params}
-                      formValues={formValues}
-                      getAddress={getAddress}
-                      formErrors={formErrors}
-                      handleDeleteImage={handleDeleteImage}
-                      onRepeatableViewPress={onRepeatableViewPress}
-                      handleInputChange={handleInputChange}
-                      handlesConditionalFields={handlesConditionalFields}
-                      handlesConditionalFieldsRemove={
-                        handlesConditionalFieldsRemove
-                      }
-                      handlesConditionalFieldsss={handlesConditionalFieldsss}
-                      isEdit={isEdit}
-                      onUploadImage={onUploadImage}
-                      setImageSource={setImageSource}
-                      setSelectFieldId={setSelectFieldId}
-                      isMapLoaded={isMapLoaded}
-                      viewType={params?.type}
-                      setScrollEnabled={item => {
-                        setScrollEnabled(item);
-                      }}
-                    />
-                  </View>
-                );
-              }}
-              ListFooterComponent={() => {
-                return (
-                  <>
-                    {/* {params?.type === 'edit' && isEdit && (
-                  <CustomButton
-                    extraStyle={styles.extraStyle}
-                    title={t('Update')}
-                    onPress={handleSubmit}
+                  <RepeatableTemplateRenderItem
+                    fields={item}
+                    params={params}
+                    formValues={formValues}
+                    getAddress={getAddress}
+                    formErrors={formErrors}
+                    handleDeleteImage={handleDeleteImage}
+                    handleInputChange={handleInputChange}
+                    handlesConditionalFields={handlesConditionalFields}
+                    handlesConditionalFieldsRemove={
+                      handlesConditionalFieldsRemove
+                    }
+                    handlesConditionalFieldsss={handlesConditionalFieldsss}
+                    isEdit={isEdit}
+                    onUploadImage={onUploadImage}
+                    setImageSource={setImageSource}
+                    setSelectFieldId={setSelectFieldId}
+                    isMapLoaded={isMapLoaded}
+                    viewType={params?.type}
+                    setScrollEnabled={item => {
+                      setScrollEnabled(item);
+                    }}
                   />
-                )} */}
-                    {params?.type === 'create' ||
-                    (params?.type === 'edit' && isEdit) ? (
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 20,
-                        }}>
-                        <CustomButton
-                          extraStyle={styles.extraStyle}
-                          title={t('Save')}
-                          onPress={handleSave}
-                        />
-                        <CustomButton
-                          extraStyle={styles.extraStyle}
-                          title={t('Submit')}
-                          onPress={handleSubmit}
-                        />
-                      </View>
-                    ) : null}
-                  </>
-                );
-              }}
-            />
-          );
-        })}
+                </View>
+              );
+            }}
+            ListFooterComponent={() => {
+              return (
+                <>
+                  {/* {params?.type === 'edit' && isEdit && (
+                    <CustomButton
+                      extraStyle={styles.extraStyle}
+                      title={t('Update')}
+                      onPress={handleSubmit}
+                    />
+                  )} */}
+                  {params?.type === 'create' ||
+                  (params?.type === 'edit' && isEdit) ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 20,
+                      }}>
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Save')}
+                        onPress={handleSubmit}
+                      />
+                    </View>
+                  ) : null}
+                </>
+              );
+            }}
+          />
+        ))}
 
         <ImageSelectionModal
           isVisible={imageModal}
@@ -1303,7 +1067,7 @@ const TemplateScreen = () => {
   );
 };
 
-export default TemplateScreen;
+export default RepeatableTemplateScreen;
 
 const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({

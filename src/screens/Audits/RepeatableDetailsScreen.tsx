@@ -1,12 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import {
   FlatList,
+  Image,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIsFocused, useRoute, useTheme} from '@react-navigation/native';
 import CustomHeader from '../../components/CustomHeader';
 import CustomImage from '../../components/CustomImage';
@@ -25,56 +26,48 @@ import {
   GET_REPEATABLE_AUDITS_DETAILS,
   IS_LOADING,
 } from '../../redux/actionTypes';
+import {Icons} from '../../theme/images';
 
-const AuditDetailsScreen = () => {
+const RepeatableDetailsScreen = () => {
   const {params}: any = useRoute();
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
   const {colors} = useTheme();
   const {fontValue} = useAppSelector(state => state.common);
-  const {auditsDetailsList} = useAppSelector(state => state.home);
+  const {repeatableAuditsDetailsList} = useAppSelector(state => state.home);
   const [templateData, setTemplateData] = React.useState<any>(null);
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
+
+  console.log('repeatableAuditsDetailsList', repeatableAuditsDetailsList);
+
+  const [getAllData, setGetAllData] = useState([]);
+
   // console.log('templateData', templateData);
 
   useEffect(() => {
-    onGetAudits();
-  }, [isFocused]);
+    // onGetAudits();
+    setTemplateData(params?.templateData);
+  }, []);
 
   useEffect(() => {
-    dispatch({type: IS_LOADING, payload: true});
-    dispatch({type: GET_AUDITS_DETAILS, payload: []});
-    onGetTemplate();
+    // dispatch({type: IS_LOADING, payload: true});
+    // dispatch({type: GET_AUDITS_DETAILS, payload: []});
+    // onGetTemplate();
   }, [dispatch]);
 
-  const onGetAudits = async () => {
-    let obj = {
-      data: {
-        id: params?.auditItem?.id,
-      },
-      onSuccess: () => {},
-      onFailure: () => {},
-    };
-    dispatch(getAuditsDetails(obj));
-  };
-
-  const onGetTemplate = async () => {
-    let obj = {
-      data: {
-        id: params?.auditItem?.template,
-      },
-      onSuccess: (res: any) => {
-        setTemplateData(res);
-      },
-      onFailure: (error: any) => {
-        console.log('error', error);
-      },
-    };
-    dispatch(getTemplate(obj));
-  };
+  // const onGetAudits = async () => {
+  //   let obj = {
+  //     data: {
+  //       id: params?.auditItem?.id,
+  //     },
+  //     onSuccess: () => {},
+  //     onFailure: () => {},
+  //   };
+  //   dispatch(getAuditsDetails(obj));
+  // };
 
   const getTitle = (fields: any) => {
     let title = '';
@@ -93,19 +86,30 @@ const AuditDetailsScreen = () => {
   };
 
   const getDetails = (item: any) => {
-    const obj = {
-      data: item.response_id,
-      onSuccess: (res: any) => {
-        navigateTo(SCREENS.TemplateScreen, {
-          headerTitle: getTitle(item.fields),
-          auditItem: params?.auditItem,
-          auditDetails: res,
-          type: 'view',
-        });
-      },
-      onFailure: () => {},
-    };
-    dispatch(getAuditsDetailsByID(obj));
+    navigateTo(SCREENS.RepeatableTemplateScreen, {
+      headerTitle: params?.headerTitle,
+      auditItem: params?.auditItem,
+      headerId: params?.headerId,
+      templateData: params?.templateData,
+      auditDetails: params?.auditDetails,
+      audit: params?.audit,
+      type: 'view',
+    });
+  };
+
+  console.log(
+    'params?.auditDetails',
+    params?.auditDetails?.fields.filter(
+      i => i?.template_field == params?.headerId,
+    ),
+  );
+
+  const onDeletePress = (item, id) => {
+    const newValue = repeatableAuditsDetailsList
+      ?.filter(list => list?.audit == params?.headerId)
+      .filter((item, index) => index !== id);
+
+    dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: newValue});
   };
   const renderAudit = ({item, index}: any) => (
     <TouchableOpacity
@@ -114,23 +118,34 @@ const AuditDetailsScreen = () => {
         getDetails(item);
       }}
       style={styles.auditCard}>
-      {/* <CustomImage
-        uri={templateData?.logo ?? 'https://picsum.photos/200'}
-        size={wps(28)}
-        imageStyle={{
-          borderRadius: wps(28),
-          borderWidth: 1,
-          borderColor: '#ccc',
-        }}
-      /> */}
-      <View>
-        <CustomText
-          text={item?.response_id + '-' + getTitle(item.fields)}
-          style={styles.auditTitle}
-        />
-        {/* <CustomText style={styles.auditDescription}>
-          {`${t('Last updated on')}${item.description}}`}
-        </CustomText> */}
+      <View style={{flexDirection: 'row'}}>
+        {!params?.isEdit ? (
+          <CustomText
+            text={params.headerId + '-' + `${index + 1}`}
+            style={styles.auditTitle}
+          />
+        ) : (
+          <CustomText
+            text={item?.audit + '-' + `${index + 1}`}
+            style={styles.auditTitle}
+          />
+        )}
+        {params?.isEdit && (
+          <TouchableOpacity
+            onPress={() => {
+              onDeletePress(item, index);
+            }}>
+            <Image
+              source={Icons.delete}
+              style={{
+                width: 18,
+                height: 18,
+                tintColor: colors.black,
+                resizeMode: 'contain',
+              }}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -166,10 +181,10 @@ const AuditDetailsScreen = () => {
     <SafeAreaView style={styles.container}>
       <CustomHeader
         title={params?.headerTitle}
-        subTitle={'22 Nov 2024'}
-        showMap
-        showAdd
-        refreshIcon={true}
+        // subTitle={'22 Nov 2024'}
+        // showMap
+        showAdd={params?.isEdit}
+        // refreshIcon={true}
         onRefreshPress={() => {
           navigateTo(SCREENS.SyncDataScreen, {
             templateData: templateData,
@@ -193,26 +208,43 @@ const AuditDetailsScreen = () => {
           navigateTo(SCREENS.SearchScreen, {});
         }}
         onShowAddPress={() => {
-          dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: []});
-          navigateTo(SCREENS.TemplateScreen, {
+          navigateTo(SCREENS.RepeatableTemplateScreen, {
             headerTitle: params?.headerTitle,
+            templateData: params?.templateData,
             auditItem: params?.auditItem,
+            headerId: params?.headerId,
+            audit: params?.audit,
             type: 'create',
           });
         }}
       />
-      <FlatList
-        data={auditsDetailsList}
-        renderItem={renderAudit}
-        keyExtractor={(item: any) => item?.response_id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-      />
+      {!params?.isEdit ? (
+        <FlatList
+          data={params?.auditDetails?.fields.filter(
+            i => i?.template_field == params?.headerId,
+          )}
+          // data={[]}
+          renderItem={renderAudit}
+          keyExtractor={(item: any) => item?.response_id}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <FlatList
+          data={repeatableAuditsDetailsList?.filter(
+            list => list?.audit == params?.headerId,
+          )}
+          renderItem={renderAudit}
+          keyExtractor={(item: any) => item?.response_id}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
 
-export default AuditDetailsScreen;
+export default RepeatableDetailsScreen;
 
 const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({
@@ -244,6 +276,7 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     auditTitle: {
       marginBottom: 3,
       ...commonFontStyle(600, 18 + fontValue, colors.black_B23),
+      flex: 1,
     },
     auditDescription: {
       ...commonFontStyle(400, 8 + fontValue, colors.gray_7B),

@@ -26,7 +26,7 @@ const PdfScreen = () => {
       <CustomHeader
         title={t('Report.pdf')}
         isBack={false}
-        shareIcon
+        shareIcon={params?.showIcon ? true : false}
         crossIcon
         onSharePress={() => {
           Share.share({
@@ -40,7 +40,10 @@ const PdfScreen = () => {
       />
       {params.pdfPath && (
         <PDFView
-          source={{uri: `file://${params.pdfPath}`}}
+          source={{
+            uri: params?.edit ? params.pdfPath : `file://${params.pdfPath}`,
+            cache: true,
+          }}
           style={styles.pdf}
         />
       )}

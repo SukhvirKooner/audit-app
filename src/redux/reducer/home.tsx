@@ -2,6 +2,7 @@ import {
   GET_AUDITS,
   GET_AUDITS_DETAILS,
   GET_AUDITS_DETAILS_DATA,
+  GET_REPEATABLE_AUDITS_DETAILS,
   GET_TEMPLATE,
 } from '../actionTypes';
 
@@ -15,6 +16,7 @@ interface CommonState {
 const initialState: CommonState = {
   auditsList: [],
   auditsDetailsList: [],
+  repeatableAuditsDetailsList: [],
   templateData: null,
   auditDetails: null,
 };
@@ -26,6 +28,12 @@ export default function (state = initialState, action: any) {
     }
     case GET_AUDITS_DETAILS: {
       return {...state, auditsDetailsList: action.payload};
+    }
+    case GET_REPEATABLE_AUDITS_DETAILS: {
+      return {
+        ...state,
+        repeatableAuditsDetailsList: action.payload,
+      };
     }
 
     case GET_AUDITS_DETAILS_DATA: {

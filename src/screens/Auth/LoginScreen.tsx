@@ -40,6 +40,8 @@ const LoginScreen = () => {
 
   const [userName, setUserName] = useState(__DEV__ ? 'admin' : '');
   const [password, setPassword] = useState(__DEV__ ? 'Ibigroup@123' : '');
+  // const [userName, setUserName] = useState(__DEV__ ? 'Admin_Nhai' : '');
+  // const [password, setPassword] = useState(__DEV__ ? 'WNWM38YT@sGe' : '');
 
   const onLogin = () => {
     if (userName.trim() === '') {

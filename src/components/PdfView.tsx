@@ -23,7 +23,6 @@ const PdfView = ({isVisible, onCloseModal, value}: ImageModalProps) => {
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
-  console.log('value', value);
 
   return (
     <ReactNativeModal
@@ -46,12 +45,7 @@ const PdfView = ({isVisible, onCloseModal, value}: ImageModalProps) => {
           />
         </TouchableOpacity>
         {/* <WebView source={{uri: value}} style={styles.webview} /> */}
-        <PDFView
-          source={{
-            uri: 'https://audit.ibianalytics.in/media/uploads/files/b990d2f5-f017-49d7-8579-26c155d0f9f6.pdf',
-          }}
-          style={styles.pdf}
-        />
+        <PDFView source={{uri: `file://${value}`}} style={styles.pdf} />
       </View>
     </ReactNativeModal>
   );

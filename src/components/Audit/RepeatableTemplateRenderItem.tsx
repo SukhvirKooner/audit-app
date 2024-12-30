@@ -5,8 +5,6 @@ import {
   Alert,
   FlatList,
   Image,
-  PermissionsAndroid,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -40,7 +38,7 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {uploadImage} from '../../service/AuditService';
 import PdfView from '../PdfView';
-import {errorToast, navigateTo} from '../../utils/commonFunction';
+import {navigateTo} from '../../utils/commonFunction';
 import {screenNames, SCREENS} from '../../navigation/screenNames';
 import {navigationRef} from '../../navigation/RootContainer';
 
@@ -105,10 +103,9 @@ interface TemplateRenderItemProps {
   handlesConditionalFields: () => void;
   handlesConditionalFieldsRemove: () => void;
   handlesConditionalFieldsss: () => void;
-  onRepeatableViewPress: () => void;
 }
 
-const TemplateRenderItem = ({
+const RepeatableTemplateRenderItem = ({
   fields,
   formValues,
   formErrors,
@@ -125,7 +122,6 @@ const TemplateRenderItem = ({
   handlesConditionalFields,
   handlesConditionalFieldsRemove,
   handlesConditionalFieldsss,
-  onRepeatableViewPress,
 }: TemplateRenderItemProps) => {
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
@@ -160,7 +156,7 @@ const TemplateRenderItem = ({
     dispatch({type: IS_LOADING, payload: true});
     try {
       const obj = {
-        audit: params?.auditItem?.id,
+        audit: params?.audit,
         filled_by: userInfo?.id,
         template_field: id,
         image: data,
@@ -208,7 +204,6 @@ const TemplateRenderItem = ({
       const newValue = {
         base64: `data:${result[0].type};base64,${base64File}`,
         name: result[0].name,
-        uri: result[0].uri,
       };
       handleInputChange(selectFieldId, [newValue]);
       dispatch({type: IS_LOADING, payload: false});
@@ -219,75 +214,6 @@ const TemplateRenderItem = ({
         console.error('Error picking document:', err);
       }
     }
-  };
-
-  const onPdfView = async field => {
-    dispatch({type: IS_LOADING, payload: true});
-    if (params?.type === 'view') {
-      let outputFileName =
-        formValues?.[field.id][0]?.name?.split('/')?.pop() ||
-        formValues?.[field.id]?.split('/')?.pop();
-
-      const outputPath =
-        Platform.OS === 'android'
-          ? `${RNFS.DownloadDirectoryPath}/${
-              moment().unix() + '_' + outputFileName
-            }` // Downloads folder on Android
-          : `${RNFS.DocumentDirectoryPath}/${outputFileName}`; // Document directory on iOS
-
-      try {
-        const result = await RNFS.downloadFile({
-          fromUrl: api.BASE_URL + formValues?.[field.id],
-          toFile: outputPath,
-          background: false,
-          cacheable: false,
-          connectionTimeout: 60 * 1000,
-          readTimeout: 120 * 1000,
-        }).promise;
-
-        if (result.statusCode === 200) {
-          dispatch({type: IS_LOADING, payload: false});
-          navigateTo(SCREENS.PdfScreen, {pdfPath: outputPath, showIcon: false});
-        } else {
-          // Alert.alert('Failed', 'File download failed.');
-          errorToast(t('Download failed'));
-          setShowPdfPreview(false);
-          dispatch({type: IS_LOADING, payload: false});
-        }
-      } catch (error) {
-        console.log('error', error);
-        errorToast(t('Download failed'));
-        setShowPdfPreview(false);
-        dispatch({type: IS_LOADING, payload: false});
-      }
-    } else {
-      // try {
-      //   const granted = await PermissionsAndroid.request(
-      //     PermissionsAndroid.PERMISSIONS.READ_INTERNAL_STORAGE,
-      //     {
-      //       title: 'Storage Permission',
-      //       message: 'This app needs access to your storage to open the file',
-      //     },
-      //   );
-      //   if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      //     console.log('outputFileName', formValues?.[field.id]?.[0]?.uri);
-
-      //     navigateTo(SCREENS.PdfScreen, {
-      //       pdfPath: formValues?.[field.id]?.[0]?.uri,
-      //       showIcon: false,
-      //       edit: true,
-      //     });
-      //   } else {
-      //     console.log('Storage permission denied');
-      //   }
-      // } catch (err) {
-      //   console.warn(err);
-      // }
-
-      dispatch({type: IS_LOADING, payload: false});
-    }
-
-    // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
   };
 
   const renderField = (field: FormField | any) => {
@@ -304,7 +230,13 @@ const TemplateRenderItem = ({
             <TouchableOpacity
               onPress={() => {
                 if (field?.repeatable) {
-                  onRepeatableViewPress(field);
+                  navigationRef.navigate(SCREENS.RepeatableDetailsScreen, {
+                    headerTitle: field.label,
+                    headerId: field.id,
+                    auditItem: field?.sub_fields,
+                    templateData: field?.sub_fields,
+                    audit: params?.audit,
+                  });
                 }
               }}
               style={[styles.sub_formView, {marginBottom: 5}]}>
@@ -548,7 +480,8 @@ const TemplateRenderItem = ({
             {formValues?.[field.id] && (
               <TouchableOpacity
                 onPress={() => {
-                  onPdfView(field);
+                  // setShowPdfPreview(true);
+                  // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
                 }}
                 style={styles.imageContainer}>
                 <CustomImage
@@ -1060,16 +993,16 @@ const TemplateRenderItem = ({
         isVisible={showImagePreview}
         onCloseModal={() => setShowImagePreview(false)}
       />
-      {/* <PdfView
+      <PdfView
         value={selectedPdf}
         isVisible={showPdfPreview}
         onCloseModal={() => setShowPdfPreview(false)}
-      /> */}
+      />
     </View>
   );
 };
 
-export default TemplateRenderItem;
+export default RepeatableTemplateRenderItem;
 
 const getGlobalStyles = ({colors, fontValue}: any) => {
   return StyleSheet.create({
