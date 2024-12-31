@@ -167,6 +167,9 @@ const RepeatableTemplateScreen = () => {
   console.log('templateData', templateData);
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
+
+  console.log('formValuesasdasdasdasd', formValues);
+
   const sections = groupBySection(templateData);
   const [isMapLoaded, setIsMapLoaded] = useState(true);
   const [conditionalFields, setConditionalFields] = useState(
@@ -202,6 +205,8 @@ const RepeatableTemplateScreen = () => {
   const [imageSource, setImageSource] = useState<any>(null);
   const [auditResponse, setAuditResponse] = useState<any>(null);
 
+  console.log('params?.typeasdasdasdasd', params?.auditDetails);
+
   useEffect(() => {
     setTimeout(() => {
       setIsMapLoaded(false);
@@ -222,6 +227,8 @@ const RepeatableTemplateScreen = () => {
     if (params?.type === 'view') {
       setValue(params?.auditDetails);
     }
+
+    dispatch({type: IS_LOADING, payload: false});
   }, [isFocused, params?.auditDetails, params?.type]);
 
   useEffect(() => {
@@ -806,7 +813,7 @@ const RepeatableTemplateScreen = () => {
                         .map(
                           (item: any) => `
                         <img src="${
-                          api.BASE_URL + item.url
+                          api.BASE_URL_VIEW + item.url
                         }" alt="Image" width="300" height="300" />
                       `,
                         )

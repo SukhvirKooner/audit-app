@@ -28,6 +28,16 @@ import {
 } from '../../redux/actionTypes';
 import {Icons} from '../../theme/images';
 
+function addIndexToFields(data, id) {
+  let index = 0;
+  return data?.map((item, i) => {
+    if (item.template_field === id) {
+      index = i; // Update index when encountering 1735274281336
+    }
+    return {...item, index};
+  });
+}
+
 const RepeatableDetailsScreen = () => {
   const {params}: any = useRoute();
   const dispatch = useAppDispatch();
@@ -41,33 +51,13 @@ const RepeatableDetailsScreen = () => {
     [colors, fontValue],
   );
 
-  console.log('repeatableAuditsDetailsList', repeatableAuditsDetailsList);
-
   const [getAllData, setGetAllData] = useState([]);
 
-  // console.log('templateData', templateData);
-
   useEffect(() => {
-    // onGetAudits();
     setTemplateData(params?.templateData);
   }, []);
 
-  useEffect(() => {
-    // dispatch({type: IS_LOADING, payload: true});
-    // dispatch({type: GET_AUDITS_DETAILS, payload: []});
-    // onGetTemplate();
-  }, [dispatch]);
-
-  // const onGetAudits = async () => {
-  //   let obj = {
-  //     data: {
-  //       id: params?.auditItem?.id,
-  //     },
-  //     onSuccess: () => {},
-  //     onFailure: () => {},
-  //   };
-  //   dispatch(getAuditsDetails(obj));
-  // };
+  console.log('repeatableAuditsDetailsList', repeatableAuditsDetailsList);
 
   const getTitle = (fields: any) => {
     let title = '';
@@ -85,24 +75,41 @@ const RepeatableDetailsScreen = () => {
     return title ?? identifier;
   };
 
+  console.log('params?.auditDetails', params?.auditDetails);
+
   const getDetails = (item: any) => {
+    dispatch({type: IS_LOADING, payload: true});
     navigateTo(SCREENS.RepeatableTemplateScreen, {
       headerTitle: params?.headerTitle,
       auditItem: params?.auditItem,
       headerId: params?.headerId,
       templateData: params?.templateData,
-      auditDetails: params?.auditDetails,
+      auditDetails: item,
       audit: params?.audit,
       type: 'view',
     });
   };
 
-  console.log(
-    'params?.auditDetails',
-    params?.auditDetails?.fields.filter(
-      i => i?.template_field == params?.headerId,
-    ),
-  );
+  const getDetailsView = (item: any) => {
+    dispatch({type: IS_LOADING, payload: true});
+    navigateTo(SCREENS.RepeatableTemplateScreen, {
+      headerTitle: params?.headerTitle,
+      auditItem: params?.auditItem,
+      headerId: params?.headerId,
+      templateData: params?.templateData,
+      auditDetails: {
+        ...params?.auditDetails,
+        fields: addIndexToFields(
+          params?.auditDetails?.fields,
+          params?.headerId,
+        ).filter(i => i?.index == item?.index),
+      },
+      audit: params?.audit,
+      type: 'view',
+    });
+  };
+
+  console.log('repeatableAuditsDetailsList', repeatableAuditsDetailsList);
 
   const onDeletePress = (item, id) => {
     const newValue = repeatableAuditsDetailsList
@@ -111,44 +118,47 @@ const RepeatableDetailsScreen = () => {
 
     dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: newValue});
   };
-  const renderAudit = ({item, index}: any) => (
-    <TouchableOpacity
-      key={index}
-      onPress={() => {
-        getDetails(item);
-      }}
-      style={styles.auditCard}>
-      <View style={{flexDirection: 'row'}}>
-        {!params?.isEdit ? (
-          <CustomText
-            text={params.headerId + '-' + `${index + 1}`}
-            style={styles.auditTitle}
-          />
-        ) : (
-          <CustomText
-            text={item?.audit + '-' + `${index + 1}`}
-            style={styles.auditTitle}
-          />
-        )}
-        {params?.isEdit && (
-          <TouchableOpacity
-            onPress={() => {
-              onDeletePress(item, index);
-            }}>
-            <Image
-              source={Icons.delete}
-              style={{
-                width: 18,
-                height: 18,
-                tintColor: colors.black,
-                resizeMode: 'contain',
-              }}
+
+  const renderAudit = ({item, index}: any) => {
+    return (
+      <TouchableOpacity
+        key={index}
+        onPress={() => {
+          !params?.isEdit ? getDetailsView(item) : getDetails(item);
+        }}
+        style={styles.auditCard}>
+        <View style={{flexDirection: 'row'}}>
+          {!params?.isEdit ? (
+            <CustomText
+              text={params.headerId + '-' + `${index + 1}`}
+              style={styles.auditTitle}
             />
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+          ) : (
+            <CustomText
+              text={item?.audit + '-' + `${index + 1}`}
+              style={styles.auditTitle}
+            />
+          )}
+          {params?.isEdit && (
+            <TouchableOpacity
+              onPress={() => {
+                onDeletePress(item, index);
+              }}>
+              <Image
+                source={Icons.delete}
+                style={{
+                  width: 18,
+                  height: 18,
+                  tintColor: colors.black,
+                  resizeMode: 'contain',
+                }}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
   const getLocationID = (fields: any[]) => {
     for (const field of fields || []) {
       if (field?.field_type === 'location') {
@@ -220,9 +230,10 @@ const RepeatableDetailsScreen = () => {
       />
       {!params?.isEdit ? (
         <FlatList
-          data={params?.auditDetails?.fields.filter(
-            i => i?.template_field == params?.headerId,
-          )}
+          data={addIndexToFields(
+            params?.auditDetails?.fields,
+            params?.headerId,
+          ).filter(i => i?.template_field == params?.headerId)}
           // data={[]}
           renderItem={renderAudit}
           keyExtractor={(item: any) => item?.response_id}

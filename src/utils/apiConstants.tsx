@@ -1,5 +1,6 @@
 export const api = {
   BASE_URL: 'https://audit.ibianalytics.in/',
+  BASE_URL_VIEW: 'https://audit.ibianalytics.in',
 
   login: 'login/',
   register: 'register/',

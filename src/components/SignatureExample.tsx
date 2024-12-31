@@ -10,14 +10,25 @@ import {
   Dimensions,
   Alert,
   Button,
+  Modal,
 } from 'react-native';
 import {useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import Slider from '@react-native-community/slider';
-import {commonFontStyle} from '../theme/fonts';
+import {commonFontStyle, SCREEN_HEIGHT, wp} from '../theme/fonts';
 import SignatureScreen from 'react-native-signature-canvas';
+import SignatureView from 'react-native-signature-canvas';
+import {Icons} from '../theme/images';
 
-const SignatureExample = ({onPress, onBegin, onEnd, onClearPress}) => {
+const SignatureExample = ({
+  onPress,
+  onBegin,
+  onEnd,
+  onClearPress,
+  isVisible,
+  onCloseModal,
+  value,
+}) => {
   const {colors} = useTheme();
   const {fontValue} = useSelector(state => state.common);
   const styles = React.useMemo(
@@ -51,27 +62,55 @@ const SignatureExample = ({onPress, onBegin, onEnd, onClearPress}) => {
   };
 
   const {t} = useTranslation();
+  const imgWidth = '100%';
+  const imgHeight = '100%';
+  const style = `.m-signature-pad {box-shadow: none; border: none; } 
+              .m-signature-pad--body {border: none;}
+              .m-signature-pad--footer {display: none; margin: 0px;}
+              body,html {
+              width: ${imgWidth}px; height: ${imgHeight}px;}`;
   return (
     <>
-      <View style={styles.container}>
-        <SignatureScreen
-          ref={ref}
-          onOK={handleOK} // Called when 'Save' button is pressed
-          autoClear={false} // Prevents auto clearing after saving
-          descriptionText="Sign here" // Placeholder text
-          webStyle={styles.signaturePad} // Customize the signature pad
-          onBegin={onBegin}
-          onEnd={onEnd}
-        />
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.btnView} onPress={handleSave}>
-            <Text style={styles.btnText}>Save</Text>
+      <Modal
+        transparent={true}
+        visible={isVisible}
+        onRequestClose={() => onCloseModal()}
+        animationType="fade">
+        <View style={styles.modalContainer}>
+          <TouchableOpacity
+            onPress={onCloseModal}
+            style={{alignSelf: 'flex-end'}}>
+            <Image
+              resizeMode="contain"
+              source={Icons.close}
+              style={styles.closeIconStyle}
+              tintColor={colors.black}
+            />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnView} onPress={handleClear}>
-            <Text style={styles.btnText}>Clear</Text>
-          </TouchableOpacity>
+          <View style={styles.container}>
+            <SignatureScreen
+              ref={ref}
+              onOK={handleOK} // Called when 'Save' button is pressed
+              autoClear={false} // Prevents auto clearing after saving
+              descriptionText="Sign here" // Placeholder text
+              // bgWidth={imgWidth}
+              // bgHeight={imgHeight}
+              webStyle={styles.signaturePad}
+              style={styles.signatureCanvas}
+              onBegin={onBegin}
+              onEnd={onEnd}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.btnView} onPress={handleSave}>
+              <Text style={styles.btnText}>Done</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnView} onPress={handleClear}>
+              <Text style={styles.btnText}>Clear</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </Modal>
     </>
   );
 };
@@ -79,28 +118,51 @@ const SignatureExample = ({onPress, onBegin, onEnd, onClearPress}) => {
 const getGlobalStyles = props => {
   const {colors, fontValue} = props;
   return StyleSheet.create({
+    modalContainer: {
+      backgroundColor: colors.white,
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     container: {
-      backgroundColor: colors.background,
-      height: 160,
-      borderWidth: 1,
-      borderColor: colors.gray,
+      flex: 1,
+      width: '100%',
+    },
+    closeIconStyle: {
+      height: wp(4),
+      width: wp(4),
+      tintColor: colors.textColor,
+      right: 20,
+      top: 20,
     },
     buttonContainer: {
-      // marginTop: 10,
-      backgroundColor: colors.background,
+      backgroundColor: colors.white,
       flexDirection: 'row',
-      alignSelf: 'flex-end',
       gap: 20,
       marginHorizontal: 24,
+      position: 'absolute',
+      top: SCREEN_HEIGHT * 0.7,
     },
     btnView: {
       marginVertical: 8,
+      backgroundColor: colors.white,
+      borderWidth: 1,
+      padding: 10,
+      paddingHorizontal: 25,
+      borderRadius: 5,
+      borderColor: colors.gray,
     },
     btnText: {
       ...commonFontStyle(400, fontValue + 16, colors.black),
     },
+    signatureCanvas: {
+      // flex: 1,
+      width: '100%',
+      height: '100%',
+      marginTop: SCREEN_HEIGHT * 0.2,
+    },
     signaturePad: `
-      .m-signature-pad--footer { display: none; margin: 0px; } /* Hide footer buttons */
+      .m-signature-pad--footer { display: none; margin:0  } /* Hide footer buttons */
     `,
   });
 };

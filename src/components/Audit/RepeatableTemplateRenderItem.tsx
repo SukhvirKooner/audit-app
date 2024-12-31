@@ -5,6 +5,7 @@ import {
   Alert,
   FlatList,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -38,7 +39,7 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {uploadImage} from '../../service/AuditService';
 import PdfView from '../PdfView';
-import {navigateTo} from '../../utils/commonFunction';
+import {errorToast, navigateTo} from '../../utils/commonFunction';
 import {screenNames, SCREENS} from '../../navigation/screenNames';
 import {navigationRef} from '../../navigation/RootContainer';
 
@@ -127,6 +128,7 @@ const RepeatableTemplateRenderItem = ({
   const {fontValue, userInfo} = useAppSelector(state => state.common);
 
   const [checkBox, setCheckBox] = useState('');
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
 
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -177,6 +179,25 @@ const RepeatableTemplateRenderItem = ({
       console.error(`Failed to upload ${image.filename}:`, error);
       dispatch({type: IS_LOADING, payload: false});
       setScrollEnabled(true);
+    }
+  };
+
+  const onPdfView = async field => {
+    dispatch({type: IS_LOADING, payload: true});
+    if (params?.type === 'view') {
+      navigateTo(SCREENS.PdfScreen, {
+        pdfPath: formValues?.[field.id],
+        showIcon: false,
+        edit: true,
+      });
+      dispatch({type: IS_LOADING, payload: false});
+    } else {
+      navigateTo(SCREENS.PdfScreen, {
+        pdfPath: formValues?.[field.id][0]?.base64,
+        showIcon: false,
+        edit: true,
+      });
+      dispatch({type: IS_LOADING, payload: false});
     }
   };
 
@@ -414,13 +435,13 @@ const RepeatableTemplateRenderItem = ({
               renderItem={({item}: any) => (
                 <View style={styles.imageContainer}>
                   <CustomImage
-                    uri={api.BASE_URL + item.url}
+                    uri={api.BASE_URL_VIEW + item.url}
                     size={hp(14)}
                     // disabled={!isEdit}
                     containerStyle={{borderRadius: 10, overflow: 'hidden'}}
                     onPress={() => {
                       setShowImagePreview(true);
-                      setSelectedImage(api.BASE_URL + item.url);
+                      setSelectedImage(api.BASE_URL_VIEW + item.url);
                     }}
                   />
                   {isEdit && (
@@ -480,8 +501,7 @@ const RepeatableTemplateRenderItem = ({
             {formValues?.[field.id] && (
               <TouchableOpacity
                 onPress={() => {
-                  // setShowPdfPreview(true);
-                  // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
+                  onPdfView(field);
                 }}
                 style={styles.imageContainer}>
                 <CustomImage
@@ -921,20 +941,83 @@ const RepeatableTemplateRenderItem = ({
         return (
           <>
             {isEdit ? (
-              <SignatureExample
-                onBegin={() => setScrollEnabled(false)}
-                onEnd={() => setScrollEnabled(true)}
-                onPress={value => {
-                  onUploadSignature(field.id, value);
-                  // setScrollEnabled(true);
-                }}
-                onClearPress={() => {
-                  setScrollEnabled(true);
-                }}
-              />
+              <>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (formValues?.[field.id]?.url) {
+                      setShowImagePreview(true);
+                      setSelectedImage(
+                        api.BASE_URL_VIEW + formValues?.[field.id]?.url,
+                      );
+                    } else {
+                      setShowSignatureModal(true);
+                    }
+                  }}
+                  style={[styles.imageContainer, {width: '100%'}]}>
+                  {formValues?.[field.id]?.url && (
+                    <CustomImage
+                      onPress={() => {
+                        if (formValues?.[field.id]?.url) {
+                          setShowImagePreview(true);
+                          setSelectedImage(
+                            api.BASE_URL_VIEW + formValues?.[field.id]?.url,
+                          );
+                        } else {
+                          setShowSignatureModal(true);
+                        }
+                      }}
+                      uri={api.BASE_URL_VIEW + formValues?.[field.id]?.url}
+                      imageStyle={{width: wp(30), height: hp(20)}}
+                      containerStyle={
+                        {
+                          // ...styles.imageContainer,
+                          // justifyContent: 'center',
+                          // alignItems: 'center',
+                        }
+                      }
+                    />
+                  )}
+                  {formValues?.[field.id]?.url && (
+                    <CustomImage
+                      source={Icons.plus}
+                      disabled={!isEdit}
+                      size={hps(35)}
+                      onPress={() => {
+                        // handleDeleteImage(field.id, item.id);
+                        handleInputChange(field.id, '');
+                      }}
+                      containerStyle={{
+                        position: 'absolute',
+                        top: -0,
+                        right: -10,
+                      }}
+                      imageStyle={{transform: [{rotate: '45deg'}]}}
+                    />
+                  )}
+                </TouchableOpacity>
+                <SignatureExample
+                  isVisible={showSignatureModal}
+                  value={formValues?.[field.id]?.url}
+                  onCloseModal={() => {
+                    setShowSignatureModal(false);
+                  }}
+                  onBegin={() => setScrollEnabled(true)}
+                  onEnd={() => setScrollEnabled(true)}
+                  onPress={value => {
+                    onUploadSignature(field.id, value);
+                    setShowSignatureModal(false);
+                    // setScrollEnabled(true);
+                  }}
+                  onClearPress={() => {
+                    setScrollEnabled(true);
+                    // setShowSignatureModal(false);
+                    handleInputChange(field.id, '');
+                  }}
+                />
+              </>
             ) : (
               <CustomImage
-                uri={api.BASE_URL + formValues?.[field.id]?.[0]?.url}
+                uri={api.BASE_URL_VIEW + formValues?.[field.id]?.[0]?.url}
                 imageStyle={{width: wp(30), height: hp(20), top: 25}}
                 containerStyle={{
                   ...styles.imageContainer,

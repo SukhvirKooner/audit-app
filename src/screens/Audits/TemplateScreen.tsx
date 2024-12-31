@@ -937,7 +937,7 @@ const TemplateScreen = () => {
                         .map(
                           (item: any) => `
                         <img src="${
-                          api.BASE_URL + item.url
+                          api.BASE_URL_VIEW + item.url
                         }" alt="Image" width="300" height="300" />
                       `,
                         )

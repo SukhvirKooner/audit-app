@@ -131,6 +131,7 @@ const TemplateRenderItem = ({
   const {fontValue, userInfo} = useAppSelector(state => state.common);
 
   const [checkBox, setCheckBox] = useState('');
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
 
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -228,16 +229,19 @@ const TemplateRenderItem = ({
         formValues?.[field.id][0]?.name?.split('/')?.pop() ||
         formValues?.[field.id]?.split('/')?.pop();
 
+      console.log('outputFileName', api.BASE_URL_VIEW + formValues?.[field.id]);
+
       const outputPath =
         Platform.OS === 'android'
           ? `${RNFS.DownloadDirectoryPath}/${
               moment().unix() + '_' + outputFileName
             }` // Downloads folder on Android
           : `${RNFS.DocumentDirectoryPath}/${outputFileName}`; // Document directory on iOS
+      console.log('outputFileName path', outputPath);
 
       try {
         const result = await RNFS.downloadFile({
-          fromUrl: api.BASE_URL + formValues?.[field.id],
+          fromUrl: api.BASE_URL_VIEW + formValues?.[field.id],
           toFile: outputPath,
           background: false,
           cacheable: false,
@@ -249,41 +253,25 @@ const TemplateRenderItem = ({
           dispatch({type: IS_LOADING, payload: false});
           navigateTo(SCREENS.PdfScreen, {pdfPath: outputPath, showIcon: false});
         } else {
+          console.log('result', result);
+
           // Alert.alert('Failed', 'File download failed.');
-          errorToast(t('Download failed'));
+          errorToast('Download failed');
           setShowPdfPreview(false);
           dispatch({type: IS_LOADING, payload: false});
         }
       } catch (error) {
         console.log('error', error);
-        errorToast(t('Download failed'));
+        errorToast('Download failed');
         setShowPdfPreview(false);
         dispatch({type: IS_LOADING, payload: false});
       }
     } else {
-      // try {
-      //   const granted = await PermissionsAndroid.request(
-      //     PermissionsAndroid.PERMISSIONS.READ_INTERNAL_STORAGE,
-      //     {
-      //       title: 'Storage Permission',
-      //       message: 'This app needs access to your storage to open the file',
-      //     },
-      //   );
-      //   if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      //     console.log('outputFileName', formValues?.[field.id]?.[0]?.uri);
-
-      //     navigateTo(SCREENS.PdfScreen, {
-      //       pdfPath: formValues?.[field.id]?.[0]?.uri,
-      //       showIcon: false,
-      //       edit: true,
-      //     });
-      //   } else {
-      //     console.log('Storage permission denied');
-      //   }
-      // } catch (err) {
-      //   console.warn(err);
-      // }
-
+      navigateTo(SCREENS.PdfScreen, {
+        pdfPath: formValues?.[field.id][0]?.base64,
+        showIcon: false,
+        edit: true,
+      });
       dispatch({type: IS_LOADING, payload: false});
     }
 
@@ -482,13 +470,13 @@ const TemplateRenderItem = ({
               renderItem={({item}: any) => (
                 <View style={styles.imageContainer}>
                   <CustomImage
-                    uri={api.BASE_URL + item.url}
+                    uri={api.BASE_URL_VIEW + item.url}
                     size={hp(14)}
                     // disabled={!isEdit}
                     containerStyle={{borderRadius: 10, overflow: 'hidden'}}
                     onPress={() => {
                       setShowImagePreview(true);
-                      setSelectedImage(api.BASE_URL + item.url);
+                      setSelectedImage(api.BASE_URL_VIEW + item.url);
                     }}
                   />
                   {isEdit && (
@@ -988,20 +976,83 @@ const TemplateRenderItem = ({
         return (
           <>
             {isEdit ? (
-              <SignatureExample
-                onBegin={() => setScrollEnabled(false)}
-                onEnd={() => setScrollEnabled(true)}
-                onPress={value => {
-                  onUploadSignature(field.id, value);
-                  // setScrollEnabled(true);
-                }}
-                onClearPress={() => {
-                  setScrollEnabled(true);
-                }}
-              />
+              <>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (formValues?.[field.id]?.url) {
+                      setShowImagePreview(true);
+                      setSelectedImage(
+                        api.BASE_URL_VIEW + formValues?.[field.id]?.url,
+                      );
+                    } else {
+                      setShowSignatureModal(true);
+                    }
+                  }}
+                  style={[styles.imageContainer, {width: '100%'}]}>
+                  {formValues?.[field.id]?.url && (
+                    <CustomImage
+                      onPress={() => {
+                        if (formValues?.[field.id]?.url) {
+                          setShowImagePreview(true);
+                          setSelectedImage(
+                            api.BASE_URL_VIEW + formValues?.[field.id]?.url,
+                          );
+                        } else {
+                          setShowSignatureModal(true);
+                        }
+                      }}
+                      uri={api.BASE_URL_VIEW + formValues?.[field.id]?.url}
+                      imageStyle={{width: wp(30), height: hp(20)}}
+                      containerStyle={
+                        {
+                          // ...styles.imageContainer,
+                          // justifyContent: 'center',
+                          // alignItems: 'center',
+                        }
+                      }
+                    />
+                  )}
+                  {formValues?.[field.id]?.url && (
+                    <CustomImage
+                      source={Icons.plus}
+                      disabled={!isEdit}
+                      size={hps(35)}
+                      onPress={() => {
+                        // handleDeleteImage(field.id, item.id);
+                        handleInputChange(field.id, '');
+                      }}
+                      containerStyle={{
+                        position: 'absolute',
+                        top: -0,
+                        right: -10,
+                      }}
+                      imageStyle={{transform: [{rotate: '45deg'}]}}
+                    />
+                  )}
+                </TouchableOpacity>
+                <SignatureExample
+                  isVisible={showSignatureModal}
+                  value={formValues?.[field.id]?.url}
+                  onCloseModal={() => {
+                    setShowSignatureModal(false);
+                  }}
+                  onBegin={() => setScrollEnabled(true)}
+                  onEnd={() => setScrollEnabled(true)}
+                  onPress={value => {
+                    onUploadSignature(field.id, value);
+                    setShowSignatureModal(false);
+                    // setScrollEnabled(true);
+                  }}
+                  onClearPress={() => {
+                    setScrollEnabled(true);
+                    // setShowSignatureModal(false);
+                    handleInputChange(field.id, '');
+                  }}
+                />
+              </>
             ) : (
               <CustomImage
-                uri={api.BASE_URL + formValues?.[field.id]?.[0]?.url}
+                uri={api.BASE_URL_VIEW + formValues?.[field.id]?.[0]?.url}
                 imageStyle={{width: wp(30), height: hp(20), top: 25}}
                 containerStyle={{
                   ...styles.imageContainer,

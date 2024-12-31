@@ -96,6 +96,8 @@ const AuditDetailsScreen = () => {
     const obj = {
       data: item.response_id,
       onSuccess: (res: any) => {
+        dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: []});
+
         navigateTo(SCREENS.TemplateScreen, {
           headerTitle: getTitle(item.fields),
           auditItem: params?.auditItem,
