@@ -420,6 +420,8 @@ const RepeatableTemplateRenderItem = ({
           </>
         );
       case 'image':
+        console.log('formValues[field.id]', formValues[field.id]);
+
         return (
           <>
             <FlatList

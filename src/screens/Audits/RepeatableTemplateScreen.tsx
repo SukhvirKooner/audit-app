@@ -170,7 +170,7 @@ const RepeatableTemplateScreen = () => {
 
   console.log('formValuesasdasdasdasd', formValues);
 
-  const sections = groupBySection(templateData);
+  const sections = templateData;
   const [isMapLoaded, setIsMapLoaded] = useState(true);
   const [conditionalFields, setConditionalFields] = useState(
     templateData
@@ -949,115 +949,113 @@ const RepeatableTemplateScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         scrollEnabled={scrollEnabled}
         keyboardVerticalOffset={hp(1)}>
-        {Object.keys(sections).map((section, index) => (
-          <FlatList
-            data={
-              params?.type === 'view'
-                ? sections[section].filter(field => {
-                    if (field.field_type == 'section') {
-                      return field.sub_fields.filter((subField: any) => true);
-                    } else if (field.field_type == 'sub_form') {
-                      return field.sub_fields.filter((subField: any) => true);
-                    } else {
-                      return formValues[field.id];
-                    }
-                  })
-                : sections[section].filter(
-                    field => !showFieldIds.includes(field.order),
-                  )
-            }
-            keyExtractor={item => item.id}
-            scrollEnabled={scrollEnabled}
-            contentContainerStyle={{
-              paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
-              marginHorizontal: 16,
-            }}
-            renderItem={({item}: any) => {
-              const isAllIncluded = showFieldIds?.every(order =>
-                sections[section].some(field => field.order === order),
-              );
+        <FlatList
+          data={
+            params?.type === 'view'
+              ? sections.filter(field => {
+                  if (field.field_type == 'section') {
+                    return field.sub_fields.filter((subField: any) => true);
+                  } else if (field.field_type == 'sub_form') {
+                    return field.sub_fields.filter((subField: any) => true);
+                  } else {
+                    return formValues[field.id];
+                  }
+                })
+              : sections.filter(field => !showFieldIds.includes(field.order))
+          }
+          keyExtractor={item => item.id}
+          scrollEnabled={scrollEnabled}
+          contentContainerStyle={{
+            paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
+            marginHorizontal: 16,
+          }}
+          renderItem={({item}: any) => {
+            const isAllIncluded = showFieldIds?.every(order =>
+              sections.some(field => field.order === order),
+            );
 
-              return (
-                <View style={styles.section}>
-                  {item.field_type == 'heading' ||
-                  item.label == 'Current Location' ? null : (
-                    <CustomText
-                      style={{
-                        ...styles.label,
-                        ...commonFontStyle(
-                          400,
-                          fontValue +
-                            (item?.field_type === 'section' ? 20 : 16),
-                          colors.black,
-                        ),
-                        color:
-                          item?.field_type === 'section'
-                            ? colors.mainBlue
-                            : colors.black,
-                      }}>
-                      {item?.label}
-                      <Text style={{color: 'red'}}>
-                        {item?.is_required ? '*' : ''}
-                      </Text>
-                    </CustomText>
-                  )}
+            return (
+              <View style={styles.section}>
+                {item.field_type == 'heading' ||
+                item.label == 'Current Location' ? null : (
+                  <CustomText
+                    style={{
+                      ...styles.label,
+                      ...commonFontStyle(
+                        400,
+                        fontValue + (item?.field_type === 'section' ? 20 : 16),
+                        colors.black,
+                      ),
+                      color:
+                        item?.field_type === 'section'
+                          ? colors.mainBlue
+                          : colors.black,
+                    }}>
+                    {item?.label}
+                    <Text style={{color: 'red'}}>
+                      {item?.is_required ? '*' : ''}
+                    </Text>
+                  </CustomText>
+                )}
 
-                  <RepeatableTemplateRenderItem
-                    fields={item}
-                    params={params}
-                    formValues={formValues}
-                    getAddress={getAddress}
-                    formErrors={formErrors}
-                    handleDeleteImage={handleDeleteImage}
-                    handleInputChange={handleInputChange}
-                    handlesConditionalFields={handlesConditionalFields}
-                    handlesConditionalFieldsRemove={
-                      handlesConditionalFieldsRemove
-                    }
-                    handlesConditionalFieldsss={handlesConditionalFieldsss}
-                    isEdit={isEdit}
-                    onUploadImage={onUploadImage}
-                    setImageSource={setImageSource}
-                    setSelectFieldId={setSelectFieldId}
-                    isMapLoaded={isMapLoaded}
-                    viewType={params?.type}
-                    setScrollEnabled={item => {
-                      setScrollEnabled(item);
-                    }}
-                  />
-                </View>
-              );
-            }}
-            ListFooterComponent={() => {
-              return (
-                <>
-                  {/* {params?.type === 'edit' && isEdit && (
+                <RepeatableTemplateRenderItem
+                  fields={item}
+                  params={params}
+                  formValues={formValues}
+                  getAddress={getAddress}
+                  formErrors={formErrors}
+                  handleDeleteImage={handleDeleteImage}
+                  handleInputChange={handleInputChange}
+                  handlesConditionalFields={handlesConditionalFields}
+                  handlesConditionalFieldsRemove={
+                    handlesConditionalFieldsRemove
+                  }
+                  handlesConditionalFieldsss={handlesConditionalFieldsss}
+                  isEdit={isEdit}
+                  onUploadImage={onUploadImage}
+                  setImageSource={setImageSource}
+                  setSelectFieldId={setSelectFieldId}
+                  isMapLoaded={isMapLoaded}
+                  viewType={params?.type}
+                  setScrollEnabled={item => {
+                    setScrollEnabled(item);
+                  }}
+                />
+              </View>
+            );
+          }}
+          ListFooterComponent={() => {
+            return (
+              <>
+                {/* {params?.type === 'edit' && isEdit && (
                     <CustomButton
                       extraStyle={styles.extraStyle}
                       title={t('Update')}
                       onPress={handleSubmit}
                     />
                   )} */}
-                  {params?.type === 'create' ||
-                  (params?.type === 'edit' && isEdit) ? (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 20,
-                      }}>
-                      <CustomButton
-                        extraStyle={styles.extraStyle}
-                        title={t('Save')}
-                        onPress={handleSubmit}
-                      />
-                    </View>
-                  ) : null}
-                </>
-              );
-            }}
-          />
-        ))}
+                {params?.type === 'create' ||
+                (params?.type === 'edit' && isEdit) ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 20,
+                    }}>
+                    <CustomButton
+                      extraStyle={styles.extraStyle}
+                      title={t('Save')}
+                      onPress={handleSubmit}
+                    />
+                  </View>
+                ) : null}
+              </>
+            );
+          }}
+        />
+        {/* {Object.keys(sections).map((section, index) => (
+        
+        ))} */}
 
         <ImageSelectionModal
           isVisible={imageModal}
