@@ -38,7 +38,7 @@ const AuditDetailsScreen = () => {
     () => getGlobalStyles({colors, fontValue}),
     [colors, fontValue],
   );
-  // console.log('templateData', templateData);
+  console.log('auditsDetailsList', auditsDetailsList);
 
   useEffect(() => {
     onGetAudits();
@@ -96,6 +96,8 @@ const AuditDetailsScreen = () => {
     const obj = {
       data: item.response_id,
       onSuccess: (res: any) => {
+        console.log('resresres', res);
+
         dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: []});
 
         navigateTo(SCREENS.TemplateScreen, {
@@ -180,15 +182,10 @@ const AuditDetailsScreen = () => {
           });
         }}
         onMapPress={() => {
-          const locationID = getLocationID(templateData?.fields);
-
-          const filteredLocations = getFilteredLocations(
-            auditsDetailsList,
-            locationID,
-          );
           navigateTo(SCREENS.MapScreen, {
             headerTitle: params?.headerTitle,
-            listData: filteredLocations,
+            listData: auditsDetailsList,
+            location: params?.auditDetails,
           });
         }}
         onSearchPress={() => {

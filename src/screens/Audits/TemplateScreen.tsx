@@ -47,6 +47,8 @@ import MapView, {Marker} from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
 import {api, GOOGLE_API_KEY} from '../../utils/apiConstants';
 import {
+  _openAppSetting,
+  locationOffModal,
   requestLocationPer,
   requestLocationPermission,
 } from '../../utils/locationHandler';
@@ -203,9 +205,6 @@ const TemplateScreen = () => {
     return templateData;
   }, [templateData]); // Recompute when `fields` changes
 
-  +console.log('asdasdasad', templateData);
-  +console.log('asdasdasad11111', sections);
-
   const [isMapLoaded, setIsMapLoaded] = useState(true);
   const [conditionalFields, setConditionalFields] = useState(
     templateData
@@ -235,6 +234,7 @@ const TemplateScreen = () => {
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [imageSource, setImageSource] = useState<any>(null);
   const [auditResponse, setAuditResponse] = useState<any>(null);
+  console.log('currentLocation', currentLocation);
 
   useEffect(() => {
     setTimeout(() => {
@@ -262,6 +262,8 @@ const TemplateScreen = () => {
       }
     }
   }, [isFocused]);
+
+  console.log('params?.auditDetails', params?.auditDetails);
 
   useEffect(() => {
     if (params?.type === 'edit') {
@@ -406,6 +408,8 @@ const TemplateScreen = () => {
       const locationID = getLocationID(templateData, 'current');
       if (locationID) {
         getAddress(locationID);
+      } else {
+        getAddress();
       }
     }
   }, [params?.type, templateData]);
@@ -415,9 +419,11 @@ const TemplateScreen = () => {
       dispatch({type: IS_LOADING, payload: true});
       await requestLocationPer(
         async (response: any) => {
-          // setCurrentLocation(response);
-
           const {latitude, longitude} = response;
+          setCurrentLocation({
+            latitude: latitude,
+            longitude: longitude,
+          });
           dispatch({type: IS_LOADING, payload: false});
           if (mapCameraRef?.current) {
             mapCameraRef?.current?.setCamera({
@@ -440,6 +446,7 @@ const TemplateScreen = () => {
         },
         (err: any) => {
           dispatch({type: IS_LOADING, payload: false});
+          setCurrentLocation(null);
           console.log('<---current location error --->\n', err);
         },
       );
@@ -703,22 +710,19 @@ const TemplateScreen = () => {
     NetInfo.fetch().then(async state => {
       if (state.isConnected) {
         const locationIDs = getLocationID(templateData, 'current');
-        if (validateForm()) {
-          const locationID = getLocationID(templateData, 'current');
-          if (locationID == null) {
+        if (currentLocation) {
+          if (validateForm()) {
             const obj = {
               data: {
                 filled_by: userInfo?.id,
                 audit: params.auditItem.id,
+                latitude: currentLocation?.latitude,
+                longitude: currentLocation?.longitude,
                 fields: convertData(formValues),
               },
               onSuccess: async () => {
                 if (params?.type === 'edit') {
                   const listData: any = await setAsyncGetTemplateData();
-                  // const findData = listData.find(
-                  //   (item: any) =>
-                  //     item?.create_at !== params?.auditDetails?.create_at,
-                  // );
                   const findData = listData?.filter(item => {
                     item?.create_at !== params?.auditDetails?.create_at;
                   });
@@ -732,51 +736,22 @@ const TemplateScreen = () => {
             console.log('obj-->', obj?.data);
             dispatch(createAudits(obj));
           } else {
-            const filteredLocations = formValues[locationID];
-            if (filteredLocations) {
-              const obj = {
-                data: {
-                  filled_by: userInfo?.id,
-                  audit: params.auditItem.id,
-                  fields: convertData(formValues),
-                },
-                onSuccess: async () => {
-                  if (params?.type === 'edit') {
-                    const listData: any = await setAsyncGetTemplateData();
-                    // const findData = listData.find(
-                    //   (item: any) =>
-                    //     item?.create_at !== params?.auditDetails?.create_at,
-                    // );
-                    const findData = listData?.filter(item => {
-                      item?.create_at !== params?.auditDetails?.create_at;
-                    });
-                    await setAsyncCreateTemplateData(findData);
-                    navigationRef.goBack();
-                  }
-                  navigationRef.goBack();
-                },
-                onFailure: () => {},
-              };
-              console.log('obj-->', obj?.data);
-              dispatch(createAudits(obj));
-            } else {
-              getAddress(locationID);
+            if (locationIDs) {
+              getAddress(locationIDs);
             }
+            console.log('Form has errors');
           }
-          // }
         } else {
-          if (locationIDs) {
-            getAddress(locationIDs);
-          }
-          console.log('Form has errors');
+          getAddress();
         }
       } else {
         if (validateForm()) {
           const formData = await getAsyncTemplateFillData();
-
           const obj = {
             filled_by: userInfo?.id,
             audit: params.auditItem.id,
+            latitude: 0,
+            longitude: 0,
             fields: convertData(formValues),
           };
 
@@ -1157,11 +1132,13 @@ const TemplateScreen = () => {
         }}
         onMapPress={() => {
           const locationID = getLocationID(templateData, 'current');
+          console.log('templateData', templateData);
 
           const filteredLocations = formValues[locationID];
           navigateTo(SCREENS.MapScreen, {
             headerTitle: params?.headerTitle,
-            listData: [{value: filteredLocations}],
+            listData: filteredLocations ? [{value: filteredLocations}] : [],
+            location: params?.auditDetails,
           });
         }}
         onDownloadPress={() => {

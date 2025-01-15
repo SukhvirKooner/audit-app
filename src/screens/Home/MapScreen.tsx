@@ -9,21 +9,27 @@ import {
 } from 'react-native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import CustomHeader from '../../components/CustomHeader';
-import {useRoute, useTheme} from '@react-navigation/native';
+import {useIsFocused, useRoute, useTheme} from '@react-navigation/native';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import Loader from '../../components/Loader';
 import {navigationRef} from '../../navigation/RootContainer';
 import {GOOGLE_API_KEY} from '../../utils/apiConstants';
-import {requestLocationPermission} from '../../utils/locationHandler';
+import {
+  requestLocationPer,
+  requestLocationPermission,
+} from '../../utils/locationHandler';
 import {errorToast} from '../../utils/commonFunction';
 import {useTranslation} from 'react-i18next';
 import {commonFontStyle, hp} from '../../theme/fonts';
 import {useSelector} from 'react-redux';
+import {IS_LOADING} from '../../redux/actionTypes';
+import {useAppDispatch} from '../../redux/hooks';
 
 const MapScreen = () => {
   const {params}: any = useRoute();
   const mapCameraRef = useRef<any>(null);
   const {t} = useTranslation();
+  const dispatch = useAppDispatch();
 
   const {colors} = useTheme();
   const {fontValue} = useSelector((state: any) => state.common);
@@ -33,21 +39,40 @@ const MapScreen = () => {
   );
   const [markerList, setMarkerList] = useState<any>([]);
   const [isLocationFetch, setIsLocationFetch] = useState(true);
+  const [currentLocation, setCurrentLocation] = useState<any>(null);
 
   const [isMapLoaded, setIsMapLoaded] = useState(true);
+  console.log('currentLocation', markerList);
 
   useEffect(() => {
+    if (mapCameraRef?.current) {
+      mapCameraRef?.current?.setCamera({
+        center: {
+          latitude: Number(params?.location?.latitude || 0),
+          longitude: Number(params?.location?.longitude || 0),
+        },
+        zoom: 11, // Adjust zoom level
+        animation: {
+          duration: 1000, // Duration of the animation
+          easing: () => {},
+        },
+      });
+    }
     if (params?.listData?.length > 0) {
       setTimeout(() => {
         setIsMapLoaded(false);
       }, 300);
 
-      const newList = params?.listData?.map((item: any) => {
-        return {
-          latitude: Number(item?.value?.split(',')[0] || 0),
-          longitude: Number(item?.value?.split(',')[1] || 0),
-        };
-      });
+      const newList =
+        params?.listData &&
+        params?.listData?.map((item: any) => {
+          console.log('params?.listData', item);
+
+          return {
+            latitude: Number(item?.latitude || 0),
+            longitude: Number(item?.longitude || 0),
+          };
+        });
       setMarkerList(newList);
       if (mapCameraRef?.current) {
         mapCameraRef?.current?.setCamera({
@@ -65,15 +90,21 @@ const MapScreen = () => {
     }
   }, [params?.listData, params?.listData]);
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
     fetchLocation();
-  }, []);
+  }, [isFocused]);
 
   const fetchLocation = async () => {
-    await requestLocationPermission(
+    await requestLocationPer(
       () => {
-        // const {latitude, longitude} = position;
-
+        const {latitude, longitude} = position;
+        setCurrentLocation({
+          latitude: latitude,
+          longitude: longitude,
+        });
+        setIsMapLoaded(false);
         setIsLocationFetch(false);
       },
       () => {
@@ -86,19 +117,18 @@ const MapScreen = () => {
   const onMapLoad = () => {
     console.log('onMapLoad');
     setIsMapLoaded(false);
-
     const newList = params?.listData?.map((item: any) => {
       return {
-        latitude: Number(item?.value?.split(',')[0] || 0),
-        longitude: Number(item?.value?.split(',')[1] || 0),
+        latitude: Number(item?.latitude || 0),
+        longitude: Number(item?.longitude || 0),
       };
     });
     setMarkerList(newList);
     if (mapCameraRef?.current) {
       mapCameraRef?.current?.setCamera({
         center: {
-          latitude: Number(newList[0]?.latitude || 0),
-          longitude: Number(newList[0]?.longitude || 0),
+          latitude: Number(params?.location?.latitude || 0),
+          longitude: Number(params?.location?.longitude || 0),
         },
         zoom: 11, // Adjust zoom level
         animation: {
@@ -108,6 +138,9 @@ const MapScreen = () => {
       });
     }
   };
+
+  console.log('params?.location', params?.location?.latitude);
+  console.log('params?.location', params?.location?.longitude);
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: colors.background}}>
@@ -122,14 +155,14 @@ const MapScreen = () => {
         }}
       />
       <View style={{flex: 1}}>
-        {isLocationFetch ? (
+        {false ? (
           <View style={styles.loaderContainer}>
             <ActivityIndicator size={'large'} color={colors.white} />
             <Text style={styles.fetchTextStyle}>{t('Fetching Location')}</Text>
           </View>
         ) : (
           <>
-            {isMapLoaded && <Loader />}
+            {/* {isMapLoaded && <Loader />} */}
 
             <MapView
               ref={mapCameraRef}
@@ -138,14 +171,20 @@ const MapScreen = () => {
               zoomControlEnabled
               showsUserLocation
               initialRegion={{
-                latitude: 0,
-                longitude: 0,
+                latitude: params?.location?.latitude || 0,
+                longitude: params?.location?.longitude || 0,
                 latitudeDelta: 28.679079,
                 longitudeDelta: 77.06971,
               }}
               onMapReady={onMapLoad}
               onMapLoaded={onMapLoad}
               key={GOOGLE_API_KEY}>
+              <Marker
+                coordinate={{
+                  latitude: params?.location?.latitude || 0,
+                  longitude: params?.location?.longitude || 0,
+                }}
+              />
               {markerList.map((item: any) => {
                 return (
                   <Marker
