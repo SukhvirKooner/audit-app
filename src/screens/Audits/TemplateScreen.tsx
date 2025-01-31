@@ -183,6 +183,7 @@ const TemplateScreen = () => {
   const {fontValue, userInfo} = useAppSelector(state => state.common);
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [selectValue, setSelectValue] = useState(null);
+  const [editValueList, setEditValueList] = useState([]);
 
   const {templateData, auditDetails, repeatableAuditsDetailsList} =
     useAppSelector(state => state.home);
@@ -272,8 +273,19 @@ const TemplateScreen = () => {
       if (locationID) {
         getAddress1(locationID, params?.auditDetails?.fields);
       }
+      getAddress();
     }
   }, [params?.auditDetails?.fields, params?.type]);
+
+  useEffect(() => {
+    if (params?.type === 'edit') {
+      const getValueList = async () => {
+        const listData = await setAsyncGetTemplateData();
+        setEditValueList(listData);
+      };
+      getValueList();
+    }
+  }, [params?.auditDetails?.fields, params?.type, isFocused]);
 
   useEffect(() => {
     if (params?.type === 'view') {
@@ -706,7 +718,7 @@ const TemplateScreen = () => {
     return updateData;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     NetInfo.fetch().then(async state => {
       if (state.isConnected) {
         const locationIDs = getLocationID(templateData, 'current');
@@ -721,14 +733,67 @@ const TemplateScreen = () => {
                 fields: convertData(formValues),
               },
               onSuccess: async () => {
-                if (params?.type === 'edit') {
-                  const listData: any = await setAsyncGetTemplateData();
-                  const findData = listData?.filter(item => {
-                    item?.create_at !== params?.auditDetails?.create_at;
-                  });
-                  await setAsyncCreateTemplateData(findData);
-                  navigationRef.goBack();
-                }
+                navigationRef.goBack();
+              },
+              onFailure: () => {},
+            };
+            console.log('obj-->', obj?.data);
+            dispatch(createAudits(obj));
+          } else {
+            if (locationIDs) {
+              getAddress(locationIDs);
+            }
+            console.log('Form has errors');
+          }
+        } else {
+          getAddress();
+        }
+      } else {
+        if (validateForm()) {
+          const formData = await getAsyncTemplateFillData();
+          const obj = {
+            filled_by: userInfo?.id,
+            audit: params.auditItem.id,
+            latitude: 0,
+            longitude: 0,
+            fields: convertData(formValues),
+          };
+
+          if (formData.length > 0) {
+            setAsyncTemplateFillData([...formData, obj]);
+          } else {
+            setAsyncTemplateFillData([obj]);
+          }
+
+          navigationRef.goBack();
+        }
+      }
+    });
+  };
+
+  console.log('params.auditItem.id', editValueList);
+  console.log('params.auditItem.id', params?.auditDetails?.create_at);
+
+  const handleSubmitEdit = async () => {
+    const filteredData = editValueList.filter(
+      item => item.create_at !== params?.auditDetails?.create_at,
+    );
+
+    NetInfo.fetch().then(async state => {
+      if (state.isConnected) {
+        const locationIDs = getLocationID(templateData, 'current');
+        if (currentLocation) {
+          if (validateForm()) {
+            const obj = {
+              data: {
+                filled_by: userInfo?.id,
+                audit: params.auditItem.id,
+                latitude: currentLocation?.latitude,
+                longitude: currentLocation?.longitude,
+                fields: convertData(formValues),
+              },
+              onSuccess: async () => {
+                await setAsyncCreateTemplateData(filteredData);
                 navigationRef.goBack();
               },
               onFailure: () => {},
@@ -1036,8 +1101,12 @@ const TemplateScreen = () => {
     console.log('subFields?.length', subFields?.length / 3);
 
     if (params?.type === 'edit') {
-      if (formValues && formLength < 10) {
-        errorToast('Please fill at least 10 fields to save');
+      if (formValues && formLength < (subFields?.length / 3).toFixed()) {
+        errorToast(
+          `Please fill at least ${(
+            subFields?.length / 3
+          ).toFixed()} fields to save`,
+        );
         return;
       }
 
@@ -1163,6 +1232,15 @@ const TemplateScreen = () => {
                     return formValues[field.id];
                   }
                 })
+              : params?.type === 'edit'
+              ? isEdit
+                ? sections.filter(field => !showFieldIds.includes(field.order))
+                : sections.filter(
+                    field =>
+                      (field.conditional_fields &&
+                        field.conditional_fields.length > 0) ||
+                      formValues[field.id] !== undefined,
+                  )
               : sections.filter(field => !showFieldIds.includes(field.order))
           }
           keyExtractor={item => item.id}
@@ -1254,7 +1332,11 @@ const TemplateScreen = () => {
                     <CustomButton
                       extraStyle={styles.extraStyle}
                       title={t('Submit')}
-                      onPress={handleSubmit}
+                      onPress={() => {
+                        params?.type === 'edit'
+                          ? handleSubmitEdit()
+                          : handleSubmit();
+                      }}
                     />
                   </View>
                 ) : null}

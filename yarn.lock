@@ -3061,7 +3061,7 @@ __metadata:
     react-native-geolocation-service: ^5.3.1
     react-native-gesture-handler: ^2.21.2
     react-native-html-to-pdf: ^0.12.0
-    react-native-image-picker: ^7.2.3
+    react-native-image-picker: ^7.1.2
     react-native-maps: 1.18.2
     react-native-modal: ^13.0.1
     react-native-pdf: ^6.7.6
@@ -8549,7 +8549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-image-picker@npm:^7.2.3":
+"react-native-image-picker@npm:^7.1.2":
   version: 7.2.3
   resolution: "react-native-image-picker@npm:7.2.3"
   peerDependencies:

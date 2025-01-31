@@ -785,10 +785,29 @@ const TemplateRenderItem = ({
                 }
                 onPress={() => {
                   handleInputChange(field.id, field.options?.yes_label);
-                  handlesConditionalFields(
-                    field.id,
+                  console.log(
+                    'field.conditional_fields[0]?.show_fields',
                     field.conditional_fields[0]?.show_fields,
                   );
+                  if (
+                    field.conditional_fields[0]?.condition_value ==
+                    field.options?.yes_label
+                  ) {
+                    handlesConditionalFieldsss(
+                      field.id,
+                      field.conditional_fields[0]?.show_fields,
+                    );
+                  } else {
+                    handlesConditionalFieldsRemove(
+                      field.id,
+                      field.conditional_fields[0]?.show_fields,
+                    );
+                  }
+
+                  // handlesConditionalFields(
+                  //   field.id,
+                  //   field.conditional_fields[0]?.show_fields,
+                  // );
                 }}>
                 <RenderRadioButton
                   value={formValues[field.id] === field.options?.yes_label}
@@ -805,14 +824,34 @@ const TemplateRenderItem = ({
                 }
                 onPress={() => {
                   handleInputChange(field.id, field.options?.no_label);
-                  if (formValues[field.id] == undefined) {
-                    handlesConditionalFields(field.id, []);
+                  console.log(
+                    'field.conditional_fields[0]?.show_fields',
+                    field.conditional_fields[0]?.show_fields,
+                  );
+
+                  if (
+                    field.conditional_fields[0]?.condition_value ==
+                    field.options?.no_label
+                  ) {
+                    handlesConditionalFieldsss(
+                      field.id,
+                      field.conditional_fields[0]?.show_fields,
+                    );
                   } else {
-                    handlesConditionalFields(
+                    handlesConditionalFieldsRemove(
                       field.id,
                       field.conditional_fields[0]?.show_fields,
                     );
                   }
+
+                  // if (formValues[field.id] == undefined) {
+                  //   handlesConditionalFields(field.id, []);
+                  // } else {
+                  //   handlesConditionalFields(
+                  //     field.id,
+                  //     field.conditional_fields[0]?.show_fields,
+                  //   );
+                  // }
                 }}>
                 <RenderRadioButton
                   value={formValues[field.id] === field.options?.no_label}

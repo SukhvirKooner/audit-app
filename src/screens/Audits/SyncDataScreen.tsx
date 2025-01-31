@@ -90,6 +90,8 @@ const SyncDataScreen = () => {
     </TouchableOpacity>
   );
 
+  console.log('syncData', syncData);
+
   return (
     <SafeAreaView style={styles.container}>
       <CustomHeader title={params?.headerTitle} />

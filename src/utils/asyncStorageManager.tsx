@@ -36,6 +36,8 @@ export const clearOfflineAsync = async () => {
 };
 
 export const setAsyncCreateTemplateData = async (data: any) => {
+  console.log('dasdsadasdasdasdd', data);
+
   await AsyncStorage.setItem(
     asyncKeys.create_template_data,
     JSON.stringify(data),

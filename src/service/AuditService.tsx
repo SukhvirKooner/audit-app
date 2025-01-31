@@ -127,6 +127,8 @@ export const createAudits =
   async dispatch => {
     dispatch({type: IS_LOADING, payload: true});
 
+    console.log('datadatadatadatadatadata', data);
+
     return makeAPIRequest({
       method: POST,
       url: api.audits_details_id,
@@ -140,6 +142,8 @@ export const createAudits =
         }
       })
       .catch(error => {
+        console.log('error', error);
+
         handleErrorRes(error, onFailure, dispatch);
         dispatch({type: IS_LOADING, payload: false});
       });
