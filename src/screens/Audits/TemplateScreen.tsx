@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   Alert,
   FlatList,
+  Image,
 } from 'react-native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import CustomHeader from '../../components/CustomHeader';
@@ -185,6 +186,15 @@ const TemplateScreen = () => {
   const [selectValue, setSelectValue] = useState(null);
   const [editValueList, setEditValueList] = useState([]);
 
+  const [visibleSections, setVisibleSections] = useState({});
+
+  const toggleSection = section => {
+    setVisibleSections(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const {templateData, auditDetails, repeatableAuditsDetailsList} =
     useAppSelector(state => state.home);
   const styles = React.useMemo(
@@ -198,8 +208,9 @@ const TemplateScreen = () => {
 
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   console.log('formValues', formValues);
+  console.log('templateData', templateData);
 
-  // const sections = groupBySection(templateData);
+  const sectionssss = groupBySection(templateData);
 
   const sections = useMemo(() => {
     // return groupBySection(templateData);
@@ -220,9 +231,14 @@ const TemplateScreen = () => {
   );
 
   // let showFieldIds = conditionalFields.flatMap(update => update.show_fields);
+
+  console.log('templateDataconditionalFields', conditionalFields);
+
   const showFieldIds = useMemo(() => {
     return conditionalFields.flatMap(update => update.show_fields);
   }, [conditionalFields]); // Recompute when `fields` changes
+
+  console.log('templateDataconditionalFields showFieldIds', showFieldIds);
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -235,7 +251,7 @@ const TemplateScreen = () => {
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [imageSource, setImageSource] = useState<any>(null);
   const [auditResponse, setAuditResponse] = useState<any>(null);
-  console.log('currentLocation', currentLocation);
+  console.log('params?.typeparams?.typeparams?.type', params?.type);
 
   useEffect(() => {
     setTimeout(() => {
@@ -263,8 +279,6 @@ const TemplateScreen = () => {
       }
     }
   }, [isFocused]);
-
-  console.log('params?.auditDetails', params?.auditDetails);
 
   useEffect(() => {
     if (params?.type === 'edit') {
@@ -294,8 +308,6 @@ const TemplateScreen = () => {
   }, [isFocused, params?.auditDetails, params?.type]);
 
   useEffect(() => {
-    // onGetTemplate();
-
     if (params?.type === 'edit' || params?.type === 'view') {
       setIsEdit(false);
     } else {
@@ -625,7 +637,7 @@ const TemplateScreen = () => {
     params?.type === 'view'
       ? templateData
       : templateData
-          .filter(field => !showFieldIds.includes(field.order))
+          .filter(field => !showFieldIds.includes(field.conditional_id))
           .forEach((field: any) => {
             const error = validateField(field, formValues[field.id]);
 
@@ -1220,130 +1232,269 @@ const TemplateScreen = () => {
           scrollEnabled={scrollEnabled}
           style={{flex: 1}}
           keyboardVerticalOffset={hp(1)}> */}
-        <FlatList
-          data={
-            params?.type === 'view'
-              ? sections.filter(field => {
-                  if (field.field_type == 'section') {
-                    return field.sub_fields.filter((subField: any) => true);
-                  } else if (field.field_type == 'sub_form') {
-                    return field.sub_fields.filter((subField: any) => true);
-                  } else {
-                    return formValues[field.id];
-                  }
-                })
-              : params?.type === 'edit'
-              ? isEdit
-                ? sections.filter(field => !showFieldIds.includes(field.order))
-                : sections.filter(
-                    field =>
-                      (field.conditional_fields &&
-                        field.conditional_fields.length > 0) ||
-                      formValues[field.id] !== undefined,
-                  )
-              : sections.filter(field => !showFieldIds.includes(field.order))
-          }
-          keyExtractor={item => item.id}
-          scrollEnabled={scrollEnabled}
-          contentContainerStyle={{
-            paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
-            marginHorizontal: 16,
-          }}
-          renderItem={({item}: any) => {
-            const isAllIncluded = showFieldIds?.every(order =>
-              sections.some(field => field.order === order),
-            );
 
-            return (
-              <View style={styles.section}>
-                {item.field_type == 'heading' ||
-                item.label == 'Current Location' ? null : (
-                  <CustomText
-                    style={{
-                      ...styles.label,
-                      ...commonFontStyle(
-                        400,
-                        fontValue + (item?.field_type === 'section' ? 20 : 16),
-                        colors.black,
-                      ),
-                      color:
-                        item?.field_type === 'section'
-                          ? colors.mainBlue
-                          : colors.black,
-                    }}>
-                    {item?.label}
-                    <Text style={{color: 'red'}}>
-                      {item?.is_required ? '*' : ''}
-                    </Text>
-                  </CustomText>
-                )}
+        {params?.type === 'create' ? (
+          <FlatList
+            data={
+              // sections.filter(
+              //   field => !showFieldIds.includes(field.conditional_id),
+              // )
+              Object.keys(sectionssss)
+            }
+            keyExtractor={item => item.id}
+            scrollEnabled={scrollEnabled}
+            contentContainerStyle={{
+              paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
+              marginHorizontal: 16,
+            }}
+            renderItem={({item: section}: any) => {
+              return (
+                <View style={{marginBottom: 10}}>
+                  {/* Section Header with Toggle */}
+                  {section !== 'null' && (
+                    <TouchableOpacity
+                      onPress={() => toggleSection(section)}
+                      style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Text style={styles.selectionText}>{section}</Text>
+                      <Image
+                        source={Icons.down}
+                        style={{width: 18, height: 18}}
+                      />
+                    </TouchableOpacity>
+                  )}
+                  {/* Section Items */}
+                  {(section == 'null' || visibleSections[section]) &&
+                    sectionssss[section]
+                      .filter(
+                        field => !showFieldIds.includes(field.conditional_id),
+                      )
+                      .map(item => (
+                        <View style={styles.section}>
+                          {item.field_type == 'heading' ||
+                          item.label == 'Current Location' ? null : (
+                            <CustomText
+                              style={{
+                                ...styles.label,
+                                ...commonFontStyle(
+                                  400,
+                                  fontValue +
+                                    (item?.field_type === 'section' ? 20 : 16),
+                                  colors.black,
+                                ),
+                                color:
+                                  item?.field_type === 'section'
+                                    ? colors.mainBlue
+                                    : colors.black,
+                              }}>
+                              {item?.label}
+                              <Text style={{color: 'red'}}>
+                                {item?.is_required ? '*' : ''}
+                              </Text>
+                            </CustomText>
+                          )}
 
-                <TemplateRenderItem
-                  fields={item}
-                  selectValue={selectValue}
-                  params={params}
-                  formValues={formValues}
-                  getAddress={getAddress}
-                  formErrors={formErrors}
-                  handleDeleteImage={handleDeleteImage}
-                  onRepeatableViewPress={onRepeatableViewPress}
-                  handleInputChange={handleInputChange}
-                  handlesConditionalFields={handlesConditionalFields}
-                  handlesConditionalFieldsRemove={
-                    handlesConditionalFieldsRemove
-                  }
-                  handlesConditionalFieldsss={handlesConditionalFieldsss}
-                  isEdit={isEdit}
-                  onUploadImage={onUploadImage}
-                  setImageSource={setImageSource}
-                  setSelectFieldId={setSelectFieldId}
-                  isMapLoaded={isMapLoaded}
-                  viewType={params?.type}
-                  setScrollEnabled={item => {
-                    setScrollEnabled(item);
-                  }}
-                />
-              </View>
-            );
-          }}
-          ListFooterComponent={() => {
-            return (
-              <>
-                {/* {params?.type === 'edit' && isEdit && (
+                          <TemplateRenderItem
+                            fields={item}
+                            selectValue={selectValue}
+                            params={params}
+                            formValues={formValues}
+                            getAddress={getAddress}
+                            formErrors={formErrors}
+                            handleDeleteImage={handleDeleteImage}
+                            onRepeatableViewPress={onRepeatableViewPress}
+                            handleInputChange={handleInputChange}
+                            handlesConditionalFields={handlesConditionalFields}
+                            handlesConditionalFieldsRemove={
+                              handlesConditionalFieldsRemove
+                            }
+                            handlesConditionalFieldsss={
+                              handlesConditionalFieldsss
+                            }
+                            isEdit={isEdit}
+                            onUploadImage={onUploadImage}
+                            setImageSource={setImageSource}
+                            setSelectFieldId={setSelectFieldId}
+                            isMapLoaded={isMapLoaded}
+                            viewType={params?.type}
+                            setScrollEnabled={item => {
+                              setScrollEnabled(item);
+                            }}
+                          />
+                        </View>
+                      ))}
+                </View>
+              );
+            }}
+            ListFooterComponent={() => {
+              return (
+                <>
+                  {/* {params?.type === 'edit' && isEdit && (
                   <CustomButton
                     extraStyle={styles.extraStyle}
                     title={t('Update')}
                     onPress={handleSubmit}
                   />
                 )} */}
-                {params?.type === 'create' ||
-                (params?.type === 'edit' && isEdit) ? (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 20,
-                    }}>
-                    <CustomButton
-                      extraStyle={styles.extraStyle}
-                      title={t('Save')}
-                      onPress={handleSave}
-                    />
-                    <CustomButton
-                      extraStyle={styles.extraStyle}
-                      title={t('Submit')}
-                      onPress={() => {
-                        params?.type === 'edit'
-                          ? handleSubmitEdit()
-                          : handleSubmit();
-                      }}
-                    />
-                  </View>
-                ) : null}
-              </>
-            );
-          }}
-        />
+                  {params?.type === 'create' ||
+                  (params?.type === 'edit' && isEdit) ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 20,
+                      }}>
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Save')}
+                        onPress={handleSave}
+                      />
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Submit')}
+                        onPress={() => {
+                          params?.type === 'edit'
+                            ? handleSubmitEdit()
+                            : handleSubmit();
+                        }}
+                      />
+                    </View>
+                  ) : null}
+                </>
+              );
+            }}
+          />
+        ) : (
+          <FlatList
+            data={
+              params?.type === 'view'
+                ? sections.filter(field => {
+                    if (field.field_type == 'section') {
+                      return field.sub_fields.filter((subField: any) => true);
+                    } else if (field.field_type == 'sub_form') {
+                      return field.sub_fields.filter((subField: any) => true);
+                    } else {
+                      return formValues[field.id];
+                    }
+                  })
+                : params?.type === 'edit'
+                ? isEdit
+                  ? sections.filter(
+                      field => !showFieldIds.includes(field.conditional_id),
+                    )
+                  : sections.filter(
+                      field =>
+                        (field.conditional_fields &&
+                          field.conditional_fields.length > 0) ||
+                        formValues[field.id] !== undefined,
+                    )
+                : sections.filter(
+                    field => !showFieldIds.includes(field.conditional_id),
+                  )
+            }
+            keyExtractor={item => item.id}
+            scrollEnabled={scrollEnabled}
+            contentContainerStyle={{
+              paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
+              marginHorizontal: 16,
+            }}
+            renderItem={({item}: any) => {
+              const isAllIncluded = showFieldIds?.every(order =>
+                sections.some(field => field.conditional_id === order),
+              );
+
+              return (
+                <View style={styles.section}>
+                  {item.field_type == 'heading' ||
+                  item.label == 'Current Location' ? null : (
+                    <CustomText
+                      style={{
+                        ...styles.label,
+                        ...commonFontStyle(
+                          400,
+                          fontValue +
+                            (item?.field_type === 'section' ? 20 : 16),
+                          colors.black,
+                        ),
+                        color:
+                          item?.field_type === 'section'
+                            ? colors.mainBlue
+                            : colors.black,
+                      }}>
+                      {item?.label}
+                      <Text style={{color: 'red'}}>
+                        {item?.is_required ? '*' : ''}
+                      </Text>
+                    </CustomText>
+                  )}
+
+                  <TemplateRenderItem
+                    fields={item}
+                    selectValue={selectValue}
+                    params={params}
+                    formValues={formValues}
+                    getAddress={getAddress}
+                    formErrors={formErrors}
+                    handleDeleteImage={handleDeleteImage}
+                    onRepeatableViewPress={onRepeatableViewPress}
+                    handleInputChange={handleInputChange}
+                    handlesConditionalFields={handlesConditionalFields}
+                    handlesConditionalFieldsRemove={
+                      handlesConditionalFieldsRemove
+                    }
+                    handlesConditionalFieldsss={handlesConditionalFieldsss}
+                    isEdit={isEdit}
+                    onUploadImage={onUploadImage}
+                    setImageSource={setImageSource}
+                    setSelectFieldId={setSelectFieldId}
+                    isMapLoaded={isMapLoaded}
+                    viewType={params?.type}
+                    setScrollEnabled={item => {
+                      setScrollEnabled(item);
+                    }}
+                  />
+                </View>
+              );
+            }}
+            ListFooterComponent={() => {
+              return (
+                <>
+                  {/* {params?.type === 'edit' && isEdit && (
+                  <CustomButton
+                    extraStyle={styles.extraStyle}
+                    title={t('Update')}
+                    onPress={handleSubmit}
+                  />
+                )} */}
+                  {params?.type === 'create' ||
+                  (params?.type === 'edit' && isEdit) ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 20,
+                      }}>
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Save')}
+                        onPress={handleSave}
+                      />
+                      <CustomButton
+                        extraStyle={styles.extraStyle}
+                        title={t('Submit')}
+                        onPress={() => {
+                          params?.type === 'edit'
+                            ? handleSubmitEdit()
+                            : handleSubmit();
+                        }}
+                      />
+                    </View>
+                  ) : null}
+                </>
+              );
+            }}
+          />
+        )}
+
         {/* {Object.keys(sections).map((section, index) => {
           console.log('asdasdasd', index);
 
@@ -1386,6 +1537,11 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     },
     label: {
       ...commonFontStyle(400, fontValue + 16, colors.black),
+    },
+    selectionText: {
+      ...commonFontStyle(700, fontValue + 20, colors.black),
+      flex: 1,
+      marginVertical: 10,
     },
   });
 };

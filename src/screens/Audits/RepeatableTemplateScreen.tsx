@@ -558,7 +558,7 @@ const RepeatableTemplateScreen = () => {
     params?.type === 'view'
       ? templateData
       : templateData
-          .filter(field => !showFieldIds.includes(field.order))
+          .filter(field => !showFieldIds.includes(field.conditional_id))
           .filter(field => field?.repeatable == false)
           .forEach((field: any) => {
             const error = validateField(field, formValues[field.id]);
@@ -961,7 +961,9 @@ const RepeatableTemplateScreen = () => {
                     return formValues[field.id];
                   }
                 })
-              : sections.filter(field => !showFieldIds.includes(field.order))
+              : sections.filter(
+                  field => !showFieldIds.includes(field.conditional_id),
+                )
           }
           keyExtractor={item => item.id}
           scrollEnabled={scrollEnabled}
@@ -971,7 +973,7 @@ const RepeatableTemplateScreen = () => {
           }}
           renderItem={({item}: any) => {
             const isAllIncluded = showFieldIds?.every(order =>
-              sections.some(field => field.order === order),
+              sections.some(field => field.conditional_id === order),
             );
 
             return (

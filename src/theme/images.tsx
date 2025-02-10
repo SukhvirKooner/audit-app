@@ -2,6 +2,7 @@ export const Icons = {
   user: require('../assets/Icons/user.png'),
   logo: require('../assets/Icons/logo.png'),
   login: require('../assets/Icons/login.png'),
+  down: require('../assets/Icons/down.png'),
   email: require('../assets/Icons/email.png'),
   lock: require('../assets/Icons/lock.png'),
   add_user: require('../assets/Icons/add_user.png'),

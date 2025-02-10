@@ -83,7 +83,7 @@ export const getAuditsDetails =
         }
       })
       .catch(error => {
-        handleErrorRes(error, onFailure, dispatch);
+        // handleErrorRes(error, onFailure, dispatch);
         dispatch({type: IS_LOADING, payload: false});
       });
   };
@@ -227,7 +227,7 @@ export const getGroupsList =
         }
       })
       .catch(error => {
-        handleErrorRes(error, onFailure, dispatch);
+        // handleErrorRes(error, onFailure, dispatch);
         dispatch({type: IS_LOADING, payload: false});
       });
   };

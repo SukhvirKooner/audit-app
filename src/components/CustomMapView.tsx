@@ -51,19 +51,21 @@ const CustomMapView = ({
   }, []);
 
   useEffect(() => {
-    mapCameraRef?.current?.setCamera({
-      center: {
-        latitude: latitude,
-        longitude: longitude,
-        latitudeDelta: 28.679079,
-        longitudeDelta: 77.06971,
-      },
-      zoom: 10, // Adjust zoom level
-      animation: {
-        duration: 1000, // Duration of the animation
-        easing: () => {},
-      },
-    });
+    if (mapCameraRef?.current && latitude && longitude) {
+      mapCameraRef?.current?.setCamera({
+        center: {
+          latitude: latitude,
+          longitude: longitude,
+          latitudeDelta: 28.679079,
+          longitudeDelta: 77.06971,
+        },
+        zoom: 10, // Adjust zoom level
+        animation: {
+          duration: 1000, // Duration of the animation
+          easing: () => {},
+        },
+      });
+    }
   }, [latitude, longitude]);
 
   return (
@@ -102,19 +104,21 @@ const CustomMapView = ({
           }}
           onMapReady={() => {
             // setIsMapLoaded(true);
-            mapCameraRef?.current?.setCamera({
-              center: {
-                latitude: Number(formValues[field.id]?.split(',')[0]),
-                longitude: Number(formValues[field.id]?.split(',')[1]),
-                latitudeDelta: 28.679079,
-                longitudeDelta: 77.06971,
-              },
-              zoom: 11, // Adjust zoom level
-              animation: {
-                duration: 1000, // Duration of the animation
-                easing: () => {},
-              },
-            });
+            if (mapCameraRef?.current && latitude && longitude) {
+              mapCameraRef?.current?.setCamera({
+                center: {
+                  latitude: Number(formValues[field.id]?.split(',')[0]),
+                  longitude: Number(formValues[field.id]?.split(',')[1]),
+                  latitudeDelta: 28.679079,
+                  longitudeDelta: 77.06971,
+                },
+                zoom: 11, // Adjust zoom level
+                animation: {
+                  duration: 1000, // Duration of the animation
+                  easing: () => {},
+                },
+              });
+            }
           }}
           style={{flex: 1}}>
           {formValues[field.id] && (

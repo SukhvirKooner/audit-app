@@ -572,6 +572,8 @@ const TemplateRenderItem = ({
           </>
         );
       case 'location':
+        console.log('formValues[field.id]', formValues[field.id]);
+
         return (
           <>
             {field.label === 'Current Location' ? null : (
@@ -636,13 +638,11 @@ const TemplateRenderItem = ({
                 )} */}
                 <CustomMapView
                   isEdit={isEdit}
-                  latitude={Number(formValues[field.id]?.split(',')[0]) || 0}
-                  longitude={Number(formValues[field.id]?.split(',')[1]) || 0}
+                  latitude={Number(formValues[field.id]?.split(',')?.[0]) || 0}
+                  longitude={Number(formValues[field.id]?.split(',')?.[1]) || 0}
                   field={field}
                   formValues={formValues}
                   handleInputChange={(latitude, longitude) => {
-                    console.log('latitude, longitude', latitude, longitude);
-
                     handleInputChange(field.id, `${latitude},${longitude}`);
                   }}
                 />
@@ -1092,7 +1092,7 @@ const TemplateRenderItem = ({
             ) : (
               <CustomImage
                 uri={api.BASE_URL_VIEW + formValues?.[field.id]?.[0]?.url}
-                imageStyle={{width: wp(30), height: hp(20), top: 25}}
+                imageStyle={{width: wp(30), height: hp(20), top: 10}}
                 containerStyle={{
                   ...styles.imageContainer,
                   justifyContent: 'center',
