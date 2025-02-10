@@ -22,4 +22,4 @@ export const PATCH = 'PATCH';
 export const DELETE = 'DELETE';
 export const PUT = 'PUT';
 
-export const GOOGLE_API_KEY = 'AIzaSyBBixSdj8L9FYlqMmiBFzj89WaZnzK4etY';
+export const GOOGLE_API_KEY = 'AIzaSyBrPy0zdOAdRZdw9fWWZWWkeVb9KUpTQHU';
