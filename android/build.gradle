@@ -22,4 +22,10 @@ buildscript {
     }
 }
 
+allprojects{
+    repositories{
+        maven { url 'https://maven.mappls.com/repository/mappls/'}
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"

@@ -6,6 +6,7 @@ export const Icons = {
   email: require('../assets/Icons/email.png'),
   lock: require('../assets/Icons/lock.png'),
   add_user: require('../assets/Icons/add_user.png'),
+  ic_pin: require('../assets/Icons/ic_pin.png'),
   cross: require('../assets/Icons/cross.png'),
   view: require('../assets/Icons/view.png'),
   hide: require('../assets/Icons/hide.png'),
