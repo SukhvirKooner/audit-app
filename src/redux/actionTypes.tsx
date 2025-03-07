@@ -1,4 +1,7 @@
 export const IS_LOADING = 'IS_LOADING';
+export const IS_LOADING_NEW = 'IS_LOADING_NEW';
+export const IS_LOADING_SINGLE = 'IS_LOADING_SINGLE';
+export const IS_LOADING_MULTI = 'IS_LOADING_MULTI';
 
 export const SET_APP_THEME = 'SET_APP_THEME';
 

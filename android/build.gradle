@@ -5,7 +5,7 @@ buildscript {
         compileSdkVersion = 35
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
-        kotlinVersion = "1.9.24"
+         kotlinVersion = "1.9.24"
         googlePlayServicesVersion = "21.0.1"
 //        googlePlayServicesIidVersion = "17.0.0" //add this line
     }
@@ -25,6 +25,12 @@ buildscript {
 allprojects{
     repositories{
         maven { url 'https://maven.mappls.com/repository/mappls/'}
+    }
+     configurations.all {
+        resolutionStrategy {
+            force 'androidx.appcompat:appcompat:1.6.1'
+            force 'com.google.android.material:material:1.6.1'
+        }
     }
 }
 

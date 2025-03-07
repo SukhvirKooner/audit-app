@@ -4,6 +4,7 @@ import Modal from 'react-native-modal';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import CustomImage from './CustomImage';
 import {Icons} from '../theme/images';
+import {openImagePicker1} from '../utils/commonFunction';
 
 interface Props {
   onImageSelected: (value: any) => void;
@@ -11,12 +12,19 @@ interface Props {
   onClose: (value: boolean) => void;
 }
 
-const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
+const ImageSelectionModal = ({
+  onImageSelected,
+  onClose,
+  isVisible,
+  fileData,
+}: Props) => {
   const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     setModalVisible(isVisible);
   }, [isVisible]);
+
+  console.log('fileData', fileData);
 
   const handleCamera = () => {
     launchCamera(
@@ -80,6 +88,27 @@ const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
     );
   };
 
+  const handleGalleryLocation = () => {
+    openImagePicker1({
+      onSucess: res => {
+        console.log('res', res);
+
+        const newI = {
+          uri: res?.uri,
+          base64: res?.base64,
+          type: res?.type,
+        };
+        console.log('newI', newI);
+
+        onImageSelected([newI]);
+        closeModal();
+      },
+      onFail: () => {
+        closeModal();
+      },
+    });
+  };
+
   const closeModal = () => {
     setModalVisible(false);
     onClose(false);
@@ -100,7 +129,13 @@ const ImageSelectionModal = ({onImageSelected, onClose, isVisible}: Props) => {
           <Text style={styles.buttonText}>Open Camera</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleGallery}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            fileData?.location_on_photo
+              ? handleGalleryLocation()
+              : handleGallery();
+          }}>
           <Text style={styles.buttonText}>Open Gallery</Text>
         </TouchableOpacity>
 

@@ -135,8 +135,6 @@ const groupBySection = (data: FormField[]) => {
   }
 
   return data.reduce<Record<string, FormField[]>>((sections, field) => {
-    console.log('sections', sections);
-    console.log('fieldfieldfieldfieldfield', field);
     const {section_heading}: any = field;
     if (!sections[section_heading]) {
       sections[section_heading] = [];
@@ -252,6 +250,7 @@ const TemplateScreen = () => {
   const [imageSource, setImageSource] = useState<any>(null);
   const [auditResponse, setAuditResponse] = useState<any>(null);
   console.log('params?.typeparams?.typeparams?.type', params?.type);
+  console.log('currentLocation', currentLocation);
 
   useEffect(() => {
     setTimeout(() => {
@@ -855,9 +854,9 @@ const TemplateScreen = () => {
     }
   };
 
-  const onUploadImage = async (data: any) => {
+  const onUploadImage = async (data: any, selectId) => {
     dispatch({type: IS_LOADING, payload: true});
-    const newFormValues = formValues[selectFieldId] || [];
+    const newFormValues = formValues[selectId] || [];
     const uploadLinks = [...newFormValues];
 
     for (const image of data) {
@@ -865,7 +864,7 @@ const TemplateScreen = () => {
         const obj = {
           audit: params?.auditItem?.id,
           filled_by: userInfo?.id,
-          template_field: selectFieldId,
+          template_field: selectId,
           image: `data:${image.type};base64,${image?.base64}`,
         };
         const linkData = await uploadImage(obj);
@@ -884,7 +883,7 @@ const TemplateScreen = () => {
       };
     });
 
-    handleInputChange(selectFieldId, newValue);
+    handleInputChange(selectId, newValue);
     dispatch({type: IS_LOADING, payload: false});
     // console.log('uploadLinks', newValue);
   };
@@ -1298,6 +1297,7 @@ const TemplateScreen = () => {
                             selectValue={selectValue}
                             params={params}
                             formValues={formValues}
+                            currentLocation={currentLocation}
                             getAddress={getAddress}
                             formErrors={formErrors}
                             handleDeleteImage={handleDeleteImage}

@@ -58,18 +58,48 @@ export const makeAPIRequest = ({
       });
   });
 
-export const setAuthorization = async (authToken: any) => {
-  const token = await getAsyncToken();
-  console.log('token', token);
-  console.log('authToken', authToken);
+export const makeAPIRequestNew = ({
+  method,
+  url,
+  data,
+  headers,
+  params,
+}: makeAPIRequestProps) =>
+  new Promise((resolve, reject) => {
+    const option = {
+      method,
+      url,
+      data,
+      headers,
+      params,
+    };
+    console.log('<===option==>', option);
+    axios(option)
+      .then((response: any) => {
+        // console.log('response-->', response);
+        if (response.status === 200 || response.status === 201) {
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      })
+      .catch((error: any) => {
+        console.log('error?.response?', error?.response);
+        reject(error);
+      });
+  });
 
-  if (authToken === '') {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-  }
-  axios.defaults.headers.common['Cookie'] =
-    'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS';
+export const setAuthorization = async (authToken: any) => {
+  // const token = await getAsyncToken();
+  // console.log('token', token);
+  // console.log('authToken', authToken);
+  // if (authToken === '') {
+  //   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  // } else {
+  //   axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+  // }
+  // axios.defaults.headers.common['Cookie'] =
+  //   'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS';
 };
 
 export const removeAuthorization = async () => {

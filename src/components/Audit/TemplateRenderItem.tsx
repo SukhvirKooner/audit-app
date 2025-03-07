@@ -38,11 +38,19 @@ import SignatureScreen from 'react-native-signature-canvas';
 import SignatureExample from '../SignatureExample';
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
-import {uploadImage} from '../../service/AuditService';
+import {getDropDownListAction, uploadImage} from '../../service/AuditService';
 import PdfView from '../PdfView';
-import {errorToast, navigateTo} from '../../utils/commonFunction';
+import {
+  errorToast,
+  navigateTo,
+  openImagePicker1,
+} from '../../utils/commonFunction';
 import {screenNames, SCREENS} from '../../navigation/screenNames';
 import {navigationRef} from '../../navigation/RootContainer';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import CustomDropDownView from '../CustomDropDownView';
+import MultiDropDownView from '../MultiDropDownView';
+import SingleDropDownView from '../SingleDropDownView';
 
 // Define types for field options and validation rules
 interface ValidationRule {
@@ -126,12 +134,18 @@ const TemplateRenderItem = ({
   handlesConditionalFieldsRemove,
   handlesConditionalFieldsss,
   onRepeatableViewPress,
+  currentLocation,
 }: TemplateRenderItemProps) => {
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
 
   const [checkBox, setCheckBox] = useState('');
   const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [selectField, setSelectField] = useState('');
+  // const [selectID, setSelectID] = useState('');
+  let selectID = useRef();
+
+  console.log('selectID', selectID.current);
 
   const styles = React.useMemo(
     () => getGlobalStyles({colors, fontValue}),
@@ -278,6 +292,79 @@ const TemplateRenderItem = ({
     // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
   };
 
+  const handleCamera = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        includeBase64: true,
+        maxHeight: 800,
+        maxWidth: 800,
+        quality: 1,
+      },
+      (response: any) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.error('Image Picker Error:', response.errorMessage);
+        } else {
+          const {uri, base64, type} = response.assets[0];
+          const newI = {
+            uri: uri,
+            base64: base64,
+            type: type,
+          };
+          onUploadImage([newI], selectID.current);
+        }
+      },
+    );
+  };
+
+  const handleGallery = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: true,
+        maxHeight: 800,
+        maxWidth: 800,
+        quality: 1,
+        selectionLimit: 5,
+      },
+      (response: any) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.error('Image Picker Error:', response.errorMessage);
+        } else {
+          const newData = response.assets?.map((item: any) => {
+            return {
+              uri: item.uri,
+              base64: item.base64,
+              type: item.type,
+            };
+          });
+          console.log('newData', newData);
+          onUploadImage(newData, selectID.current);
+        }
+      },
+    );
+  };
+
+  const handleGalleryLocation = () => {
+    openImagePicker1({
+      onSucess: res => {
+        console.log('res', res);
+
+        const newI = {
+          uri: res?.uri,
+          base64: res?.base64,
+          type: res?.type,
+        };
+        console.log('newI', newI);
+        onUploadImage([newI], selectID.current);
+      },
+    });
+  };
+
   const renderField = (field: FormField | any) => {
     switch (field.field_type) {
       case 'heading':
@@ -307,6 +394,7 @@ const TemplateRenderItem = ({
                 }}
               />
             </TouchableOpacity>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -330,6 +418,7 @@ const TemplateRenderItem = ({
               editable={isEdit}
               placeholderTextColor={colors.gray}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -350,6 +439,7 @@ const TemplateRenderItem = ({
               multiline
               textAlignVertical="top"
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -368,92 +458,184 @@ const TemplateRenderItem = ({
               editable={isEdit}
               placeholderTextColor={colors.gray}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
       case 'dropdown':
+        console.log('dropdown dropdown', formValues);
+
+        if (field.options?.selection_type === 'multiple') {
+          return (
+            <>
+              <MultiDropDownView
+                isEdit={isEdit}
+                field={field}
+                formValues={formValues}
+                handleInputChangeMultiple={(id, value, item) => {
+                  handleInputChange(id, value, 'multiple');
+                }}
+                currentLocationNew={currentLocation}
+              />
+              <Text style={styles.remarkText}>{field?.remark}</Text>
+              {renderError(field.id)}
+            </>
+          );
+        }
+
         return (
           <>
-            {field.options?.selection_type === 'multiple' ? (
-              <MultiSelect
-                disable={!isEdit}
-                style={{
-                  ...styles.dropdown,
-                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                }}
-                data={
-                  field.options?.choices?.map((choice: any) => ({
-                    label: choice,
-                    value: choice,
-                  })) || []
-                }
-                labelField="label"
-                valueField="value"
-                dropdownPosition="auto"
-                placeholder={field.label}
-                value={formValues[field.id] ?? []}
-                onChange={item => handleInputChange(field.id, item, 'multiple')}
-                placeholderStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                selectedTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-              />
-            ) : (
-              <Dropdown
-                disable={!isEdit}
-                style={{
-                  ...styles.dropdown,
-                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                }}
-                data={
-                  field.options?.choices?.map((choice: any) => ({
-                    label: choice,
-                    value: choice,
-                  })) || []
-                }
-                containerStyle={{
-                  borderRadius: 10,
-                  marginTop: 10,
-                }}
-                dropdownPosition="auto"
-                labelField="label"
-                valueField="value"
-                placeholder={field.label}
-                value={formValues[field.id]}
-                onChange={item => {
-                  if (
-                    formValues[field.id] == undefined ||
-                    formValues[field.id] !== item.value
-                  ) {
-                    handleInputChange(field.id, item.value);
-                    if (
-                      field.conditional_fields[0]?.condition_value == item.value
-                    ) {
-                      handlesConditionalFieldsss(
-                        field.id,
-                        field.conditional_fields[0]?.show_fields,
-                      );
-                    } else {
-                      handlesConditionalFieldsRemove(
-                        field.id,
-                        field.conditional_fields[0]?.show_fields,
-                      );
-                    }
-                  }
-                }}
-                placeholderStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                selectedTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-              />
-            )}
+            <SingleDropDownView
+              isEdit={isEdit}
+              field={field}
+              formValues={formValues}
+              handleInputChange={(id, value) => {
+                handleInputChange(id, value);
+              }}
+              handlesConditionalFieldsss={handlesConditionalFieldsss}
+              handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
+              currentLocationNew={currentLocation}
+            />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
+
+        // return (
+        //   <>
+        //     {field.options?.selection_type === 'multiple' ? (
+        //       <MultiSelect
+        //         disable={!isEdit}
+        //         style={{
+        //           ...styles.dropdown,
+        //           backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+        //         }}
+        //         data={
+        //           field.options?.choices?.map((choice: any) => ({
+        //             label: choice,
+        //             value: choice,
+        //           })) || []
+        //         }
+        //         labelField="label"
+        //         valueField="value"
+        //         dropdownPosition="auto"
+        //         placeholder={field.label}
+        //         value={formValues[field.id] ?? []}
+        //         onChange={item => handleInputChange(field.id, item, 'multiple')}
+        //         itemContainerStyle={{backgroundColor: colors.modalBg}}
+        //         placeholderStyle={{
+        //           ...commonFontStyle(400, 16, colors.black),
+        //         }}
+        //         itemTextStyle={{
+        //           ...commonFontStyle(400, 16, colors.black),
+        //         }}
+        //         selectedTextStyle={{
+        //           ...commonFontStyle(400, 16, colors.black),
+        //         }}
+        //       />
+        //     ) : (
+        //       <Dropdown
+        //         disable={!isEdit}
+        //         style={{
+        //           ...styles.dropdown,
+        //           backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+        //         }}
+        //         data={
+        //           field.options?.choices?.map((choice: any) => ({
+        //             label: choice,
+        //             value: choice,
+        //           })) || []
+        //         }
+        //         containerStyle={{
+        //           borderRadius: 10,
+        //           marginTop: 10,
+        //         }}
+        //         dropdownPosition="auto"
+        //         labelField="label"
+        //         valueField="value"
+        //         placeholder={field.label}
+        //         value={formValues[field.id]}
+        //         itemContainerStyle={{backgroundColor: colors.modalBg}}
+        //         itemTextStyle={{
+        //           ...commonFontStyle(400, 16, colors.black),
+        //         }}
+        //         onChange={item => {
+        //           if (
+        //             formValues[field.id] == undefined ||
+        //             formValues[field.id] !== item.value
+        //           ) {
+        //             handleInputChange(field.id, item.value);
+        //             if (
+        //               field.conditional_fields[0]?.condition_value == item.value
+        //             ) {
+        //               handlesConditionalFieldsss(
+        //                 field.id,
+        //                 field.conditional_fields[0]?.show_fields,
+        //               );
+        //             } else {
+        //               handlesConditionalFieldsRemove(
+        //                 field.id,
+        //                 field.conditional_fields[0]?.show_fields,
+        //               );
+        //             }
+        //           }
+        //         }}
+        //         placeholderStyle={{
+        //           ...commonFontStyle(400, 16, colors.black),
+        //         }}
+        //         selectedTextStyle={{
+        //           ...commonFontStyle(400, 16, colors.black),
+        //         }}
+        //       />
+        //     )}
+        //     <Text style={styles.remarkText}>{field?.remark}</Text>
+        //     {renderError(field.id)}
+        //   </>
+        // );
+        return (
+          <>
+            {/* <CustomDropDownView
+              isEdit={isEdit}
+              field={field}
+              currentLocationNew={currentLocation}
+              formValues={formValues}
+              handlesConditionalFieldsss={handlesConditionalFieldsss}
+              handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
+              handleInputChange={(id, value) => {
+                handleInputChange(id, value);
+              }}
+              handleInputChangeMultiple={(id, value, item) => {
+                handleInputChange(id, value, 'multiple');
+              }}
+            /> */}
+            {/* {field.options?.selection_type === 'multiple' ? (
+              <MultiDropDownView
+                isEdit={isEdit}
+                field={field}
+                formValues={formValues}
+                handleInputChangeMultiple={(id, value, item) => {
+                  handleInputChange(id, value, 'multiple');
+                }}
+                currentLocationNew={currentLocation}
+              />
+            ) : (
+              <SingleDropDownView
+                isEdit={isEdit}
+                field={field}
+                formValues={formValues}
+                handleInputChange={(id, value) => {
+                  handleInputChange(id, value);
+                }}
+                handlesConditionalFieldsss={handlesConditionalFieldsss}
+                handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
+                currentLocationNew={currentLocation}
+              />
+            )}
+            <Text style={styles.remarkText}>{field?.remark}</Text>
+            {renderError(field.id)} */}
+          </>
+        );
+
       case 'image':
         return (
           <>
@@ -504,7 +686,20 @@ const TemplateRenderItem = ({
                       disabled={!isEdit}
                       onPress={() => {
                         setSelectFieldId(field.id);
-                        setImageModal(true);
+                        // setSelectID(field.id);
+                        selectID.current = field.id;
+                        if (field?.other?.photo_taken_from == 'files') {
+                          if (field?.other?.location_on_photo) {
+                            handleGalleryLocation();
+                          } else {
+                            handleGallery();
+                          }
+                        } else if (field?.other?.photo_taken_from == 'camera') {
+                          handleCamera();
+                        } else {
+                          setSelectField(field?.other);
+                          setImageModal(true);
+                        }
                       }}
                       style={styles.imageContainer}>
                       <CustomText
@@ -516,7 +711,7 @@ const TemplateRenderItem = ({
                 </>
               )}
             />
-
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -568,6 +763,7 @@ const TemplateRenderItem = ({
                 )}
               </TouchableOpacity>
             )}
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -637,9 +833,9 @@ const TemplateRenderItem = ({
                   </MapView>
                 )} */}
                 <CustomMapView
-                  isEdit={isEdit}
                   latitude={Number(formValues[field.id]?.split(',')?.[0]) || 0}
                   longitude={Number(formValues[field.id]?.split(',')?.[1]) || 0}
+                  isEdit={isEdit}
                   field={field}
                   formValues={formValues}
                   handleInputChange={(latitude, longitude) => {
@@ -665,7 +861,7 @@ const TemplateRenderItem = ({
               )} */}
               </View>
             )}
-
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {field.label === 'Current Location' ? null : renderError(field.id)}
           </>
         );
@@ -714,6 +910,7 @@ const TemplateRenderItem = ({
                 setOpen(false);
               }}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -766,6 +963,7 @@ const TemplateRenderItem = ({
                 setTimeOpen(false);
               }}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -862,6 +1060,7 @@ const TemplateRenderItem = ({
                 />
               </TouchableOpacity>
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -907,6 +1106,7 @@ const TemplateRenderItem = ({
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -950,6 +1150,7 @@ const TemplateRenderItem = ({
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -990,6 +1191,7 @@ const TemplateRenderItem = ({
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -1008,6 +1210,7 @@ const TemplateRenderItem = ({
                 }}
               />
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -1100,6 +1303,7 @@ const TemplateRenderItem = ({
                 }}
               />
             )}
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -1138,9 +1342,10 @@ const TemplateRenderItem = ({
       {renderField(fields)}
       <ImageSelectionModal
         isVisible={imageModal}
+        fileData={selectField}
         onImageSelected={(value: any) => {
           // setImageSource(value);
-          onUploadImage(value);
+          onUploadImage(value, selectID.current);
           // handleInputChange(selectFieldId, value, 'image');
         }}
         onClose={setImageModal}
@@ -1196,6 +1401,10 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     },
     sectionTitle1: {
       ...commonFontStyle(400, fontValue + 15, colors.black),
+    },
+    remarkText: {
+      ...commonFontStyle(400, fontValue + 15, colors.black),
+      marginTop: 12,
     },
     field: {
       // marginBottom: 15,

@@ -9,7 +9,11 @@ import {
   setAuthorization,
 } from '../utils/apiGlobal';
 import {api, GET, POST} from '../utils/apiConstants';
-import {setAsyncToken, setAsyncUserInfo} from '../utils/asyncStorageManager';
+import {
+  getAsyncToken,
+  setAsyncToken,
+  setAsyncUserInfo,
+} from '../utils/asyncStorageManager';
 import {resetNavigation, successToast} from '../utils/commonFunction';
 import {SCREENS} from '../navigation/screenNames';
 import {navigationRef} from '../navigation/RootContainer';
@@ -85,9 +89,15 @@ export const getUserDetails =
     onFailure,
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
+
     return makeAPIRequest({
       method: GET,
       url: api.user,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});

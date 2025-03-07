@@ -21,6 +21,7 @@ export const Icons = {
   delete_user: require('../assets/Icons/delete_user.png'),
   notification: require('../assets/Icons/notification.png'),
   close: require('../assets/Icons/close.png'),
+  metadata: require('../assets/Icons/metadata.png'),
   ic_notification: require('../assets/Icons/ic_notification.png'),
   ic_search: require('../assets/Icons/ic_search.png'),
   ic_back: require('../assets/Icons/ic_back.png'),

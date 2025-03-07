@@ -39,9 +39,14 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import {uploadImage} from '../../service/AuditService';
 import PdfView from '../PdfView';
-import {errorToast, navigateTo} from '../../utils/commonFunction';
+import {
+  errorToast,
+  navigateTo,
+  openImagePicker1,
+} from '../../utils/commonFunction';
 import {screenNames, SCREENS} from '../../navigation/screenNames';
 import {navigationRef} from '../../navigation/RootContainer';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
 // Define types for field options and validation rules
 interface ValidationRule {
@@ -147,6 +152,12 @@ const RepeatableTemplateRenderItem = ({
   const [selectedPdf, setSelectedPdf] = useState<any>(null);
   // const [isMapLoaded, setIsMapLoaded] = useState(true);
 
+  const [selectField, setSelectField] = useState('');
+  // const [selectID, setSelectID] = useState('');
+  let selectID = useRef();
+
+  console.log('selectID', selectID.current);
+
   const renderError = (fieldId: number) => {
     if (formErrors[fieldId]) {
       return <Text style={styles.errorText}>{formErrors[fieldId]}</Text>;
@@ -199,6 +210,79 @@ const RepeatableTemplateRenderItem = ({
       });
       dispatch({type: IS_LOADING, payload: false});
     }
+  };
+
+  const handleCamera = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        includeBase64: true,
+        maxHeight: 800,
+        maxWidth: 800,
+        quality: 1,
+      },
+      (response: any) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.error('Image Picker Error:', response.errorMessage);
+        } else {
+          const {uri, base64, type} = response.assets[0];
+          const newI = {
+            uri: uri,
+            base64: base64,
+            type: type,
+          };
+          onUploadImage([newI], selectID.current);
+        }
+      },
+    );
+  };
+
+  const handleGallery = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: true,
+        maxHeight: 800,
+        maxWidth: 800,
+        quality: 1,
+        selectionLimit: 5,
+      },
+      (response: any) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.error('Image Picker Error:', response.errorMessage);
+        } else {
+          const newData = response.assets?.map((item: any) => {
+            return {
+              uri: item.uri,
+              base64: item.base64,
+              type: item.type,
+            };
+          });
+          console.log('newData', newData);
+          onUploadImage(newData, selectID.current);
+        }
+      },
+    );
+  };
+
+  const handleGalleryLocation = () => {
+    openImagePicker1({
+      onSucess: res => {
+        console.log('res', res);
+
+        const newI = {
+          uri: res?.uri,
+          base64: res?.base64,
+          type: res?.type,
+        };
+        console.log('newI', newI);
+        onUploadImage([newI], selectID.current);
+      },
+    });
   };
 
   const pickDocument = async selectFieldId => {
@@ -272,6 +356,7 @@ const RepeatableTemplateRenderItem = ({
                 }}
               />
             </TouchableOpacity>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -295,6 +380,7 @@ const RepeatableTemplateRenderItem = ({
               editable={isEdit}
               placeholderTextColor={colors.gray}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -315,6 +401,7 @@ const RepeatableTemplateRenderItem = ({
               multiline
               textAlignVertical="top"
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -333,6 +420,7 @@ const RepeatableTemplateRenderItem = ({
               editable={isEdit}
               placeholderTextColor={colors.gray}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -355,6 +443,10 @@ const RepeatableTemplateRenderItem = ({
                 labelField="label"
                 valueField="value"
                 dropdownPosition="auto"
+                itemContainerStyle={{backgroundColor: colors.modalBg}}
+                itemTextStyle={{
+                  ...commonFontStyle(400, 16, colors.black),
+                }}
                 placeholder={field.label}
                 value={formValues[field.id] ?? []}
                 onChange={item => handleInputChange(field.id, item, 'multiple')}
@@ -381,6 +473,10 @@ const RepeatableTemplateRenderItem = ({
                 containerStyle={{
                   borderRadius: 10,
                   marginTop: 10,
+                }}
+                itemContainerStyle={{backgroundColor: colors.modalBg}}
+                itemTextStyle={{
+                  ...commonFontStyle(400, 16, colors.black),
                 }}
                 dropdownPosition="auto"
                 labelField="label"
@@ -416,6 +512,7 @@ const RepeatableTemplateRenderItem = ({
                 }}
               />
             )}
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -469,9 +566,26 @@ const RepeatableTemplateRenderItem = ({
                   {isEdit && (
                     <TouchableOpacity
                       disabled={!isEdit}
+                      // onPress={() => {
+                      //   setSelectFieldId(field.id);
+                      //   setImageModal(true);
+                      // }}
                       onPress={() => {
                         setSelectFieldId(field.id);
-                        setImageModal(true);
+                        // setSelectID(field.id);
+                        selectID.current = field.id;
+                        if (field?.other?.photo_taken_from == 'files') {
+                          if (field?.other?.location_on_photo) {
+                            handleGalleryLocation();
+                          } else {
+                            handleGallery();
+                          }
+                        } else if (field?.other?.photo_taken_from == 'camera') {
+                          handleCamera();
+                        } else {
+                          setSelectField(field?.other);
+                          setImageModal(true);
+                        }
                       }}
                       style={styles.imageContainer}>
                       <CustomText
@@ -483,7 +597,7 @@ const RepeatableTemplateRenderItem = ({
                 </>
               )}
             />
-
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -535,6 +649,7 @@ const RepeatableTemplateRenderItem = ({
                 )}
               </TouchableOpacity>
             )}
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -632,7 +747,7 @@ const RepeatableTemplateRenderItem = ({
               )} */}
               </View>
             )}
-
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {field.label === 'Current Location' ? null : renderError(field.id)}
           </>
         );
@@ -681,6 +796,7 @@ const RepeatableTemplateRenderItem = ({
                 setOpen(false);
               }}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -733,6 +849,7 @@ const RepeatableTemplateRenderItem = ({
                 setTimeOpen(false);
               }}
             />
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -790,6 +907,7 @@ const RepeatableTemplateRenderItem = ({
                 />
               </TouchableOpacity>
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -835,6 +953,7 @@ const RepeatableTemplateRenderItem = ({
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -878,6 +997,7 @@ const RepeatableTemplateRenderItem = ({
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -918,6 +1038,7 @@ const RepeatableTemplateRenderItem = ({
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -936,6 +1057,7 @@ const RepeatableTemplateRenderItem = ({
                 }}
               />
             </View>
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -1028,6 +1150,7 @@ const RepeatableTemplateRenderItem = ({
                 }}
               />
             )}
+            <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
         );
@@ -1066,9 +1189,10 @@ const RepeatableTemplateRenderItem = ({
       {renderField(fields)}
       <ImageSelectionModal
         isVisible={imageModal}
+        fileData={selectField}
         onImageSelected={(value: any) => {
           // setImageSource(value);
-          onUploadImage(value);
+          onUploadImage(value, selectID.current);
           // handleInputChange(selectFieldId, value, 'image');
         }}
         onClose={setImageModal}

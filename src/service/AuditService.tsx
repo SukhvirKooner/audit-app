@@ -4,6 +4,7 @@ import {AnyAction} from 'redux';
 import {
   handleErrorRes,
   makeAPIRequest,
+  makeAPIRequestNew,
   setAuthorization,
 } from '../utils/apiGlobal';
 import {api, GET, POST, PUT} from '../utils/apiConstants';
@@ -34,9 +35,14 @@ export const getAudits =
     onFailure,
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
     return makeAPIRequest({
       method: GET,
       url: api.audits,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -70,9 +76,15 @@ export const getAuditsDetails =
     onFailure,
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
+
     return makeAPIRequest({
       method: GET,
       url: api.audits + data?.id + api.audits_details,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -97,10 +109,14 @@ export const getAuditsDetailsByID =
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
     // dispatch({type: IS_LOADING, payload: true});
-
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
     return makeAPIRequest({
       method: GET,
       url: api.audits_details_id + data,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -126,13 +142,17 @@ export const createAudits =
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
     dispatch({type: IS_LOADING, payload: true});
-
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
     console.log('datadatadatadatadatadata', data);
 
     return makeAPIRequest({
       method: POST,
       url: api.audits_details_id,
       data: data,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -158,11 +178,15 @@ export const editAudits =
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
     dispatch({type: IS_LOADING, payload: true});
-
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
     return makeAPIRequest({
       method: PUT,
       url: api.audits_details_id + data?.response_id + '/',
       data: data,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -186,10 +210,14 @@ export const getTemplate =
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
     dispatch({type: IS_LOADING, payload: true});
-
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
     return makeAPIRequest({
       method: GET,
       url: api.templates + data?.id + '/',
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -212,10 +240,14 @@ export const getGroupsList =
   }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
   async dispatch => {
     dispatch({type: IS_LOADING, payload: true});
-
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
     return makeAPIRequest({
       method: GET,
       url: api.groups,
+      headers: header,
     })
       .then(async (response: any) => {
         dispatch({type: IS_LOADING, payload: false});
@@ -234,11 +266,16 @@ export const getGroupsList =
 
 export const uploadImage = async (data: any) => {
   // dispatch({type: IS_LOADING, payload: true});
-
+  console.log('uploadImagedata', data);
+  let header = {
+    Authorization: await getAsyncToken(),
+    Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+  };
   return makeAPIRequest({
     method: POST,
     url: api.upload_image,
     data: data,
+    headers: header,
   })
     .then(async (response: any) => {
       // dispatch({type: IS_LOADING, payload: false});
@@ -247,6 +284,8 @@ export const uploadImage = async (data: any) => {
     })
     .catch(error => {
       // handleErrorRes(error, onFailure, dispatch);
+      console.log('errorerrorerrorerror', error?.response);
+
       if (error?.message) {
         errorToast(error?.message);
       } else {
@@ -255,3 +294,49 @@ export const uploadImage = async (data: any) => {
       // dispatch({type: IS_LOADING, payload: false});
     });
 };
+
+export const tokenDropDownListAction =
+  ({
+    data,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    console.log('tokenDropDownListAction');
+
+    return makeAPIRequestNew({
+      method: POST,
+      url: data?.endpoint,
+      data: data?.body,
+      headers: data?.header,
+    })
+      .then(async (response: any) => {
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {});
+  };
+
+export const getDropDownListAction =
+  ({
+    params,
+    data,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    console.log('tokenDropDownListAction111');
+
+    return makeAPIRequestNew({
+      method: GET,
+      url: data?.endpoint,
+      params: params,
+    })
+      .then(async (response: any) => {
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {});
+  };

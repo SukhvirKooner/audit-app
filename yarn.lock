@@ -3336,6 +3336,7 @@ __metadata:
     react-native-date-picker: ^5.0.7
     react-native-document-picker: ^9.3.1
     react-native-element-dropdown: ^2.12.2
+    react-native-exif: ^0.5.0
     react-native-fast-image: ^8.6.3
     react-native-fs: ^2.20.0
     react-native-geocoding: ^0.5.0
@@ -8883,6 +8884,13 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 4ac8962df350beb1a89d7994c4a96f06a5956f5ca7755e41b93c4d23873eedf4150903be74bbab8ebba9710da07c0c93ab29d2ff4345db797898ffef198bbadf
+  languageName: node
+  linkType: hard
+
+"react-native-exif@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "react-native-exif@npm:0.5.0"
+  checksum: c5e2b69478d196a2f67ad8cafb1950e9f5d952cdaac459bc8bd9ff12cbcf9b5692d46afdbe3fd56bdf6293b021bd18480c3fac8155429cca035fdd74c07d092f
   languageName: node
   linkType: hard
 

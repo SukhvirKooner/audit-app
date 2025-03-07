@@ -668,9 +668,9 @@ const RepeatableTemplateScreen = () => {
     }
   };
 
-  const onUploadImage = async (data: any) => {
+  const onUploadImage = async (data: any, selectId) => {
     dispatch({type: IS_LOADING, payload: true});
-    const newFormValues = formValues[selectFieldId] || [];
+    const newFormValues = formValues[selectId] || [];
     const uploadLinks = [...newFormValues];
 
     for (const image of data) {
@@ -678,7 +678,7 @@ const RepeatableTemplateScreen = () => {
         const obj = {
           audit: params?.audit,
           filled_by: userInfo?.id,
-          template_field: selectFieldId,
+          template_field: selectId,
           image: `data:${image.type};base64,${image?.base64}`,
         };
         const linkData = await uploadImage(obj);
@@ -697,7 +697,7 @@ const RepeatableTemplateScreen = () => {
       };
     });
 
-    handleInputChange(selectFieldId, newValue);
+    handleInputChange(selectId, newValue);
     dispatch({type: IS_LOADING, payload: false});
     // console.log('uploadLinks', newValue);
   };

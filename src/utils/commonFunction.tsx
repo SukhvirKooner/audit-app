@@ -127,3 +127,28 @@ export const commonApiCall = (dispatch: any) => {
   dispatch(getAudits({}));
   dispatch(getGroupsList({}));
 };
+
+import {NativeModules} from 'react-native';
+
+const {ImageMetadataModule} = NativeModules;
+
+export const openImagePicker1 = async ({params, onSucess, onFail}) => {
+  try {
+    const result = await ImageMetadataModule.openGooglePhotos();
+    const data = JSON.parse(result);
+    console.log('openImagePicker1', data);
+
+    let obj = {
+      ...data,
+      uri: data?.uri,
+      name: data?.fileName,
+      type: data?.fileType,
+      base64: data?.base64,
+    };
+
+    onSucess(obj);
+  } catch (error) {
+    onFail();
+    Alert.alert('Error', error.message);
+  }
+};

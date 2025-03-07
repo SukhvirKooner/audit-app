@@ -1,5 +1,8 @@
 import {
   IS_LOADING,
+  IS_LOADING_MULTI,
+  IS_LOADING_NEW,
+  IS_LOADING_SINGLE,
   SET_APP_THEME,
   SET_FONT_VALUE,
   SET_GROUP_LIST,
@@ -16,6 +19,8 @@ interface CommonState {
 
 const initialState: CommonState = {
   isLoading: false,
+  multiIsLoading: false,
+  singleIsLoading: false,
   isDarkTheme: false,
   fontValue: 0,
   userInfo: undefined,
@@ -26,6 +31,15 @@ export default function (state = initialState, action: any) {
   switch (action.type) {
     case IS_LOADING: {
       return {...state, isLoading: action.payload};
+    }
+    case IS_LOADING_NEW: {
+      return {...state, isLoading: action.payload};
+    }
+    case IS_LOADING_SINGLE: {
+      return {...state, singleIsLoading: action.payload};
+    }
+    case IS_LOADING_MULTI: {
+      return {...state, multiIsLoading: action.payload};
     }
     case SET_APP_THEME: {
       return {...state, isDarkTheme: action.payload};
