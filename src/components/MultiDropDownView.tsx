@@ -161,15 +161,16 @@ const MultiDropDownView = ({
       };
       dispatch(getDropDownListAction(requestObj));
     }
-  }, [currentLocation, field]);
+  }, [currentLocation, field?.options?.options_from_api]);
 
   useEffect(() => {
     dispatch({type: IS_LOADING_SINGLE, payload: true});
-
     if (isFocused) {
-      fetchDropdownList();
+      setTimeout(() => {
+        fetchDropdownList();
+      }, 100);
     }
-  }, [field, loading, isFocused, currentLocation]);
+  }, [field?.options?.options_from_api, loading, isFocused, currentLocation]);
 
   const onMultiSelectPress = () => {};
 

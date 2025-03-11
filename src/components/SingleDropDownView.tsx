@@ -57,6 +57,7 @@ const SingleDropDownView = ({
   handlesConditionalFieldDropDown,
   handleInputChangeMultiple,
   currentLocationNew,
+  repeatable,
 }: Props) => {
   const {fontValue, userInfo} = useAppSelector(state => state.common);
 
@@ -76,8 +77,6 @@ const SingleDropDownView = ({
   let newAPi = field?.options?.options_json?.dataApi;
   let authenticationAPi = field.options?.options_json?.authentication;
 
-  console.log('field?.options ', field?.options);
-  console.log('field?.options currentLocation', currentLocation);
   const getAddress = async (id: any) => {
     try {
       dispatch({type: IS_LOADING_NEW, payload: true});
@@ -100,8 +99,6 @@ const SingleDropDownView = ({
       console.log('error', error);
     }
   };
-
-  console.log('isFocused', isFocused);
 
   const fetchDropdownList = useCallback(() => {
     if (!field?.options?.options_from_api) return;
@@ -168,13 +165,15 @@ const SingleDropDownView = ({
       };
       dispatch(getDropDownListAction(requestObj));
     }
-  }, [currentLocation, field]);
+  }, [currentLocation, field?.options?.options_from_api]);
 
   useEffect(() => {
     if (isFocused) {
-      fetchDropdownList();
+      setTimeout(() => {
+        fetchDropdownList();
+      }, 500);
     }
-  }, [field, loading, isFocused, currentLocation]);
+  }, [field?.options?.options_from_api, loading, isFocused, currentLocation]);
 
   const onMultiSelectPress = () => {};
 
@@ -213,42 +212,46 @@ const SingleDropDownView = ({
               formValues[field.id] !== item.value
             ) {
               handleInputChange(field.id, item.value);
-              const matchedCondition = field.conditional_fields.find(
-                condition => condition.condition_value === item.value,
-              );
-              if (matchedCondition) {
-                const updatedShowFields = matchedCondition.show_fields.filter(
-                  fieldId => fieldId !== item.value,
-                );
-                handlesConditionalFieldDropDown(
-                  `${field.id}-${updatedShowFields}`,
-                  updatedShowFields,
-                );
+              if (repeatable) {
+                if (
+                  field.conditional_fields[0]?.condition_value == item.value
+                ) {
+                  handlesConditionalFieldsss(
+                    field.id,
+                    field.conditional_fields[0]?.show_fields,
+                  );
+                } else {
+                  handlesConditionalFieldsRemove(
+                    field.id,
+                    field.conditional_fields[0]?.show_fields,
+                  );
+                }
               } else {
-                const allConditionalFields = field.conditional_fields.flatMap(
-                  cf => cf.show_fields,
+                const matchedCondition = field.conditional_fields.find(
+                  condition => condition.condition_value === item.value,
                 );
-                const filteredFields = allConditionalFields.filter(
-                  fieldId => fieldId !== item.value,
-                );
+                if (matchedCondition) {
+                  const updatedShowFields = matchedCondition.show_fields.filter(
+                    fieldId => fieldId !== item.value,
+                  );
+                  handlesConditionalFieldDropDown(
+                    `${field.id}-${updatedShowFields}`,
+                    updatedShowFields,
+                  );
+                } else {
+                  const allConditionalFields = field.conditional_fields.flatMap(
+                    cf => cf.show_fields,
+                  );
+                  const filteredFields = allConditionalFields.filter(
+                    fieldId => fieldId !== item.value,
+                  );
 
-                handlesConditionalFieldsRemove(
-                  `${field.id}-${filteredFields}`,
-                  filteredFields,
-                );
+                  handlesConditionalFieldsRemove(
+                    `${field.id}-${filteredFields}`,
+                    filteredFields,
+                  );
+                }
               }
-              // handleInputChange(field.id, item.value);
-              // if (field.conditional_fields[0]?.condition_value == item.value) {
-              //   handlesConditionalFieldsss(
-              //     `${field.id}-${matchedCondition?.show_fields}`,
-              //     field.conditional_fields[0]?.show_fields,
-              //   );
-              // } else {
-              //   handlesConditionalFieldsRemove(
-              //     `${field.id}-${matchedCondition?.show_fields}`,
-              //     field.conditional_fields[0]?.show_fields,
-              //   );
-              // }
             }
           }}
           placeholderStyle={{
@@ -294,29 +297,43 @@ const SingleDropDownView = ({
           formValues[field.id] !== item.value
         ) {
           handleInputChange(field.id, item.value);
-          const matchedCondition = field.conditional_fields.find(
-            condition => condition.condition_value === item.value,
-          );
-          if (matchedCondition) {
-            const updatedShowFields = matchedCondition.show_fields.filter(
-              fieldId => fieldId !== item.value,
-            );
-            handlesConditionalFieldDropDown(
-              `${field.id}-${updatedShowFields}`,
-              updatedShowFields,
-            );
+          if (repeatable) {
+            if (field.conditional_fields[0]?.condition_value == item.value) {
+              handlesConditionalFieldsss(
+                field.id,
+                field.conditional_fields[0]?.show_fields,
+              );
+            } else {
+              handlesConditionalFieldsRemove(
+                field.id,
+                field.conditional_fields[0]?.show_fields,
+              );
+            }
           } else {
-            const allConditionalFields = field.conditional_fields.flatMap(
-              cf => cf.show_fields,
+            const matchedCondition = field.conditional_fields.find(
+              condition => condition.condition_value === item.value,
             );
-            const filteredFields = allConditionalFields.filter(
-              fieldId => fieldId !== item.value,
-            );
+            if (matchedCondition) {
+              const updatedShowFields = matchedCondition.show_fields.filter(
+                fieldId => fieldId !== item.value,
+              );
+              handlesConditionalFieldDropDown(
+                `${field.id}-${updatedShowFields}`,
+                updatedShowFields,
+              );
+            } else {
+              const allConditionalFields = field.conditional_fields.flatMap(
+                cf => cf.show_fields,
+              );
+              const filteredFields = allConditionalFields.filter(
+                fieldId => fieldId !== item.value,
+              );
 
-            handlesConditionalFieldsRemove(
-              `${field.id}-${filteredFields}`,
-              filteredFields,
-            );
+              handlesConditionalFieldsRemove(
+                `${field.id}-${filteredFields}`,
+                filteredFields,
+              );
+            }
           }
           // handleInputChange(field.id, item.value);
           // if (field.conditional_fields[0]?.condition_value == item.value) {

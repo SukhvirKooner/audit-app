@@ -50,6 +50,8 @@ import {navigationRef} from '../../navigation/RootContainer';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import Exif from 'react-native-exif';
 import piexif from 'piexifjs';
+import SingleDropDownView from '../SingleDropDownView';
+import MultiDropDownView from '../MultiDropDownView';
 // Define types for field options and validation rules
 interface ValidationRule {
   rule_type: string;
@@ -506,94 +508,132 @@ const RepeatableTemplateRenderItem = ({
             {renderError(field.id)}
           </>
         );
+      // case 'dropdown':
+      //   return (
+      //     <>
+      //       {field.options?.selection_type === 'multiple' ? (
+      //         <MultiSelect
+      //           disable={!isEdit}
+      //           style={{
+      //             ...styles.dropdown,
+      //             backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+      //           }}
+      //           data={
+      //             field.options?.choices?.map((choice: any) => ({
+      //               label: choice,
+      //               value: choice,
+      //             })) || []
+      //           }
+      //           labelField="label"
+      //           valueField="value"
+      //           dropdownPosition="auto"
+      //           itemContainerStyle={{backgroundColor: colors.modalBg}}
+      //           itemTextStyle={{
+      //             ...commonFontStyle(400, 16, colors.black),
+      //           }}
+      //           placeholder={field.label}
+      //           value={formValues[field.id] ?? []}
+      //           onChange={item => handleInputChange(field.id, item, 'multiple')}
+      //           placeholderStyle={{
+      //             ...commonFontStyle(400, 16, colors.black),
+      //           }}
+      //           selectedTextStyle={{
+      //             ...commonFontStyle(400, 16, colors.black),
+      //           }}
+      //         />
+      //       ) : (
+      //         <Dropdown
+      //           disable={!isEdit}
+      //           style={{
+      //             ...styles.dropdown,
+      //             backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+      //           }}
+      //           data={
+      //             field.options?.choices?.map((choice: any) => ({
+      //               label: choice,
+      //               value: choice,
+      //             })) || []
+      //           }
+      //           containerStyle={{
+      //             borderRadius: 10,
+      //             marginTop: 10,
+      //           }}
+      //           itemContainerStyle={{backgroundColor: colors.modalBg}}
+      //           itemTextStyle={{
+      //             ...commonFontStyle(400, 16, colors.black),
+      //           }}
+      //           dropdownPosition="auto"
+      //           labelField="label"
+      //           valueField="value"
+      //           placeholder={field.label}
+      //           value={formValues[field.id]}
+      //           onChange={item => {
+      //             if (
+      //               formValues[field.id] == undefined ||
+      //               formValues[field.id] !== item.value
+      //             ) {
+      //               handleInputChange(field.id, item.value);
+      //               if (
+      //                 field.conditional_fields[0]?.condition_value == item.value
+      //               ) {
+      //                 handlesConditionalFieldsss(
+      //                   field.id,
+      //                   field.conditional_fields[0]?.show_fields,
+      //                 );
+      //               } else {
+      //                 handlesConditionalFieldsRemove(
+      //                   field.id,
+      //                   field.conditional_fields[0]?.show_fields,
+      //                 );
+      //               }
+      //             }
+      //           }}
+      //           placeholderStyle={{
+      //             ...commonFontStyle(400, 16, colors.black),
+      //           }}
+      //           selectedTextStyle={{
+      //             ...commonFontStyle(400, 16, colors.black),
+      //           }}
+      //         />
+      //       )}
+      //       <Text style={styles.remarkText}>{field?.remark}</Text>
+      //       {renderError(field.id)}
+      //     </>
+      //   );
+
+      case 'dropdown':
+        if (field.options?.selection_type === 'multiple') {
+          return (
+            <>
+              <MultiDropDownView
+                isEdit={isEdit}
+                field={field}
+                formValues={formValues}
+                handleInputChangeMultiple={(id, value, item) => {
+                  handleInputChange(id, value, 'multiple');
+                }}
+                currentLocationNew={currentLocation}
+              />
+              <Text style={styles.remarkText}>{field?.remark}</Text>
+              {renderError(field.id)}
+            </>
+          );
+        }
       case 'dropdown':
         return (
           <>
-            {field.options?.selection_type === 'multiple' ? (
-              <MultiSelect
-                disable={!isEdit}
-                style={{
-                  ...styles.dropdown,
-                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                }}
-                data={
-                  field.options?.choices?.map((choice: any) => ({
-                    label: choice,
-                    value: choice,
-                  })) || []
-                }
-                labelField="label"
-                valueField="value"
-                dropdownPosition="auto"
-                itemContainerStyle={{backgroundColor: colors.modalBg}}
-                itemTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                placeholder={field.label}
-                value={formValues[field.id] ?? []}
-                onChange={item => handleInputChange(field.id, item, 'multiple')}
-                placeholderStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                selectedTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-              />
-            ) : (
-              <Dropdown
-                disable={!isEdit}
-                style={{
-                  ...styles.dropdown,
-                  backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-                }}
-                data={
-                  field.options?.choices?.map((choice: any) => ({
-                    label: choice,
-                    value: choice,
-                  })) || []
-                }
-                containerStyle={{
-                  borderRadius: 10,
-                  marginTop: 10,
-                }}
-                itemContainerStyle={{backgroundColor: colors.modalBg}}
-                itemTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                dropdownPosition="auto"
-                labelField="label"
-                valueField="value"
-                placeholder={field.label}
-                value={formValues[field.id]}
-                onChange={item => {
-                  if (
-                    formValues[field.id] == undefined ||
-                    formValues[field.id] !== item.value
-                  ) {
-                    handleInputChange(field.id, item.value);
-                    if (
-                      field.conditional_fields[0]?.condition_value == item.value
-                    ) {
-                      handlesConditionalFieldsss(
-                        field.id,
-                        field.conditional_fields[0]?.show_fields,
-                      );
-                    } else {
-                      handlesConditionalFieldsRemove(
-                        field.id,
-                        field.conditional_fields[0]?.show_fields,
-                      );
-                    }
-                  }
-                }}
-                placeholderStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-                selectedTextStyle={{
-                  ...commonFontStyle(400, 16, colors.black),
-                }}
-              />
-            )}
+            <SingleDropDownView
+              isEdit={isEdit}
+              field={field}
+              formValues={formValues}
+              handleInputChange={(id, value) => {
+                handleInputChange(id, value);
+              }}
+              handlesConditionalFieldsss={handlesConditionalFieldsss}
+              repeatable={true}
+              handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
+              currentLocationNew={currentLocation}
+            />
             <Text style={styles.remarkText}>{field?.remark}</Text>
             {renderError(field.id)}
           </>
