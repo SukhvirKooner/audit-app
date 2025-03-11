@@ -340,3 +340,31 @@ export const getDropDownListAction =
       })
       .catch(error => {});
   };
+
+export const uploadImageDataAction = async ({
+  data,
+  onSuccess,
+  onFailure,
+}: requestProps) => {
+  let header = {
+    Authorization: await getAsyncToken(),
+    Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+  };
+  return makeAPIRequest({
+    method: GET,
+    url: `${api.upload_image}${data}/`,
+    headers: header,
+  })
+    .then(async (response: any) => {
+      console.log('uploadImageDataAction', response.data);
+      if (onSuccess) {
+        onSuccess(response.data);
+      }
+    })
+    .catch(error => {
+      console.log('errorerrorerrorerror', error?.response);
+      if (onFailure) {
+        onFailure(error?.response);
+      }
+    });
+};

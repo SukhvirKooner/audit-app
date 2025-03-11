@@ -1,11 +1,21 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import Modal from 'react-native-modal';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import CustomImage from './CustomImage';
 import {Icons} from '../theme/images';
-import {openImagePicker1} from '../utils/commonFunction';
-
+import {addMetadataToBase64, openImagePicker1} from '../utils/commonFunction';
+import Exif from 'react-native-exif';
+import piexif from 'piexifjs';
+import {requestLocationPer} from '../utils/locationHandler';
+import {useAppDispatch} from '../redux/hooks';
+import {IS_LOADING} from '../redux/actionTypes';
 interface Props {
   onImageSelected: (value: any) => void;
   isVisible: boolean;
@@ -17,8 +27,11 @@ const ImageSelectionModal = ({
   onClose,
   isVisible,
   fileData,
+  currentLocation,
 }: Props) => {
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isLoaderShow, setIsLoaderShow] = useState(false);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     setModalVisible(isVisible);
@@ -52,6 +65,79 @@ const ImageSelectionModal = ({
           closeModal();
         }
         closeModal();
+      },
+    );
+  };
+
+  const handleCameraLocation = async () => {
+    // dispatch({type: IS_LOADING, payload: true});
+
+    setIsLoaderShow(true);
+    await requestLocationPer(
+      async (response: any) => {
+        const {latitude, longitude} = response;
+        launchCamera(
+          {
+            mediaType: 'photo',
+            includeBase64: true,
+          },
+          async (response: any) => {
+            setIsLoaderShow(false);
+            dispatch({type: IS_LOADING, payload: false});
+
+            if (response.didCancel) {
+              console.log('User cancelled image picker');
+            } else if (response.errorCode) {
+              console.error('Image Picker Error:', response.errorMessage);
+            } else {
+              const {uri, base64, type} = response.assets[0];
+              console.log('response.assets[0]', uri);
+
+              try {
+                // Get existing EXIF data
+                const exifData = await Exif.getExif(uri);
+                console.log('exifStr', JSON.stringify(exifData));
+                const exifStr = exifData.exif ? exifData.exif : null;
+
+                const timestamp = Date.now();
+                // Add GPS Metadata
+                const updatedBase64 = addMetadataToBase64(
+                  base64,
+                  exifStr,
+                  {
+                    latitude: latitude,
+                    longitude: longitude,
+                    timestamp,
+                  },
+                  exifData,
+                );
+
+                if (updatedBase64) {
+                  const newI = {
+                    uri: uri,
+                    base64: updatedBase64,
+                    type: type,
+                  };
+
+                  onImageSelected([newI]);
+                  dispatch({type: IS_LOADING, payload: false});
+
+                  closeModal();
+                }
+              } catch (error) {
+                console.error('Error getting EXIF:', error);
+                closeModal();
+                dispatch({type: IS_LOADING, payload: false});
+              }
+            }
+          },
+        );
+      },
+      (err: any) => {
+        setIsLoaderShow(false);
+        dispatch({type: IS_LOADING, payload: false});
+
+        console.log('<---current location error --->\n', err);
       },
     );
   };
@@ -90,18 +176,36 @@ const ImageSelectionModal = ({
 
   const handleGalleryLocation = () => {
     openImagePicker1({
-      onSucess: res => {
-        console.log('res', res);
+      onSucess: async res => {
+        console.log('handleGalleryLocationres', res);
 
-        const newI = {
-          uri: res?.uri,
-          base64: res?.base64,
-          type: res?.type,
-        };
-        console.log('newI', newI);
+        // const exifData = await Exif.getExif(res?.uri);
 
-        onImageSelected([newI]);
-        closeModal();
+        // const exifStr = exifData.exif ? exifData.exif : null;
+
+        const updatedBase64 = addMetadataToBase64(
+          res?.base64,
+          null,
+          {
+            latitude: res?.latitude,
+            longitude: res?.longitude,
+            timestamp: res?.timestamp,
+          },
+          null,
+        );
+
+        if (updatedBase64) {
+          const newI = {
+            uri: res?.uri,
+            base64: updatedBase64,
+            type: res?.type,
+          };
+
+          console.log('newI', newI);
+
+          onImageSelected([newI]);
+          closeModal();
+        }
       },
       onFail: () => {
         closeModal();
@@ -125,8 +229,19 @@ const ImageSelectionModal = ({
       <View style={styles.modalContent}>
         <Text style={styles.modalTitle}>Choose Option</Text>
 
-        <TouchableOpacity style={styles.button} onPress={handleCamera}>
-          <Text style={styles.buttonText}>Open Camera</Text>
+        <TouchableOpacity
+          style={styles.button}
+          disabled={isLoaderShow}
+          onPress={() => {
+            fileData?.location_on_photo
+              ? handleCameraLocation()
+              : handleCamera();
+          }}>
+          {isLoaderShow ? (
+            <ActivityIndicator size={'small'} color={'#fff'} />
+          ) : (
+            <Text style={styles.buttonText}>Open Camera</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity

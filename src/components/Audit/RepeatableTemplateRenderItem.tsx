@@ -40,6 +40,7 @@ import RNFS from 'react-native-fs';
 import {uploadImage} from '../../service/AuditService';
 import PdfView from '../PdfView';
 import {
+  addMetadataToBase64,
   errorToast,
   navigateTo,
   openImagePicker1,
@@ -47,7 +48,8 @@ import {
 import {screenNames, SCREENS} from '../../navigation/screenNames';
 import {navigationRef} from '../../navigation/RootContainer';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-
+import Exif from 'react-native-exif';
+import piexif from 'piexifjs';
 // Define types for field options and validation rules
 interface ValidationRule {
   rule_type: string;
@@ -128,6 +130,7 @@ const RepeatableTemplateRenderItem = ({
   handlesConditionalFields,
   handlesConditionalFieldsRemove,
   handlesConditionalFieldsss,
+  currentLocation,
 }: TemplateRenderItemProps) => {
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
@@ -151,6 +154,7 @@ const RepeatableTemplateRenderItem = ({
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [selectedPdf, setSelectedPdf] = useState<any>(null);
   // const [isMapLoaded, setIsMapLoaded] = useState(true);
+  const [selectedImageID, setSelectedImageID] = useState<any>(null);
 
   const [selectField, setSelectField] = useState('');
   // const [selectID, setSelectID] = useState('');
@@ -239,6 +243,70 @@ const RepeatableTemplateRenderItem = ({
     );
   };
 
+  const handleCameraLocation = async () => {
+    dispatch({type: IS_LOADING, payload: true});
+
+    await requestLocationPer(
+      async (response: any) => {
+        const {latitude, longitude} = response;
+        launchCamera(
+          {
+            mediaType: 'photo',
+            includeBase64: true,
+          },
+          async (response: any) => {
+            dispatch({type: IS_LOADING, payload: false});
+
+            if (response.didCancel) {
+              console.log('User cancelled image picker');
+            } else if (response.errorCode) {
+              console.error('Image Picker Error:', response.errorMessage);
+            } else {
+              const {uri, base64, type} = response.assets[0];
+              try {
+                // Get existing EXIF data
+                const exifData = await Exif.getExif(uri);
+
+                const exifStr = exifData.exif ? exifData.exif : null;
+                const timestamp = Date.now();
+
+                // Add GPS Metadata
+                const updatedBase64 = addMetadataToBase64(
+                  base64,
+                  exifStr,
+                  {
+                    latitude: latitude,
+                    longitude: longitude,
+                    timestamp,
+                  },
+                  exifData,
+                );
+
+                if (updatedBase64) {
+                  const newI = {
+                    uri: uri,
+                    base64: updatedBase64,
+                    type: type,
+                  };
+                  dispatch({type: IS_LOADING, payload: false});
+
+                  onUploadImage([newI], selectID.current);
+                }
+              } catch (error) {
+                console.error('Error getting EXIF:', error);
+              }
+            }
+          },
+        );
+      },
+      (err: any) => {
+        dispatch({type: IS_LOADING, payload: false});
+
+        console.log('<---current location error --->\n', err);
+      },
+    );
+  };
+
   const handleGallery = () => {
     launchImageLibrary(
       {
@@ -271,16 +339,30 @@ const RepeatableTemplateRenderItem = ({
 
   const handleGalleryLocation = () => {
     openImagePicker1({
-      onSucess: res => {
+      onSucess: async res => {
         console.log('res', res);
+        // const exifData = await Exif.getExif(res?.uri);
 
-        const newI = {
-          uri: res?.uri,
-          base64: res?.base64,
-          type: res?.type,
-        };
-        console.log('newI', newI);
-        onUploadImage([newI], selectID.current);
+        const updatedBase64 = addMetadataToBase64(
+          res?.base64,
+          null,
+          {
+            latitude: res?.latitude,
+            longitude: res?.longitude,
+            timestamp: res?.timestamp,
+          },
+          null,
+        );
+
+        if (updatedBase64) {
+          const newI = {
+            uri: res?.uri,
+            base64: updatedBase64,
+            type: res?.type,
+          };
+
+          onUploadImage([newI], selectID.current);
+        }
       },
     });
   };
@@ -540,6 +622,7 @@ const RepeatableTemplateRenderItem = ({
                     containerStyle={{borderRadius: 10, overflow: 'hidden'}}
                     onPress={() => {
                       setShowImagePreview(true);
+                      setSelectedImageID(item?.id);
                       setSelectedImage(api.BASE_URL_VIEW + item.url);
                     }}
                   />
@@ -581,7 +664,11 @@ const RepeatableTemplateRenderItem = ({
                             handleGallery();
                           }
                         } else if (field?.other?.photo_taken_from == 'camera') {
-                          handleCamera();
+                          if (field?.other?.location_on_photo) {
+                            handleCameraLocation();
+                          } else {
+                            handleCamera();
+                          }
                         } else {
                           setSelectField(field?.other);
                           setImageModal(true);
@@ -1195,12 +1282,14 @@ const RepeatableTemplateRenderItem = ({
           onUploadImage(value, selectID.current);
           // handleInputChange(selectFieldId, value, 'image');
         }}
+        currentLocation={currentLocation}
         onClose={setImageModal}
       />
       <ImageModal
         value={selectedImage}
         isVisible={showImagePreview}
         onCloseModal={() => setShowImagePreview(false)}
+        selectedImageID={selectedImageID}
       />
       <PdfView
         value={selectedPdf}

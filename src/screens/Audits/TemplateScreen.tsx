@@ -216,27 +216,42 @@ const TemplateScreen = () => {
   }, [templateData]); // Recompute when `fields` changes
 
   const [isMapLoaded, setIsMapLoaded] = useState(true);
+  // const [conditionalFields, setConditionalFields] = useState(
+  //   templateData
+  //     .filter(
+  //       field =>
+  //         field.conditional_fields && field.conditional_fields.length > 0,
+  //     )
+  //     .map(list => ({
+  //       id: list.id,
+  //       show_fields: list?.conditional_fields?.map(cf => cf.show_fields).flat(),
+  //     })),
+  // );
+
   const [conditionalFields, setConditionalFields] = useState(
     templateData
-      .filter(
-        field =>
-          field.conditional_fields && field.conditional_fields.length > 0,
-      )
-      .map(list => ({
-        id: list.id,
-        show_fields: list?.conditional_fields?.map(cf => cf.show_fields).flat(),
-      })),
+      .filter(field => field.conditional_fields?.length > 0)
+      .flatMap(field =>
+        field.conditional_fields.map((cf, index) => ({
+          id: `${field.id}-${cf.show_fields}`,
+          show_fields: cf.show_fields,
+        })),
+      ),
   );
 
   // let showFieldIds = conditionalFields.flatMap(update => update.show_fields);
 
-  console.log('templateDataconditionalFields', conditionalFields);
+  // console.log('templateDataconditionalFields', JSON.stringify(templateData));
+  console.log(
+    'templateDataconditionalFields new',
+    JSON.stringify(conditionalFields),
+  );
 
   const showFieldIds = useMemo(() => {
     return conditionalFields.flatMap(update => update.show_fields);
   }, [conditionalFields]); // Recompute when `fields` changes
 
-  console.log('templateDataconditionalFields showFieldIds', showFieldIds);
+  console.log('templateDataconditionalFields new showFieldIds', showFieldIds);
 
   const [formErrors, setFormErrors] = useState<Record<number, string>>({});
 
@@ -560,6 +575,25 @@ const TemplateScreen = () => {
     setConditionalFields(prevFields =>
       prevFields.filter(list => list?.id !== id),
     );
+  };
+
+  const handlesConditionalFieldDropDown = (id, value) => {
+    let newValue = [];
+    const newDataList = templateData
+      .filter(field => field.conditional_fields?.length > 0)
+      .flatMap(field =>
+        field.conditional_fields.map((cf, index) => ({
+          id: `${field.id}-${cf.show_fields}`,
+          show_fields: cf.show_fields,
+        })),
+      )
+      .map(list => {
+        if (list?.id !== id) {
+          newValue.push(list);
+        }
+      });
+
+    setConditionalFields(newValue);
   };
 
   const handlesConditionalFieldsRemove = (id, value) => {
@@ -1309,6 +1343,9 @@ const TemplateScreen = () => {
                             }
                             handlesConditionalFieldsss={
                               handlesConditionalFieldsss
+                            }
+                            handlesConditionalFieldDropDown={
+                              handlesConditionalFieldDropDown
                             }
                             isEdit={isEdit}
                             onUploadImage={onUploadImage}

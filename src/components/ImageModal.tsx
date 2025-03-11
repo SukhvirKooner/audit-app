@@ -14,15 +14,22 @@ import {useAppSelector} from '../redux/hooks';
 import {Icons} from '../theme/images';
 import {commonFontStyle, hp, wp} from '../theme/fonts';
 import CustomImage from './CustomImage';
-import RNFS from 'react-native-fs';
-import Exif from 'react-native-exif';
+import {useDispatch} from 'react-redux';
+import {uploadImageDataAction} from '../service/AuditService';
+// import RNFS from 'react-native-fs';
+// import Exif from 'react-native-exif';
 interface ImageModalProps {
   isVisible: boolean;
   onCloseModal: () => void;
   value: string;
 }
 
-const ImageModal = ({isVisible, onCloseModal, value}: ImageModalProps) => {
+const ImageModal = ({
+  isVisible,
+  onCloseModal,
+  value,
+  selectedImageID,
+}: ImageModalProps) => {
   const {colors} = useTheme();
   const {fontValue} = useAppSelector(state => state.common);
   const styles = React.useMemo(
@@ -32,23 +39,34 @@ const ImageModal = ({isVisible, onCloseModal, value}: ImageModalProps) => {
   const [metadata, setMetadata] = useState(null);
 
   const imageUrl = value;
+  const dispatch = useDispatch();
+
+  console.log('selectedImageID', selectedImageID);
 
   const fetchImageMetadata = async () => {
-    try {
-      // Download the image to a local path
-      const localPath = `${RNFS.DocumentDirectoryPath}/image.jpg`;
-      await RNFS.downloadFile({
-        fromUrl: imageUrl,
-        toFile: localPath,
-      }).promise;
+    let obj = {
+      data: Number(selectedImageID),
+      onSuccess: res => {
+        setMetadata(res?.metadata);
+      },
+      onFailure: () => {},
+    };
+    dispatch(uploadImageDataAction(obj));
+    // try {
+    //   // Download the image to a local path
+    //   const localPath = `${RNFS.DocumentDirectoryPath}/image.jpg`;
+    //   await RNFS.downloadFile({
+    //     fromUrl: imageUrl,
+    //     toFile: localPath,
+    //   }).promise;
 
-      // Extract metadata
-      const exifData = await Exif.getExif(localPath);
-      setMetadata(exifData);
-      console.log('Metadata:', exifData);
-    } catch (error) {
-      console.error('Error fetching metadata:', error);
-    }
+    //   // Extract metadata
+    //   const exifData = await Exif.getExif(localPath);
+    //   setMetadata(exifData);
+    //   console.log('Metadata:', exifData);
+    // } catch (error) {
+    //   console.error('Error fetching metadata:', error);
+    // }
   };
 
   return (
@@ -69,21 +87,23 @@ const ImageModal = ({isVisible, onCloseModal, value}: ImageModalProps) => {
         <View>
           {value ? (
             <View>
-              <TouchableOpacity
-                onPress={() => {
-                  if (!metadata) {
-                    fetchImageMetadata();
-                  } else {
-                    setMetadata(null);
-                  }
-                }}
-                style={{zIndex: 1}}>
-                <Image
-                  resizeMode="contain"
-                  source={Icons.metadata}
-                  style={styles.closeIconStyle1}
-                />
-              </TouchableOpacity>
+              {selectedImageID && (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!metadata) {
+                      fetchImageMetadata();
+                    } else {
+                      setMetadata(null);
+                    }
+                  }}
+                  style={{zIndex: 1}}>
+                  <Image
+                    resizeMode="contain"
+                    source={Icons.metadata}
+                    style={styles.closeIconStyle1}
+                  />
+                </TouchableOpacity>
+              )}
               {metadata ? (
                 <ScrollView style={{height: 300}}>
                   <Text style={styles.metaDataText}>

@@ -41,6 +41,7 @@ import RNFS from 'react-native-fs';
 import {getDropDownListAction, uploadImage} from '../../service/AuditService';
 import PdfView from '../PdfView';
 import {
+  addMetadataToBase64,
   errorToast,
   navigateTo,
   openImagePicker1,
@@ -51,6 +52,8 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import CustomDropDownView from '../CustomDropDownView';
 import MultiDropDownView from '../MultiDropDownView';
 import SingleDropDownView from '../SingleDropDownView';
+import Exif from 'react-native-exif';
+import piexif from 'piexifjs';
 
 // Define types for field options and validation rules
 interface ValidationRule {
@@ -133,6 +136,7 @@ const TemplateRenderItem = ({
   handlesConditionalFields,
   handlesConditionalFieldsRemove,
   handlesConditionalFieldsss,
+  handlesConditionalFieldDropDown,
   onRepeatableViewPress,
   currentLocation,
 }: TemplateRenderItemProps) => {
@@ -161,7 +165,10 @@ const TemplateRenderItem = ({
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [selectedImageID, setSelectedImageID] = useState<any>(null);
   const [selectedPdf, setSelectedPdf] = useState<any>(null);
+  const [isLoaderShow, setIsLoaderShow] = useState(false);
+
   // const [isMapLoaded, setIsMapLoaded] = useState(true);
 
   const renderError = (fieldId: number) => {
@@ -292,16 +299,84 @@ const TemplateRenderItem = ({
     // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
   };
 
+  const handleCameraLocation = async () => {
+    setIsLoaderShow(true);
+    // dispatch({type: IS_LOADING, payload: true});
+
+    await requestLocationPer(
+      async (response: any) => {
+        const {latitude, longitude} = response;
+        launchCamera(
+          {
+            mediaType: 'photo',
+            includeBase64: true,
+          },
+          async (response: any) => {
+            setIsLoaderShow(false);
+            if (response.didCancel) {
+              dispatch({type: IS_LOADING, payload: false});
+
+              console.log('User cancelled image picker');
+            } else if (response.errorCode) {
+              dispatch({type: IS_LOADING, payload: false});
+
+              console.error('Image Picker Error:', response.errorMessage);
+            } else {
+              dispatch({type: IS_LOADING, payload: false});
+
+              const {uri, base64, type} = response.assets[0];
+              try {
+                // Get existing EXIF data
+                const exifData = await Exif.getExif(uri);
+
+                const exifStr = exifData.exif ? exifData.exif : null;
+                const timestamp = Date.now();
+
+                // Add GPS Metadata
+                const updatedBase64 = addMetadataToBase64(
+                  base64,
+                  exifStr,
+                  {
+                    latitude: latitude,
+                    longitude: longitude,
+                    timestamp,
+                  },
+                  exifData,
+                );
+
+                if (updatedBase64) {
+                  const newI = {
+                    uri: uri,
+                    base64: updatedBase64,
+                    type: type,
+                  };
+
+                  onUploadImage([newI], selectID.current);
+                }
+              } catch (error) {
+                dispatch({type: IS_LOADING, payload: false});
+                console.error('Error getting EXIF:', error);
+              }
+            }
+          },
+        );
+      },
+      (err: any) => {
+        setIsLoaderShow(false);
+        dispatch({type: IS_LOADING, payload: false});
+
+        console.log('<---current location error --->\n', err);
+      },
+    );
+  };
+
   const handleCamera = () => {
     launchCamera(
       {
         mediaType: 'photo',
         includeBase64: true,
-        maxHeight: 800,
-        maxWidth: 800,
-        quality: 1,
       },
-      (response: any) => {
+      async (response: any) => {
         if (response.didCancel) {
           console.log('User cancelled image picker');
         } else if (response.errorCode) {
@@ -351,16 +426,32 @@ const TemplateRenderItem = ({
 
   const handleGalleryLocation = () => {
     openImagePicker1({
-      onSucess: res => {
+      onSucess: async res => {
         console.log('res', res);
+        // const exifData = await Exif.getExif(res?.uri);
 
-        const newI = {
-          uri: res?.uri,
-          base64: res?.base64,
-          type: res?.type,
-        };
-        console.log('newI', newI);
-        onUploadImage([newI], selectID.current);
+        const updatedBase64 = addMetadataToBase64(
+          res?.base64,
+          null,
+          {
+            latitude: res?.latitude,
+            longitude: res?.longitude,
+            timestamp: res?.timestamp,
+          },
+          null,
+        );
+
+        if (updatedBase64) {
+          const newI = {
+            uri: res?.uri,
+            base64: updatedBase64,
+            type: res?.type,
+          };
+
+          console.log('newI', newI);
+
+          onUploadImage([newI], selectID.current);
+        }
       },
     });
   };
@@ -492,7 +583,7 @@ const TemplateRenderItem = ({
               handleInputChange={(id, value) => {
                 handleInputChange(id, value);
               }}
-              handlesConditionalFieldsss={handlesConditionalFieldsss}
+              handlesConditionalFieldDropDown={handlesConditionalFieldDropDown}
               handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
               currentLocationNew={currentLocation}
             />
@@ -501,140 +592,140 @@ const TemplateRenderItem = ({
           </>
         );
 
-        // return (
-        //   <>
-        //     {field.options?.selection_type === 'multiple' ? (
-        //       <MultiSelect
-        //         disable={!isEdit}
-        //         style={{
-        //           ...styles.dropdown,
-        //           backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-        //         }}
-        //         data={
-        //           field.options?.choices?.map((choice: any) => ({
-        //             label: choice,
-        //             value: choice,
-        //           })) || []
-        //         }
-        //         labelField="label"
-        //         valueField="value"
-        //         dropdownPosition="auto"
-        //         placeholder={field.label}
-        //         value={formValues[field.id] ?? []}
-        //         onChange={item => handleInputChange(field.id, item, 'multiple')}
-        //         itemContainerStyle={{backgroundColor: colors.modalBg}}
-        //         placeholderStyle={{
-        //           ...commonFontStyle(400, 16, colors.black),
-        //         }}
-        //         itemTextStyle={{
-        //           ...commonFontStyle(400, 16, colors.black),
-        //         }}
-        //         selectedTextStyle={{
-        //           ...commonFontStyle(400, 16, colors.black),
-        //         }}
-        //       />
-        //     ) : (
-        //       <Dropdown
-        //         disable={!isEdit}
-        //         style={{
-        //           ...styles.dropdown,
-        //           backgroundColor: isEdit ? colors.gray_ea : 'transparent',
-        //         }}
-        //         data={
-        //           field.options?.choices?.map((choice: any) => ({
-        //             label: choice,
-        //             value: choice,
-        //           })) || []
-        //         }
-        //         containerStyle={{
-        //           borderRadius: 10,
-        //           marginTop: 10,
-        //         }}
-        //         dropdownPosition="auto"
-        //         labelField="label"
-        //         valueField="value"
-        //         placeholder={field.label}
-        //         value={formValues[field.id]}
-        //         itemContainerStyle={{backgroundColor: colors.modalBg}}
-        //         itemTextStyle={{
-        //           ...commonFontStyle(400, 16, colors.black),
-        //         }}
-        //         onChange={item => {
-        //           if (
-        //             formValues[field.id] == undefined ||
-        //             formValues[field.id] !== item.value
-        //           ) {
-        //             handleInputChange(field.id, item.value);
-        //             if (
-        //               field.conditional_fields[0]?.condition_value == item.value
-        //             ) {
-        //               handlesConditionalFieldsss(
-        //                 field.id,
-        //                 field.conditional_fields[0]?.show_fields,
-        //               );
-        //             } else {
-        //               handlesConditionalFieldsRemove(
-        //                 field.id,
-        //                 field.conditional_fields[0]?.show_fields,
-        //               );
-        //             }
-        //           }
-        //         }}
-        //         placeholderStyle={{
-        //           ...commonFontStyle(400, 16, colors.black),
-        //         }}
-        //         selectedTextStyle={{
-        //           ...commonFontStyle(400, 16, colors.black),
-        //         }}
-        //       />
-        //     )}
-        //     <Text style={styles.remarkText}>{field?.remark}</Text>
-        //     {renderError(field.id)}
-        //   </>
-        // );
-        return (
-          <>
-            {/* <CustomDropDownView
-              isEdit={isEdit}
-              field={field}
-              currentLocationNew={currentLocation}
-              formValues={formValues}
-              handlesConditionalFieldsss={handlesConditionalFieldsss}
-              handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
-              handleInputChange={(id, value) => {
-                handleInputChange(id, value);
-              }}
-              handleInputChangeMultiple={(id, value, item) => {
-                handleInputChange(id, value, 'multiple');
-              }}
-            /> */}
-            {/* {field.options?.selection_type === 'multiple' ? (
-              <MultiDropDownView
-                isEdit={isEdit}
-                field={field}
-                formValues={formValues}
-                handleInputChangeMultiple={(id, value, item) => {
-                  handleInputChange(id, value, 'multiple');
-                }}
-                currentLocationNew={currentLocation}
-              />
-            ) : (
-              <SingleDropDownView
-                isEdit={isEdit}
-                field={field}
-                formValues={formValues}
-                handleInputChange={(id, value) => {
-                  handleInputChange(id, value);
-                }}
-                handlesConditionalFieldsss={handlesConditionalFieldsss}
-                handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
-                currentLocationNew={currentLocation}
-              />
-            )}
-            <Text style={styles.remarkText}>{field?.remark}</Text>
-            {renderError(field.id)} */}
-          </>
-        );
+      // return (
+      //   <>
+      //     {field.options?.selection_type === 'multiple' ? (
+      //       <MultiSelect
+      //         disable={!isEdit}
+      //         style={{
+      //           ...styles.dropdown,
+      //           backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+      //         }}
+      //         data={
+      //           field.options?.choices?.map((choice: any) => ({
+      //             label: choice,
+      //             value: choice,
+      //           })) || []
+      //         }
+      //         labelField="label"
+      //         valueField="value"
+      //         dropdownPosition="auto"
+      //         placeholder={field.label}
+      //         value={formValues[field.id] ?? []}
+      //         onChange={item => handleInputChange(field.id, item, 'multiple')}
+      //         itemContainerStyle={{backgroundColor: colors.modalBg}}
+      //         placeholderStyle={{
+      //           ...commonFontStyle(400, 16, colors.black),
+      //         }}
+      //         itemTextStyle={{
+      //           ...commonFontStyle(400, 16, colors.black),
+      //         }}
+      //         selectedTextStyle={{
+      //           ...commonFontStyle(400, 16, colors.black),
+      //         }}
+      //       />
+      //     ) : (
+      //       <Dropdown
+      //         disable={!isEdit}
+      //         style={{
+      //           ...styles.dropdown,
+      //           backgroundColor: isEdit ? colors.gray_ea : 'transparent',
+      //         }}
+      //         data={
+      //           field.options?.choices?.map((choice: any) => ({
+      //             label: choice,
+      //             value: choice,
+      //           })) || []
+      //         }
+      //         containerStyle={{
+      //           borderRadius: 10,
+      //           marginTop: 10,
+      //         }}
+      //         dropdownPosition="auto"
+      //         labelField="label"
+      //         valueField="value"
+      //         placeholder={field.label}
+      //         value={formValues[field.id]}
+      //         itemContainerStyle={{backgroundColor: colors.modalBg}}
+      //         itemTextStyle={{
+      //           ...commonFontStyle(400, 16, colors.black),
+      //         }}
+      //         onChange={item => {
+      //           if (
+      //             formValues[field.id] == undefined ||
+      //             formValues[field.id] !== item.value
+      //           ) {
+      //             handleInputChange(field.id, item.value);
+      //             if (
+      //               field.conditional_fields[0]?.condition_value == item.value
+      //             ) {
+      //               handlesConditionalFieldsss(
+      //                 field.id,
+      //                 field.conditional_fields[0]?.show_fields,
+      //               );
+      //             } else {
+      //               handlesConditionalFieldsRemove(
+      //                 field.id,
+      //                 field.conditional_fields[0]?.show_fields,
+      //               );
+      //             }
+      //           }
+      //         }}
+      //         placeholderStyle={{
+      //           ...commonFontStyle(400, 16, colors.black),
+      //         }}
+      //         selectedTextStyle={{
+      //           ...commonFontStyle(400, 16, colors.black),
+      //         }}
+      //       />
+      //     )}
+      //     <Text style={styles.remarkText}>{field?.remark}</Text>
+      //     {renderError(field.id)}
+      //   </>
+      // );
+      // return (
+      //   <>
+      //     {/* <CustomDropDownView
+      //       isEdit={isEdit}
+      //       field={field}
+      //       currentLocationNew={currentLocation}
+      //       formValues={formValues}
+      //       handlesConditionalFieldsss={handlesConditionalFieldsss}
+      //       handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
+      //       handleInputChange={(id, value) => {
+      //         handleInputChange(id, value);
+      //       }}
+      //       handleInputChangeMultiple={(id, value, item) => {
+      //         handleInputChange(id, value, 'multiple');
+      //       }}
+      //     /> */}
+      //     {/* {field.options?.selection_type === 'multiple' ? (
+      //       <MultiDropDownView
+      //         isEdit={isEdit}
+      //         field={field}
+      //         formValues={formValues}
+      //         handleInputChangeMultiple={(id, value, item) => {
+      //           handleInputChange(id, value, 'multiple');
+      //         }}
+      //         currentLocationNew={currentLocation}
+      //       />
+      //     ) : (
+      //       <SingleDropDownView
+      //         isEdit={isEdit}
+      //         field={field}
+      //         formValues={formValues}
+      //         handleInputChange={(id, value) => {
+      //           handleInputChange(id, value);
+      //         }}
+      //         handlesConditionalFieldsss={handlesConditionalFieldsss}
+      //         handlesConditionalFieldsRemove={handlesConditionalFieldsRemove}
+      //         currentLocationNew={currentLocation}
+      //       />
+      //     )}
+      //     <Text style={styles.remarkText}>{field?.remark}</Text>
+      //     {renderError(field.id)} */}
+      //   </>
+      // );
 
       case 'image':
         return (
@@ -658,6 +749,7 @@ const TemplateRenderItem = ({
                     containerStyle={{borderRadius: 10, overflow: 'hidden'}}
                     onPress={() => {
                       setShowImagePreview(true);
+                      setSelectedImageID(item?.id);
                       setSelectedImage(api.BASE_URL_VIEW + item.url);
                     }}
                   />
@@ -695,7 +787,11 @@ const TemplateRenderItem = ({
                             handleGallery();
                           }
                         } else if (field?.other?.photo_taken_from == 'camera') {
-                          handleCamera();
+                          if (field?.other?.location_on_photo) {
+                            handleCameraLocation();
+                          } else {
+                            handleCamera();
+                          }
                         } else {
                           setSelectField(field?.other);
                           setImageModal(true);
@@ -992,12 +1088,12 @@ const TemplateRenderItem = ({
                     field.options?.yes_label
                   ) {
                     handlesConditionalFieldsss(
-                      field.id,
+                      `${field.id}-${field.conditional_fields[0]?.show_fields}`,
                       field.conditional_fields[0]?.show_fields,
                     );
                   } else {
                     handlesConditionalFieldsRemove(
-                      field.id,
+                      `${field.id}-${field.conditional_fields[0]?.show_fields}`,
                       field.conditional_fields[0]?.show_fields,
                     );
                   }
@@ -1032,12 +1128,12 @@ const TemplateRenderItem = ({
                     field.options?.no_label
                   ) {
                     handlesConditionalFieldsss(
-                      field.id,
+                      `${field.id}-${field.conditional_fields[0]?.show_fields}`,
                       field.conditional_fields[0]?.show_fields,
                     );
                   } else {
                     handlesConditionalFieldsRemove(
-                      field.id,
+                      `${field.id}-${field.conditional_fields[0]?.show_fields}`,
                       field.conditional_fields[0]?.show_fields,
                     );
                   }
@@ -1090,12 +1186,12 @@ const TemplateRenderItem = ({
                         field.conditional_fields[0]?.condition_value == choice
                       ) {
                         handlesConditionalFieldsss(
-                          field.id,
+                          `${field.id}-${field.conditional_fields[0]?.show_fields}`,
                           field.conditional_fields[0]?.show_fields,
                         );
                       } else {
                         handlesConditionalFieldsRemove(
-                          field.id,
+                          `${field.id}-${field.conditional_fields[0]?.show_fields}`,
                           field.conditional_fields[0]?.show_fields,
                         );
                       }
@@ -1168,7 +1264,8 @@ const TemplateRenderItem = ({
                   onPress={() => {
                     handleInputChange(field.id, choice, 'checkbox');
                     handlesConditionalFields(
-                      field.id,
+                      // field.id,
+                      `${field.id}-${field?.conditional_fields?.[0]?.show_fields}`,
                       field.conditional_fields[0]?.condition_value == choice
                         ? field.conditional_fields[0]?.show_fields
                         : [],
@@ -1348,12 +1445,14 @@ const TemplateRenderItem = ({
           onUploadImage(value, selectID.current);
           // handleInputChange(selectFieldId, value, 'image');
         }}
+        currentLocation={currentLocation}
         onClose={setImageModal}
       />
       <ImageModal
         value={selectedImage}
         isVisible={showImagePreview}
         onCloseModal={() => setShowImagePreview(false)}
+        selectedImageID={selectedImageID}
       />
       {/* <PdfView
         value={selectedPdf}

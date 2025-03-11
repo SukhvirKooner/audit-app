@@ -367,7 +367,7 @@ const RepeatableTemplateScreen = () => {
       dispatch({type: IS_LOADING, payload: true});
       await requestLocationPer(
         async (response: any) => {
-          // setCurrentLocation(response);
+          setCurrentLocation(response);
 
           const {latitude, longitude} = response;
           dispatch({type: IS_LOADING, payload: false});
@@ -405,7 +405,7 @@ const RepeatableTemplateScreen = () => {
       dispatch({type: IS_LOADING, payload: true});
       await requestLocationPer(
         async (response: any) => {
-          // setCurrentLocation(response);
+          setCurrentLocation(response);
 
           const {latitude, longitude} = response;
           dispatch({type: IS_LOADING, payload: false});
@@ -1019,6 +1019,7 @@ const RepeatableTemplateScreen = () => {
                   setSelectFieldId={setSelectFieldId}
                   isMapLoaded={isMapLoaded}
                   viewType={params?.type}
+                  currentLocation={currentLocation}
                   setScrollEnabled={item => {
                     setScrollEnabled(item);
                   }}

@@ -54,6 +54,7 @@ const SingleDropDownView = ({
   isEdit,
   handlesConditionalFieldsRemove,
   handlesConditionalFieldsss,
+  handlesConditionalFieldDropDown,
   handleInputChangeMultiple,
   currentLocationNew,
 }: Props) => {
@@ -212,17 +213,42 @@ const SingleDropDownView = ({
               formValues[field.id] !== item.value
             ) {
               handleInputChange(field.id, item.value);
-              if (field.conditional_fields[0]?.condition_value == item.value) {
-                handlesConditionalFieldsss(
-                  field.id,
-                  field.conditional_fields[0]?.show_fields,
+              const matchedCondition = field.conditional_fields.find(
+                condition => condition.condition_value === item.value,
+              );
+              if (matchedCondition) {
+                const updatedShowFields = matchedCondition.show_fields.filter(
+                  fieldId => fieldId !== item.value,
+                );
+                handlesConditionalFieldDropDown(
+                  `${field.id}-${updatedShowFields}`,
+                  updatedShowFields,
                 );
               } else {
+                const allConditionalFields = field.conditional_fields.flatMap(
+                  cf => cf.show_fields,
+                );
+                const filteredFields = allConditionalFields.filter(
+                  fieldId => fieldId !== item.value,
+                );
+
                 handlesConditionalFieldsRemove(
-                  field.id,
-                  field.conditional_fields[0]?.show_fields,
+                  `${field.id}-${filteredFields}`,
+                  filteredFields,
                 );
               }
+              // handleInputChange(field.id, item.value);
+              // if (field.conditional_fields[0]?.condition_value == item.value) {
+              //   handlesConditionalFieldsss(
+              //     `${field.id}-${matchedCondition?.show_fields}`,
+              //     field.conditional_fields[0]?.show_fields,
+              //   );
+              // } else {
+              //   handlesConditionalFieldsRemove(
+              //     `${field.id}-${matchedCondition?.show_fields}`,
+              //     field.conditional_fields[0]?.show_fields,
+              //   );
+              // }
             }
           }}
           placeholderStyle={{
@@ -268,17 +294,42 @@ const SingleDropDownView = ({
           formValues[field.id] !== item.value
         ) {
           handleInputChange(field.id, item.value);
-          if (field.conditional_fields[0]?.condition_value == item.value) {
-            handlesConditionalFieldsss(
-              field.id,
-              field.conditional_fields[0]?.show_fields,
+          const matchedCondition = field.conditional_fields.find(
+            condition => condition.condition_value === item.value,
+          );
+          if (matchedCondition) {
+            const updatedShowFields = matchedCondition.show_fields.filter(
+              fieldId => fieldId !== item.value,
+            );
+            handlesConditionalFieldDropDown(
+              `${field.id}-${updatedShowFields}`,
+              updatedShowFields,
             );
           } else {
+            const allConditionalFields = field.conditional_fields.flatMap(
+              cf => cf.show_fields,
+            );
+            const filteredFields = allConditionalFields.filter(
+              fieldId => fieldId !== item.value,
+            );
+
             handlesConditionalFieldsRemove(
-              field.id,
-              field.conditional_fields[0]?.show_fields,
+              `${field.id}-${filteredFields}`,
+              filteredFields,
             );
           }
+          // handleInputChange(field.id, item.value);
+          // if (field.conditional_fields[0]?.condition_value == item.value) {
+          //   handlesConditionalFieldsss(
+          //     field.id,
+          //     field.conditional_fields[0]?.show_fields,
+          //   );
+          // } else {
+          //   handlesConditionalFieldsRemove(
+          //     field.id,
+          //     field.conditional_fields[0]?.show_fields,
+          //   );
+          // }
         }
       }}
       placeholderStyle={{
