@@ -39,8 +39,8 @@ const ImageSelectionModal = ({
 
   console.log('fileData', fileData);
 
-  const handleCamera = () => {
-    launchCamera(
+  const handleCamera = async () => {
+    await launchCamera(
       {
         mediaType: 'photo',
         includeBase64: true,
@@ -72,78 +72,137 @@ const ImageSelectionModal = ({
   const handleCameraLocation = async () => {
     // dispatch({type: IS_LOADING, payload: true});
 
-    setIsLoaderShow(true);
-    await requestLocationPer(
-      async (response: any) => {
-        const {latitude, longitude} = response;
-        launchCamera(
-          {
-            mediaType: 'photo',
-            includeBase64: true,
-          },
-          async (response: any) => {
-            setIsLoaderShow(false);
-            dispatch({type: IS_LOADING, payload: false});
+    if (currentLocation) {
+      await launchCamera(
+        {
+          mediaType: 'photo',
+          includeBase64: true,
+        },
+        async (response: any) => {
+          setIsLoaderShow(false);
+          dispatch({type: IS_LOADING, payload: false});
 
-            if (response.didCancel) {
-              console.log('User cancelled image picker');
-            } else if (response.errorCode) {
-              console.error('Image Picker Error:', response.errorMessage);
-            } else {
-              const {uri, base64, type} = response.assets[0];
-              console.log('response.assets[0]', uri);
+          if (response.didCancel) {
+            console.log('User cancelled image picker');
+          } else if (response.errorCode) {
+            console.error('Image Picker Error:', response.errorMessage);
+          } else {
+            const {uri, base64, type} = response.assets[0];
+            console.log('response.assets[0]', uri);
 
-              try {
-                // Get existing EXIF data
-                const exifData = await Exif.getExif(uri);
-                console.log('exifStr', JSON.stringify(exifData));
-                const exifStr = exifData.exif ? exifData.exif : null;
+            try {
+              // Get existing EXIF data
+              const exifData = await Exif.getExif(uri);
+              console.log('exifStr', JSON.stringify(exifData));
+              const exifStr = exifData.exif ? exifData.exif : null;
 
-                const timestamp = Date.now();
-                // Add GPS Metadata
-                const updatedBase64 = addMetadataToBase64(
-                  base64,
-                  exifStr,
-                  {
-                    latitude: latitude,
-                    longitude: longitude,
-                    timestamp,
-                  },
-                  exifData,
-                );
+              const timestamp = Date.now();
+              // Add GPS Metadata
+              const updatedBase64 = addMetadataToBase64(
+                base64,
+                exifStr,
+                {
+                  latitude: currentLocation?.latitude,
+                  longitude: currentLocation?.longitude,
+                  timestamp,
+                },
+                exifData,
+              );
 
-                if (updatedBase64) {
-                  const newI = {
-                    uri: uri,
-                    base64: updatedBase64,
-                    type: type,
-                  };
+              if (updatedBase64) {
+                const newI = {
+                  uri: uri,
+                  base64: updatedBase64,
+                  type: type,
+                };
 
-                  onImageSelected([newI]);
-                  dispatch({type: IS_LOADING, payload: false});
-
-                  closeModal();
-                }
-              } catch (error) {
-                console.error('Error getting EXIF:', error);
-                closeModal();
+                onImageSelected([newI]);
                 dispatch({type: IS_LOADING, payload: false});
-              }
-            }
-          },
-        );
-      },
-      (err: any) => {
-        setIsLoaderShow(false);
-        dispatch({type: IS_LOADING, payload: false});
 
-        console.log('<---current location error --->\n', err);
-      },
-    );
+                closeModal();
+              }
+            } catch (error) {
+              console.error('Error getting EXIF:', error);
+              closeModal();
+              dispatch({type: IS_LOADING, payload: false});
+            }
+          }
+        },
+      );
+    } else {
+      setIsLoaderShow(true);
+      await requestLocationPer(
+        async (response: any) => {
+          const {latitude, longitude} = response;
+          await launchCamera(
+            {
+              mediaType: 'photo',
+              includeBase64: true,
+            },
+            async (response: any) => {
+              setIsLoaderShow(false);
+              dispatch({type: IS_LOADING, payload: false});
+
+              if (response.didCancel) {
+                console.log('User cancelled image picker');
+              } else if (response.errorCode) {
+                console.error('Image Picker Error:', response.errorMessage);
+              } else {
+                const {uri, base64, type} = response.assets[0];
+                console.log('response.assets[0]', uri);
+
+                try {
+                  // Get existing EXIF data
+                  const exifData = await Exif.getExif(uri);
+                  console.log('exifStr', JSON.stringify(exifData));
+                  const exifStr = exifData.exif ? exifData.exif : null;
+
+                  const timestamp = Date.now();
+                  // Add GPS Metadata
+                  const updatedBase64 = addMetadataToBase64(
+                    base64,
+                    exifStr,
+                    {
+                      latitude: latitude,
+                      longitude: longitude,
+                      timestamp,
+                    },
+                    exifData,
+                  );
+
+                  if (updatedBase64) {
+                    const newI = {
+                      uri: uri,
+                      base64: updatedBase64,
+                      type: type,
+                    };
+
+                    onImageSelected([newI]);
+                    dispatch({type: IS_LOADING, payload: false});
+
+                    closeModal();
+                  }
+                } catch (error) {
+                  console.error('Error getting EXIF:', error);
+                  closeModal();
+                  dispatch({type: IS_LOADING, payload: false});
+                }
+              }
+            },
+          );
+        },
+        (err: any) => {
+          setIsLoaderShow(false);
+          dispatch({type: IS_LOADING, payload: false});
+
+          console.log('<---current location error --->\n', err);
+        },
+      );
+    }
   };
 
-  const handleGallery = () => {
-    launchImageLibrary(
+  const handleGallery = async () => {
+    await launchImageLibrary(
       {
         mediaType: 'photo',
         includeBase64: true,

@@ -168,14 +168,40 @@ const SingleDropDownView = ({
   }, [currentLocation, field?.options?.options_from_api]);
 
   useEffect(() => {
-    if (isFocused) {
-      setTimeout(() => {
-        fetchDropdownList();
-      }, 500);
+    if (isEdit) {
+      if (isFocused) {
+        setTimeout(() => {
+          fetchDropdownList();
+        }, 500);
+      }
     }
   }, [field?.options?.options_from_api, loading, isFocused, currentLocation]);
 
   const onMultiSelectPress = () => {};
+
+  if (!isEdit) {
+    return (
+      <View
+        style={[
+          styles?.dropdown,
+          {flexDirection: 'row', alignItems: 'center'},
+        ]}>
+        <Text
+          style={formValues[field.id] ? styles.textStyle : styles.textStyle1}>
+          {formValues[field.id] ? formValues[field.id] : field.label}
+        </Text>
+        <Image
+          source={Icons.down}
+          style={{
+            width: 18,
+            height: 16,
+            resizeMode: 'contain',
+            tintColor: colors.gray,
+          }}
+        />
+      </View>
+    );
+  }
 
   if (field?.options?.options_from_api) {
     return (
@@ -255,10 +281,30 @@ const SingleDropDownView = ({
             }
           }}
           placeholderStyle={{
+            opacity: 0.8,
             ...commonFontStyle(400, 16, colors.black),
           }}
           selectedTextStyle={{
             ...commonFontStyle(400, 16, colors.black),
+          }}
+          activeColor={colors.naveBg}
+          renderItem={res => {
+            return (
+              <View style={styles.rowStyle}>
+                <Text
+                  style={[
+                    styles.inputStyle,
+                    {
+                      color:
+                        formValues[field.id] == res?.label
+                          ? '#fff'
+                          : colors.black,
+                    },
+                  ]}>
+                  {res?.label}
+                </Text>
+              </View>
+            );
           }}
         />
       </>
@@ -279,7 +325,7 @@ const SingleDropDownView = ({
         })) || []
       }
       containerStyle={{
-        borderRadius: 10,
+        borderRadius: 1,
         marginTop: 10,
       }}
       dropdownPosition="auto"
@@ -350,10 +396,28 @@ const SingleDropDownView = ({
         }
       }}
       placeholderStyle={{
+        opacity: 0.8,
         ...commonFontStyle(400, 16, colors.black),
       }}
       selectedTextStyle={{
         ...commonFontStyle(400, 16, colors.black),
+      }}
+      activeColor={colors.naveBg}
+      renderItem={res => {
+        return (
+          <View style={styles.rowStyle}>
+            <Text
+              style={[
+                styles.inputStyle,
+                {
+                  color:
+                    formValues[field.id] == res?.label ? '#fff' : colors.black,
+                },
+              ]}>
+              {res?.label}
+            </Text>
+          </View>
+        );
       }}
     />
   );
@@ -372,6 +436,28 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     remarkText: {
       ...commonFontStyle(400, fontValue + 15, colors.black),
       marginTop: 12,
+    },
+    textStyle: {
+      ...commonFontStyle(400, 16, colors.black),
+      flex: 1,
+    },
+    textStyle1: {
+      opacity: 0.7,
+      ...commonFontStyle(400, 16, colors.black),
+    },
+    rowStyle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: hp(5),
+      marginHorizontal: wp(2.5),
+      marginVertical: 8,
+    },
+    inputStyle: {
+      flex: 1,
+      margin: 0,
+      padding: 0,
+      marginHorizontal: wp(3),
+      ...commonFontStyle(400, 16, colors.black),
     },
   });
 };

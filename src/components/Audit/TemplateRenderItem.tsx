@@ -299,79 +299,135 @@ const TemplateRenderItem = ({
     // setSelectedPdf(api.BASE_URL + formValues?.[field.id]);
   };
 
+  console.log('currentLocation', currentLocation);
+
   const handleCameraLocation = async () => {
     setIsLoaderShow(true);
-    // dispatch({type: IS_LOADING, payload: true});
+    if (currentLocation) {
+      await launchCamera(
+        {
+          mediaType: 'photo',
+          includeBase64: true,
+        },
+        async (response: any) => {
+          setIsLoaderShow(false);
+          if (response.didCancel) {
+            dispatch({type: IS_LOADING, payload: false});
 
-    await requestLocationPer(
-      async (response: any) => {
-        const {latitude, longitude} = response;
-        launchCamera(
-          {
-            mediaType: 'photo',
-            includeBase64: true,
-          },
-          async (response: any) => {
-            setIsLoaderShow(false);
-            if (response.didCancel) {
-              dispatch({type: IS_LOADING, payload: false});
+            console.log('User cancelled image picker');
+          } else if (response.errorCode) {
+            dispatch({type: IS_LOADING, payload: false});
 
-              console.log('User cancelled image picker');
-            } else if (response.errorCode) {
-              dispatch({type: IS_LOADING, payload: false});
+            console.error('Image Picker Error:', response.errorMessage);
+          } else {
+            dispatch({type: IS_LOADING, payload: false});
 
-              console.error('Image Picker Error:', response.errorMessage);
-            } else {
-              dispatch({type: IS_LOADING, payload: false});
+            const {uri, base64, type} = response.assets[0];
+            try {
+              // Get existing EXIF data
+              const exifData = await Exif.getExif(uri);
 
-              const {uri, base64, type} = response.assets[0];
-              try {
-                // Get existing EXIF data
-                const exifData = await Exif.getExif(uri);
+              const exifStr = exifData.exif ? exifData.exif : null;
+              const timestamp = Date.now();
 
-                const exifStr = exifData.exif ? exifData.exif : null;
-                const timestamp = Date.now();
+              // Add GPS Metadata
+              const updatedBase64 = addMetadataToBase64(
+                base64,
+                exifStr,
+                {
+                  latitude: currentLocation?.latitude,
+                  longitude: currentLocation?.longitude,
+                  timestamp,
+                },
+                exifData,
+              );
 
-                // Add GPS Metadata
-                const updatedBase64 = addMetadataToBase64(
-                  base64,
-                  exifStr,
-                  {
-                    latitude: latitude,
-                    longitude: longitude,
-                    timestamp,
-                  },
-                  exifData,
-                );
+              if (updatedBase64) {
+                const newI = {
+                  uri: uri,
+                  base64: updatedBase64,
+                  type: type,
+                };
 
-                if (updatedBase64) {
-                  const newI = {
-                    uri: uri,
-                    base64: updatedBase64,
-                    type: type,
-                  };
-
-                  onUploadImage([newI], selectID.current);
-                }
-              } catch (error) {
-                dispatch({type: IS_LOADING, payload: false});
-                console.error('Error getting EXIF:', error);
+                onUploadImage([newI], selectID.current);
               }
+            } catch (error) {
+              dispatch({type: IS_LOADING, payload: false});
+              console.error('Error getting EXIF:', error);
             }
-          },
-        );
-      },
-      (err: any) => {
-        setIsLoaderShow(false);
-        dispatch({type: IS_LOADING, payload: false});
+          }
+        },
+      );
+    } else {
+      await requestLocationPer(
+        async (response: any) => {
+          const {latitude, longitude} = response;
+          await launchCamera(
+            {
+              mediaType: 'photo',
+              includeBase64: true,
+            },
+            async (response: any) => {
+              setIsLoaderShow(false);
+              if (response.didCancel) {
+                dispatch({type: IS_LOADING, payload: false});
 
-        console.log('<---current location error --->\n', err);
-      },
-    );
+                console.log('User cancelled image picker');
+              } else if (response.errorCode) {
+                dispatch({type: IS_LOADING, payload: false});
+
+                console.error('Image Picker Error:', response.errorMessage);
+              } else {
+                dispatch({type: IS_LOADING, payload: false});
+
+                const {uri, base64, type} = response.assets[0];
+                try {
+                  // Get existing EXIF data
+                  const exifData = await Exif.getExif(uri);
+
+                  const exifStr = exifData.exif ? exifData.exif : null;
+                  const timestamp = Date.now();
+
+                  // Add GPS Metadata
+                  const updatedBase64 = addMetadataToBase64(
+                    base64,
+                    exifStr,
+                    {
+                      latitude: latitude,
+                      longitude: longitude,
+                      timestamp,
+                    },
+                    exifData,
+                  );
+
+                  if (updatedBase64) {
+                    const newI = {
+                      uri: uri,
+                      base64: updatedBase64,
+                      type: type,
+                    };
+
+                    onUploadImage([newI], selectID.current);
+                  }
+                } catch (error) {
+                  dispatch({type: IS_LOADING, payload: false});
+                  console.error('Error getting EXIF:', error);
+                }
+              }
+            },
+          );
+        },
+        (err: any) => {
+          setIsLoaderShow(false);
+          dispatch({type: IS_LOADING, payload: false});
+          console.log('<---current location error --->\n', err);
+        },
+      );
+    }
   };
 
-  const handleCamera = () => {
-    launchCamera(
+  const handleCamera = async () => {
+    await launchCamera(
       {
         mediaType: 'photo',
         includeBase64: true,
@@ -394,8 +450,8 @@ const TemplateRenderItem = ({
     );
   };
 
-  const handleGallery = () => {
-    launchImageLibrary(
+  const handleGallery = async () => {
+    await launchImageLibrary(
       {
         mediaType: 'photo',
         includeBase64: true,

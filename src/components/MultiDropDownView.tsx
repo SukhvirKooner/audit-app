@@ -174,6 +174,69 @@ const MultiDropDownView = ({
 
   const onMultiSelectPress = () => {};
 
+  console.log('formValues[field.id]', formValues[field.id]);
+
+  if (!isEdit) {
+    return (
+      <>
+        <View
+          style={[
+            styles?.dropdown,
+            {flexDirection: 'row', alignItems: 'center'},
+          ]}>
+          <Text
+            style={formValues[field.id] ? styles.textStyle : styles.textStyle1}>
+            {field.label}
+          </Text>
+          <Image
+            source={Icons.down}
+            style={{
+              width: 18,
+              height: 16,
+              resizeMode: 'contain',
+              tintColor: colors.gray,
+            }}
+          />
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            marginTop: 6,
+            flexWrap: 'wrap',
+          }}>
+          {formValues[field.id]?.map(item => {
+            return (
+              <View
+                style={[
+                  styles?.dropdown,
+                  {
+                    marginRight: 6,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 5,
+                  },
+                ]}>
+                <Text style={styles.textStyle2}>{item}</Text>
+                <Image
+                  source={Icons.close}
+                  style={{
+                    width: 10,
+                    height: 10,
+                    resizeMode: 'contain',
+                    tintColor: colors.gray,
+                    marginLeft: 8,
+                  }}
+                />
+              </View>
+            );
+          })}
+        </View>
+      </>
+    );
+  }
+
+  console.log('formValues[field.id]', formValues[field.id]);
+
   if (field?.options?.options_from_api) {
     return (
       <MultiSelect
@@ -197,6 +260,7 @@ const MultiDropDownView = ({
         onChange={item => handleInputChangeMultiple(field.id, item, 'multiple')}
         itemContainerStyle={{backgroundColor: colors.modalBg}}
         placeholderStyle={{
+          opacity: 0.8,
           ...commonFontStyle(400, 16, colors.black),
         }}
         itemTextStyle={{
@@ -204,6 +268,26 @@ const MultiDropDownView = ({
         }}
         selectedTextStyle={{
           ...commonFontStyle(400, 16, colors.black),
+        }}
+        activeColor={colors.naveBg}
+        renderItem={res => {
+          return (
+            <View style={styles.rowStyle}>
+              <Text
+                style={[
+                  styles.inputStyle,
+                  {
+                    color:
+                      Array.isArray(formValues[field.id]) &&
+                      formValues[field.id].includes(res?.label)
+                        ? '#fff'
+                        : colors.black,
+                  },
+                ]}>
+                {res?.label}
+              </Text>
+            </View>
+          );
         }}
       />
     );
@@ -230,6 +314,7 @@ const MultiDropDownView = ({
       onChange={item => handleInputChangeMultiple(field.id, item, 'multiple')}
       itemContainerStyle={{backgroundColor: colors.modalBg}}
       placeholderStyle={{
+        opacity: 0.8,
         ...commonFontStyle(400, 16, colors.black),
       }}
       itemTextStyle={{
@@ -237,6 +322,26 @@ const MultiDropDownView = ({
       }}
       selectedTextStyle={{
         ...commonFontStyle(400, 16, colors.black),
+      }}
+      activeColor={colors.naveBg}
+      renderItem={res => {
+        return (
+          <View style={styles.rowStyle}>
+            <Text
+              style={[
+                styles.inputStyle,
+                {
+                  color:
+                    Array.isArray(formValues[field.id]) &&
+                    formValues[field.id].includes(res?.label)
+                      ? '#fff'
+                      : colors.black,
+                },
+              ]}>
+              {res?.label}
+            </Text>
+          </View>
+        );
       }}
     />
   );
@@ -255,6 +360,30 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
     remarkText: {
       ...commonFontStyle(400, fontValue + 15, colors.black),
       marginTop: 12,
+    },
+    textStyle: {
+      ...commonFontStyle(400, 16, colors.black),
+      flex: 1,
+    },
+    textStyle2: {
+      ...commonFontStyle(400, 16, colors.black),
+    },
+    textStyle1: {
+      opacity: 0.7,
+      ...commonFontStyle(400, 16, colors.black),
+    },
+    rowStyle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: hp(5),
+      marginHorizontal: wp(2.5),
+    },
+    inputStyle: {
+      flex: 1,
+      margin: 0,
+      padding: 0,
+      marginHorizontal: wp(3),
+      ...commonFontStyle(400, 16, colors.black),
     },
   });
 };
