@@ -1271,6 +1271,7 @@ const RepeatableTemplateRenderItem = ({
                       }}
                       uri={api.BASE_URL_VIEW + formValues?.[field.id]?.url}
                       imageStyle={{width: wp(30), height: hp(20)}}
+                      tintColor={colors.black}
                       containerStyle={
                         {
                           // ...styles.imageContainer,
