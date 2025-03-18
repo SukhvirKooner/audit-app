@@ -538,6 +538,7 @@ const TemplateRenderItem = ({
                   height: 18,
                   transform: [{rotate: '180deg'}],
                   resizeMode: 'contain',
+                  tintColor: colors.black,
                 }}
               />
             </TouchableOpacity>
@@ -1406,6 +1407,7 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       borderWidth: 1,
       flexDirection: 'row',
       alignItems: 'center',
+      borderColor: colors.black,
     },
     sectionTitle: {
       ...commonFontStyle(400, fontValue + 16, colors.white),

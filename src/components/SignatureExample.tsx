@@ -73,6 +73,7 @@ const SignatureExample = ({
     <>
       <Modal
         transparent={true}
+        style={{backgroundColor: 'red'}}
         visible={isVisible}
         onRequestClose={() => onCloseModal()}
         animationType="fade">
@@ -84,7 +85,7 @@ const SignatureExample = ({
               resizeMode="contain"
               source={Icons.close}
               style={styles.closeIconStyle}
-              tintColor={colors.black}
+              tintColor={'#000'}
             />
           </TouchableOpacity>
           <View style={styles.container}>
@@ -119,7 +120,7 @@ const getGlobalStyles = props => {
   const {colors, fontValue} = props;
   return StyleSheet.create({
     modalContainer: {
-      backgroundColor: colors.white,
+      backgroundColor: '#fff',
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
@@ -136,7 +137,7 @@ const getGlobalStyles = props => {
       top: 20,
     },
     buttonContainer: {
-      backgroundColor: colors.white,
+      backgroundColor: '#fff',
       flexDirection: 'row',
       gap: 20,
       marginHorizontal: 24,
@@ -145,7 +146,7 @@ const getGlobalStyles = props => {
     },
     btnView: {
       marginVertical: 8,
-      backgroundColor: colors.white,
+      // backgroundColor: colors.white,
       borderWidth: 1,
       padding: 10,
       paddingHorizontal: 25,
@@ -153,7 +154,7 @@ const getGlobalStyles = props => {
       borderColor: colors.gray,
     },
     btnText: {
-      ...commonFontStyle(400, fontValue + 16, colors.black),
+      ...commonFontStyle(400, fontValue + 16, '#000'),
     },
     signatureCanvas: {
       // flex: 1,

@@ -945,10 +945,11 @@ const RepeatableTemplateScreen = () => {
           generatePDF();
         }}
       />
-      <KeyboardAvoidingView
+      <ScrollView style={{flex: 1}}>
+        {/* <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         scrollEnabled={scrollEnabled}
-        keyboardVerticalOffset={hp(1)}>
+        keyboardVerticalOffset={hp(1)}> */}
         <FlatList
           data={
             params?.type === 'view'
@@ -965,17 +966,13 @@ const RepeatableTemplateScreen = () => {
                   field => !showFieldIds.includes(field.conditional_id),
                 )
           }
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => index.toString()}
           scrollEnabled={scrollEnabled}
           contentContainerStyle={{
             paddingBottom: Platform.OS === 'ios' ? hp(8) : hp(10),
             marginHorizontal: 16,
           }}
           renderItem={({item}: any) => {
-            const isAllIncluded = showFieldIds?.every(order =>
-              sections.some(field => field.conditional_id === order),
-            );
-
             return (
               <View style={styles.section}>
                 {item.field_type == 'heading' ||
@@ -1070,7 +1067,8 @@ const RepeatableTemplateScreen = () => {
           onClose={setImageModal}
         />
         <PdfDownloadModal isVisible={pdfModal} />
-      </KeyboardAvoidingView>
+        {/* </KeyboardAvoidingView> */}
+      </ScrollView>
     </SafeAreaView>
   );
 };
