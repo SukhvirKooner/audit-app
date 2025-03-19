@@ -52,6 +52,7 @@ import Exif from 'react-native-exif';
 import piexif from 'piexifjs';
 import SingleDropDownView from '../SingleDropDownView';
 import MultiDropDownView from '../MultiDropDownView';
+import ImageListView from '../ImageListView';
 // Define types for field options and validation rules
 interface ValidationRule {
   rule_type: string;
@@ -162,7 +163,7 @@ const RepeatableTemplateRenderItem = ({
   // const [selectID, setSelectID] = useState('');
   let selectID = useRef();
 
-  console.log('selectID', selectID.current);
+  console.log('selectID params', params?.apiData);
 
   const renderError = (fieldId: number) => {
     if (formErrors[fieldId]) {
@@ -692,6 +693,72 @@ const RepeatableTemplateRenderItem = ({
         );
       case 'image':
         console.log('formValues[field.id]', formValues[field.id]);
+
+        if (params?.type === 'view') {
+          return (
+            <>
+              <ImageListView
+                listData={formValues[field.id]}
+                handleDeleteImag={item => {
+                  handleDeleteImage(field.id, item.id);
+                }}
+                apiData={params?.apiData}
+                isEdit={isEdit}
+                onPress={item => {
+                  console.log('adadadadasdas', item);
+
+                  setShowImagePreview(true);
+                  setSelectedImageID(item?.id);
+                  setSelectedImage(api.BASE_URL_VIEW + item.url);
+                }}
+              />
+              {/* <FlatList
+                horizontal
+                contentContainerStyle={{
+                  gap: 10,
+                  overflow: 'visible',
+                  paddingRight: 20,
+                }}
+                data={formValues[field.id]}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={item => item.id}
+                renderItem={({item}: any) => (
+                  <View style={styles.imageContainer}>
+                    <CustomImage
+                      uri={api.BASE_URL_VIEW + item.url}
+                      size={hp(14)}
+                      // disabled={!isEdit}
+                      containerStyle={{borderRadius: 10, overflow: 'hidden'}}
+                      onPress={() => {
+                        setShowImagePreview(true);
+                        setSelectedImageID(item?.id);
+                        setSelectedImage(api.BASE_URL_VIEW + item.url);
+                      }}
+                    />
+                    {isEdit && (
+                      <CustomImage
+                        source={Icons.plus}
+                        disabled={!isEdit}
+                        size={hps(35)}
+                        onPress={() => {
+                          handleDeleteImage(field.id, item.id);
+                        }}
+                        containerStyle={{
+                          position: 'absolute',
+                          top: -0,
+                          right: -10,
+                        }}
+                        imageStyle={{transform: [{rotate: '45deg'}]}}
+                      />
+                    )}
+                  </View>
+                )}
+              /> */}
+              <Text style={styles.remarkText}>{field?.remark}</Text>
+              {renderError(field.id)}
+            </>
+          );
+        }
 
         return (
           <>

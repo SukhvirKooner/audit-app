@@ -19,6 +19,7 @@ import {
 import axios from 'axios';
 import {getAsyncToken} from '../utils/asyncStorageManager';
 import {errorToast} from '../utils/commonFunction';
+import {Alert} from 'react-native';
 
 interface requestProps {
   data?: any;
@@ -163,7 +164,7 @@ export const createAudits =
       })
       .catch(error => {
         console.log('error', error);
-
+        Alert.alert(JSON.stringify(error?.response?.data));
         handleErrorRes(error, onFailure, dispatch);
         dispatch({type: IS_LOADING, payload: false});
       });
@@ -368,3 +369,54 @@ export const uploadImageDataAction = async ({
       }
     });
 };
+
+export const getUploadImage = async ({data, onSuccess, onFailure}) => {
+  // dispatch({type: IS_LOADING, payload: true});
+  console.log('uploadImagedata', data);
+  let header = {
+    Authorization: await getAsyncToken(),
+    Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+  };
+  return makeAPIRequest({
+    method: GET,
+    url: `${api.upload_image}${data}/`,
+    headers: header,
+  })
+    .then(async (response: any) => {
+      if (onSuccess) {
+        onSuccess(response.data);
+      }
+    })
+    .catch(error => {
+      if (onFailure) {
+        onFailure(error?.response);
+      }
+      // dispatch({type: IS_LOADING, payload: false});
+    });
+};
+
+export const imageDataAction =
+  ({
+    data,
+    onSuccess,
+    onFailure,
+  }: requestProps): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async dispatch => {
+    let header = {
+      Authorization: await getAsyncToken(),
+      Cookie: 'csrftoken=2etmNDs2TbhR9edMb7POwYsXxW6eVPPS',
+    };
+    console.log('tokenDropDownListAction');
+
+    return makeAPIRequest({
+      method: GET,
+      url: `${api.upload_image}${data}/`,
+      headers: header,
+    })
+      .then(async (response: any) => {
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+      })
+      .catch(error => {});
+  };

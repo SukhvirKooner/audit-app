@@ -106,6 +106,7 @@ const RepeatableDetailsScreen = () => {
       },
       audit: params?.audit,
       type: 'view',
+      apiData: !params?.isEdit,
     });
   };
 
@@ -118,6 +119,8 @@ const RepeatableDetailsScreen = () => {
 
     dispatch({type: GET_REPEATABLE_AUDITS_DETAILS, payload: newValue});
   };
+
+  console.log('!params?.isEdit', !params?.isEdit);
 
   const renderAudit = ({item, index}: any) => {
     return (

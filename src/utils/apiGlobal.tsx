@@ -32,7 +32,7 @@ export const makeAPIRequest = ({
       headers,
       params,
     };
-    console.log('<===option==>', option);
+    console.log('<===option==>', JSON.stringify(option));
     axios(option)
       .then((response: any) => {
         // console.log('response-->', response);
