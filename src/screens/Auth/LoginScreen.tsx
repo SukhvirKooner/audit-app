@@ -38,10 +38,10 @@ const LoginScreen = () => {
     [colors, fontValue],
   );
 
-  const [userName, setUserName] = useState(__DEV__ ? 'admin' : '');
-  const [password, setPassword] = useState(__DEV__ ? 'Ibigroup@1998' : '');
-  // const [userName, setUserName] = useState(__DEV__ ? 'Site_test' : '');
-  // const [password, setPassword] = useState(__DEV__ ? 'Ibigroup@123' : '');
+  // const [userName, setUserName] = useState(__DEV__ ? 'admin' : '');
+  // const [password, setPassword] = useState(__DEV__ ? 'Ibigroup@1998' : '');
+  const [userName, setUserName] = useState(__DEV__ ? 'BSNL_Site' : '');
+  const [password, setPassword] = useState(__DEV__ ? '123@arcadis' : '');
 
   const onLogin = () => {
     if (userName.trim() === '') {

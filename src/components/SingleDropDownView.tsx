@@ -211,6 +211,9 @@ const SingleDropDownView = ({
           onFocus={() => {
             setLoading(true);
           }}
+          search
+          searchPlaceholder="Search..."
+          inputSearchStyle={styles.searchStyle} // Custom search bar style
           onBlur={() => {
             setLoading(false);
           }}
@@ -222,6 +225,11 @@ const SingleDropDownView = ({
           containerStyle={{
             borderRadius: 10,
             marginTop: 10,
+            backgroundColor: colors.modalBg,
+          }}
+          searchPlaceholderTextColor={colors.black}
+          iconStyle={{
+            tintColor: colors.black,
           }}
           dropdownPosition="auto"
           labelField="label"
@@ -318,6 +326,9 @@ const SingleDropDownView = ({
         ...styles.dropdown,
         backgroundColor: isEdit ? colors.gray_ea : 'transparent',
       }}
+      search
+      searchPlaceholder="Search..."
+      inputSearchStyle={styles.searchStyle} // Custom search bar style
       data={
         field.options?.choices?.map((choice: any) => ({
           label: choice,
@@ -327,6 +338,7 @@ const SingleDropDownView = ({
       containerStyle={{
         borderRadius: 1,
         marginTop: 10,
+        backgroundColor: colors.modalBg,
       }}
       dropdownPosition="auto"
       labelField="label"
@@ -399,6 +411,10 @@ const SingleDropDownView = ({
         opacity: 0.8,
         ...commonFontStyle(400, 16, colors.black),
       }}
+      searchPlaceholderTextColor={colors.black}
+      iconStyle={{
+        tintColor: colors.black,
+      }}
       selectedTextStyle={{
         ...commonFontStyle(400, 16, colors.black),
       }}
@@ -458,6 +474,14 @@ const getGlobalStyles = ({colors, fontValue}: any) => {
       padding: 0,
       marginHorizontal: wp(3),
       ...commonFontStyle(400, 16, colors.black),
+    },
+    searchStyle: {
+      backgroundColor: colors.modalBg, // Light gray background
+      borderRadius: 8,
+      ...commonFontStyle(400, fontValue + 15, colors.black),
+      // padding: 10,
+      // fontSize: 16,
+      // color: '#333',
     },
   });
 };
