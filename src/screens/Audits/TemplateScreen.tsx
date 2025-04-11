@@ -64,6 +64,8 @@ import {
   navigateTo,
   successToast,
 } from '../../utils/commonFunction';
+
+import RNPrint from 'react-native-print';
 import PdfDownloadModal from '../../components/PdfDownloadModal';
 import RenderCheckbox from '../../components/RenderCheckbox';
 import {
@@ -177,6 +179,11 @@ const filterSectionData = (section: any[], formValue: {[key: string]: any}) => {
 const TemplateScreen = () => {
   const {t} = useTranslation();
   const {params}: any = useRoute();
+
+
+
+  console.log('TemplateScreen params:', params);
+  console.log('TemplateScreen templateData:', params?.templateData);
   const dispatch = useAppDispatch();
   const {colors}: any = useTheme();
   const {fontValue, userInfo} = useAppSelector(state => state.common);
@@ -553,62 +560,100 @@ const TemplateScreen = () => {
       });
     }
   };
+  
+  // This function is no longer needed as we're using handlesConditionalFieldsss
+  // Keeping it for backward compatibility with other code
   const handlesConditionalFields = (id, value) => {
     if (value?.length !== 0) {
-      let newField = {
+      const newField = {
         id: id,
         show_fields: value,
       };
-      let updateValue = conditionalFields?.find(item => item?.id == id);
-
-      if (updateValue?.id == id) {
+      const existingField = conditionalFields?.find(item => item?.id === id);
+      
+      if (existingField) {
         setConditionalFields(prevFields =>
-          prevFields.filter(list => list?.id !== id),
+          prevFields.map(field => 
+            field.id === id ? newField : field
+          )
         );
       } else {
         setConditionalFields(prevFields => [...prevFields, newField]);
       }
     }
   };
-
-  const handlesConditionalFieldsss = (id, value) => {
-    setConditionalFields(prevFields =>
-      prevFields.filter(list => list?.id !== id),
-    );
-  };
-
-  const handlesConditionalFieldDropDown = (id, value) => {
-    let newValue = [];
-    const newDataList = templateData
-      .filter(field => field.conditional_fields?.length > 0)
-      .flatMap(field =>
-        field.conditional_fields.map((cf, index) => ({
-          id: `${field.id}-${cf.show_fields}`,
-          show_fields: cf.show_fields,
-        })),
-      )
-      .map(list => {
-        if (list?.id !== id) {
-          newValue.push(list);
-        }
-      });
-
-    setConditionalFields(newValue);
-  };
-
-  const handlesConditionalFieldsRemove = (id, value) => {
-    let updateValue = conditionalFields.find(item => item?.id == id);
-
-    if (updateValue?.id == id) {
-      setConditionalFields(conditionalFields);
-    } else {
-      let newField = {
+  
+  const   handlesConditionalFieldsRemove = (id, value) => {
+    if (value) {
+      const newField = {
         id: id,
         show_fields: value,
       };
-      setConditionalFields(prevFields => [...prevFields, newField]);
+      
+      setConditionalFields(prevFields => {
+        const filteredFields = prevFields.filter(list => list?.id !== id);
+        return [...filteredFields, newField];
+      });
     }
   };
+  
+  const handlesConditionalFieldsss = (id) => {
+    setConditionalFields(prevFields =>
+      prevFields.filter(item => item.id !== id)
+    );
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handlesConditionalFieldDropDown = (id, value) => {
+    // Find the field with matching conditional fields
+    const updatedFields = templateData
+        .filter(field => field.conditional_fields?.length > 0)
+        .flatMap(field =>
+            field.conditional_fields.map((cf, index) => ({
+                id: `${field.id}-${cf.show_fields}`,
+                key: `${field.id}-${index}`, // Unique key for each conditional field
+                show_fields: cf.show_fields,
+                condition_value: cf.condition_value, // Add condition value for comparison
+            }))
+        );
+
+    // Find the matching conditional field based on the selected value
+    const matchingField = updatedFields.find(
+        field => field.id === id && field.condition_value === value
+    );
+
+    if (matchingField) {
+        // Add or update the conditional field in the state
+        setConditionalFields(prevFields => {
+            // Remove any existing field with the same ID
+            const filteredFields = prevFields.filter(item => item.id !== id);
+            return [...filteredFields, matchingField];
+        });
+    } else {
+        // If no matching field, remove the field from the state
+        setConditionalFields(prevFields =>
+            prevFields.filter(item => item.id !== id)
+        );
+    }
+};
+
 
   const validateField = (field: FormField, value: any): string | null => {
     const {validation_rules, label, is_required}: any = field;
@@ -936,7 +981,8 @@ const TemplateScreen = () => {
   const generatePDF = async () => {
     try {
       setPdfModal(true);
-      // Group Data by Section
+  
+      // Group Data by Section (unchanged)
       const subFields = [
         ...templateData
           .map(section => section.sub_fields)
@@ -944,19 +990,18 @@ const TemplateScreen = () => {
           .filter(subField => subField !== null),
         ...templateData,
       ];
-
+  
       const groupedData = Object.entries(formValues).reduce(
-        (acc: any, [key, value]) => {
+        (acc, [key, value]) => {
           const template = memoizedValue.find(
             field => field.id.toString() === key,
           );
-
           if (template) {
-            const section = template.section_heading;
+            const section = template.section_heading || 'Default';
             if (!acc[section]) acc[section] = [];
             acc[section].push({
               label: template.label,
-              value: value ? value : '-',
+              value: value ? value : 'N/A',
               fieldValue: typeof value === 'object' ? 'image' : 'text',
             });
           }
@@ -964,121 +1009,289 @@ const TemplateScreen = () => {
         },
         {},
       );
-
-      console.log('groupedData', JSON.stringify(groupedData));
-
-      // Profile image path (for local image)
-      const profileImagePath = groupedData?.Profile
-        ? groupedData?.Profile[0]?.value
-        : null;
-
-      const htmlContent = `<html>
-      <head>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-          }
-          .header {
-            text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
-          }
-              .footer {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: #333;
-            counter-reset: page;
-        }
-        .footer::before {
-            counter-increment: page;
-            content: "Page " counter(page);
-        }
-          .content {
-            text-align: justify;
-            margin: 0 20px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-        <h1 style="text-align: left;color:#054DA4" >${
-          params?.auditItem?.title
-        }</h1>
-        <p style="text-align: left;font-size:140%;">${
-          params?.auditItem?.description
-        }</p>
-        </div>
-        <div class="content">
-         ${Object.entries(groupedData)
-           .map(
-             ([section, fields]: any) => `
-             <h2>${section === 'Profile' ? `<br>` : `<br>`}</h2>
-             ${fields
-               .map(
-                 (field: any, index: any) =>
-                   `
-                ${
-                  field.value == 'Invalid date'
-                    ? `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
-                        field.label
-                      }:</strong></h2><p style="font-size:150%;margin-left: 40px;">-</p>`
-                    : field.fieldValue === 'image'
-                    ? `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
-                        field.label
-                      }:</strong></h2>${field.value
-                        .map(
-                          (item: any) => `
-                        <img src="${
-                          api.BASE_URL_VIEW + item.url
-                        }" alt="Image" width="300" height="300" />
-                      `,
-                        )
-                        .join('')}`
-                    : `<h2 style="margin-top: 60px"><strong>${index + 1}. ${
-                        field.label
-                      }:</strong></h2><p style="font-size:150%;margin-left: 30px;">${
-                        field.value
-                      }</p>`
-                } `,
-               )
-               .join('')}
-           `,
-           )
-           .join('')}
-        </div>
-                <p style="font-size:150%;margin-top: 120px; text-align: center;margin-bottom: 50px;">----- End ------</p>
-
-        <div c style="display: flex; align-items: center; gap: 20px;justify-content: space-between; ">
-        <div>
-              <img  src="${'https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/National_Highways_Authority_of_India_logo.svg/600px-National_Highways_Authority_of_India_logo.svg.png?20110614062054'}" alt="Profile Picture" width="100" height="100" />
-              <img style="margin:10px"  src="${'https://scontent.famd15-1.fna.fbcdn.net/v/t39.30808-1/451622324_884403687042073_7161878331476152652_n.jpg?stp=dst-jpg_s480x480_tt6&_nc_cat=103&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=eTma363D5bcQ7kNvgEJ3KcL&_nc_zt=24&_nc_ht=scontent.famd15-1.fna&_nc_gid=AQQ9Phw5i3LrtKGDXOUbmAB&oh=00_AYDIj3OMyOGEHoGdWn0FfZDlYmPVdj9C6-ra7J85sDdALw&oe=676A144B'}" alt="Profile Picture" width="100" height="100" />
-           </div>
-          </div>    
-          
-      </body>
-    </html>`;
-      const pdf = await RNHTMLtoPDF.convert({
-        html: htmlContent,
-        fileName: 'Report',
-        directory: 'Documents',
+  
+      // Define map coordinates
+      const mapLat = currentLocation?.latitude || 28.4348339;
+      const mapLng = currentLocation?.longitude || 77.1065293;
+  
+      const logoUrl = params?.templateData?.logo || '';
+      // Mappls API credentials and parameters
+      const restAPIKey = '236866cde2288d1cea916c0c188cf654';
+      const mapUrl = `https://apis.mappls.com/advancedmaps/v1/${restAPIKey}/still_image`;
+  
+      // Prepare query parameters as per the curl command
+      const queryParams = new URLSearchParams({
+        center: `${mapLat},${mapLng}`,
+        zoom: '15',
+        size: '300x200',
+        ssf: '1',
+        markers: `${mapLat},${mapLng}`,
       });
-
-      // Alert.alert('Success', `PDF saved at: ${pdf.filePath}`);
-      // setPdfFilePath(pdf.filePath);
-      setTimeout(() => {
-        setPdfModal(false);
-        navigateTo(SCREENS.PdfScreen, {pdfPath: pdf.filePath, showIcon: true});
-      }, 300);
+  
+      // Fetch and convert map image to data URI using POST
+      let mapDataUri = '';
+      try {
+        const mapResponse = await fetch(`${mapUrl}?${queryParams.toString()}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'image/png',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        });
+  
+        if (!mapResponse.ok) {
+          throw new Error(`Map API responded with status: ${mapResponse.status}`);
+        }
+  
+        const mapBlob = await mapResponse.blob();
+        const reader = new FileReader();
+        mapDataUri = await new Promise((resolve) => {
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(mapBlob);
+        });
+        console.log('Map image converted to data URI successfully');
+      } catch (mapError) {
+        console.error('Error downloading map:', mapError);
+      }
+  
+      // Get current date for the footer
+      const currentDate = moment().format('MMMM D, YYYY');
+  
+    
+      const htmlContent = `<html>
+        <head>
+          <style>
+            @page {
+              margin: 20px;
+              size: A4;
+              @bottom-left {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10pt;
+              }
+              @bottom-right {
+                content: "${currentDate}";
+                font-size: 10pt;
+              }
+            }
+            body {
+              font-family: Arial, sans-serif;
+              padding: 0;
+              color: #000000;
+              margin: 0;
+            }
+            .header {
+              margin-bottom: 20px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 10px;
+            }
+            .header-content {
+              flex: 1;
+            }
+            .title {
+              font-size: 24px;
+              font-weight: bold;
+              margin: 0 0 5px 0;
+            }
+            .subtitle {
+              font-size: 14px;
+              margin: 0 0 3px 0;
+              font-weight: normal;
+            }
+            .section-heading {
+              font-size: 14px;
+              font-weight: bold;
+              margin: 15px 0 5px 0;
+              background-color: #f0f0f0;
+              padding: 5px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 10px 0;
+            }
+            th, td {
+              border: 1px solid #000000;
+              padding: 8px;
+              text-align: left;
+              font-size: 12px;
+            }
+            th {
+              font-weight: normal;
+              width: 40%;
+              background-color: #f9f9f9;
+            }
+            td {
+              width: 60%;
+            }
+            .location-info {
+              font-size: 12px;
+              margin: 5px 0;
+            }
+            .location-info p {
+              margin: 2px 0;
+              display: flex;
+              align-items: center;
+            }
+            .location-info p:before {
+              content: "⨀";
+              margin-right: 5px;
+              font-size: 10px;
+            }
+            .footer {
+              font-size: 12px;
+              border-top: 1px solid #ddd;
+              padding-top: 5px;
+              display: none;
+            }
+            .image-container {
+              text-align: right;
+            }
+            .image-container img {
+              width: 120px;
+              height: 120px;
+              object-fit: cover;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+            }
+            .map-container {
+              margin: 10px 0;
+              width: 100%;
+              max-width: 500px;
+            }
+            table {
+              page-break-inside: avoid;
+            }
+            .section {
+              page-break-inside: avoid;
+              page-break-before: auto;
+            }
+            .created-info {
+              display: flex;
+              flex-direction: column;
+              margin-top: 5px;
+            }
+            .created-info div {
+              display: flex;
+              align-items: center;
+              font-size: 14px;
+              margin-bottom: 3px;
+            }
+            .created-info div svg {
+              margin-right: 5px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="header-content">
+              <h1 class="title">${params?.templateData?.title || 'Test Select'}</h1>
+              <p class="subtitle">${params?.templateData?.description || 'Test Select'}</p>
+              
+              <div class="created-info">
+                <div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12.5 7H11V13L16.2 16.2L17 14.9L12.5 12.2V7Z" fill="black"/>
+                  </svg>
+                  ${moment(params?.templateData?.created_at).format('MM/DD/YYYY, hh:mm A')} GMT+5:30
+                </div>
+                <div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 6C13.1 6 14 6.9 14 8C14 9.1 13.1 10 12 10C10.9 10 10 9.1 10 8C10 6.9 10.9 6 12 6ZM12 13C9.33 13 4 14.34 4 17V20H20V17C20 14.34 14.67 13 12 13ZM18 18H6V17.01C6.2 16.29 9.3 15 12 15C14.7 15 17.8 16.29 18 17V18Z" fill="black"/>
+                  </svg>
+                  admin
+                </div>
+              </div>
+            </div>
+            <div class="image-container">
+              ${
+                logoUrl
+                  ? `<img src="${logoUrl}" alt="Logo" />`
+                  : `<img src="/api/placeholder/120/120" alt="placeholder" />`
+              }
+            </div>
+          </div>
+      
+          <hr style="border: none; border-top: 1px solid #ddd; margin: 10px 0 20px 0;">
+      
+          <div class="location-info">
+            <p><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="black"/>
+            </svg> ${currentLocation ? `${currentLocation.latitude}, ${currentLocation.longitude}` : '17.4751744, 78.3712256'}</p>
+          </div>
+      
+          <div class="content">
+            ${Object.entries(groupedData).map(([section, fields]) => `
+              <div class="section">
+                <div class="section-heading">${section}</div>
+                <table>
+                  ${fields.map((field) => `
+                    <tr>
+                      <th>${field.label}</th>
+                      <td>${
+                        field.fieldValue === 'image' ?
+                          Array.isArray(field.value) ? field.value.map((item) => `
+                            <div class="image-container">
+                              <img src="${api.BASE_URL_VIEW + item.url}" alt="Image" />
+                            </div>
+                          `).join('') : 'N/A' :
+                        field.value === 'Invalid date' ? 'N/A' :
+                        field.value
+                      }</td>
+                    </tr>
+                  `).join('')}
+                  ${
+                    section === 'Field Attendance' || section === 'Default' ? 
+                    `
+                    <tr>
+                      <th>Survey LatLong</th>
+                      <td>
+                        <div class="image-container">
+                          ${mapDataUri ? `
+                            <img class="map-img" src="${mapDataUri}" alt="Location Map" />
+                          ` : `
+                            <div style="width:180px;height:120px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;background-color:#f9f9f9;">
+                              Location Map (${mapLat}, ${mapLng})
+                            </div>
+                          `}
+                        </div>
+                      </td>
+                    </tr>
+                    ` : ''
+                  }
+                </table>
+              </div>
+            `).join('')}
+          </div>
+        </body>
+      </html>`;
+      // Generate the PDF using react-native-print
+      const options = {
+        html: htmlContent,
+        fileName: 'Field_Attendance',
+        base64: false,
+      };
+  
+      const results = await RNPrint.print(options);
+      
+      // Note: react-native-print by default opens the PDF viewer
+      // If you want to navigate to your custom PDF screen, you'll need to save
+      // the file first and then navigate to your screen
+      
+      setPdfModal(false);
+      
+      // If you need to save to a file and navigate:
+      // navigateTo(SCREENS.PdfScreen, { pdfPath: results.filePath, showIcon: true });
+      
     } catch (error) {
-      console.log('error', error);
+      console.log('Error generating PDF:', error);
       Alert.alert('Error', 'Failed to generate PDF');
       setPdfModal(false);
     }
   };
+
 
   const getLocationID = (fields: any[], type?: string) => {
     if (type === 'current') {
@@ -1229,7 +1442,7 @@ const TemplateScreen = () => {
       <CustomHeader
         title={params?.headerTitle}
         // subTitle={'22 Nov 2024'}
-        downloadIcon={false}
+        downloadIcon={isEdit ? false : params?.type === 'edit' ? false : true}
         refreshIcon={params?.type === 'edit' ? false : true}
         showMap
         editIcon={isEdit ? false : params?.type === 'edit' ? true : false}

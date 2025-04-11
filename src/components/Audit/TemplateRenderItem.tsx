@@ -910,7 +910,7 @@ const TemplateRenderItem = ({
               open={open}
               mode="date"
               theme="auto"
-              minimumDate={new Date()}
+              // minimumDate={new Date()}
               date={
                 formValues[field.id]
                   ? new Date(formValues[field.id])

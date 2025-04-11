@@ -104,6 +104,7 @@ const AuditDetailsScreen = () => {
           headerTitle: getTitle(item.fields),
           auditItem: params?.auditItem,
           auditDetails: res,
+          templateData: templateData,
           type: 'view',
         });
       },
